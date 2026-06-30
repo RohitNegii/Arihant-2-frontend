@@ -12,7 +12,7 @@ interface CardProps {
 
 function CollectionCard({ title, subtitle, image, price }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  
+
   // Motion values for mouse coordinates
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -24,7 +24,7 @@ function CollectionCard({ title, subtitle, image, price }: CardProps) {
   function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    
+
     // Relative position inside card (-0.5 to 0.5)
     const relativeX = (event.clientX - rect.left) / rect.width - 0.5;
     const relativeY = (event.clientY - rect.top) / rect.height - 0.5;
@@ -52,7 +52,7 @@ function CollectionCard({ title, subtitle, image, price }: CardProps) {
     >
       {/* Glow border ring */}
       <div className="absolute inset-0 bg-radial from-verdant-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-      
+
       {/* Sheen reflection effect */}
       <div className="absolute -inset-full bg-linear-to-tr from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none" />
 
@@ -98,25 +98,25 @@ export default function Collections() {
     {
       title: "Diamond Rings",
       subtitle: "Infinite Brilliance",
-      image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80",
+      image: "/emerald_ring.png",
       price: "From $12,500",
     },
     {
       title: "Necklaces",
       subtitle: "Sculpted Elegance",
-      image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
+      image: "/emerald_necklace.png",
       price: "From $8,200",
     },
     {
       title: "Bracelets",
       subtitle: "Modern Orbits",
-      image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=600&q=80",
+      image: "/gold_bracelet.png",
       price: "From $6,400",
     },
     {
-      title: "Wedding Collection",
-      subtitle: "Timeless Vows",
-      image: "https://images.unsplash.com/photo-1543294001-f7cbfe92237e?auto=format&fit=crop&w=600&q=80",
+      title: "Earrings",
+      subtitle: "Botanical Drops",
+      image: "/emerald_earrings.png",
       price: "From $15,000",
     },
   ];
@@ -124,9 +124,9 @@ export default function Collections() {
   return (
     <section id="collections" className="relative py-24 md:py-32 bg-transparent border-t border-verdant-emerald/5">
       <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-radial from-[#bf953f]/3 to-transparent blur-[140px] pointer-events-none" />
-      
+
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        
+
         {/* Title details */}
         <div className="flex flex-col items-center text-center mb-16 md:mb-24">
           <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold mb-3 font-light">
@@ -152,7 +152,7 @@ export default function Collections() {
             </motion.div>
           ))}
         </div>
-        
+
       </div>
     </section>
   );

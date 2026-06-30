@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 
 export default function MouseFollower() {
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
 
-  const springConfig = { damping: 30, stiffness: 250, mass: 0.5 };
-  const cursorX = useSpring(mouseX, springConfig);
-  const cursorY = useSpring(mouseY, springConfig);
+  // Fast spring for the inner dot to keep it highly responsive
+  const dotSpringConfig = { damping: 20, stiffness: 450, mass: 0.2 };
+  const dotX = useSpring(mouseX, dotSpringConfig);
+  const dotY = useSpring(mouseY, dotSpringConfig);
+
+  // Slower spring for the outer ring to create a fluid, lagging trail effect
+  const ringSpringConfig = { damping: 25, stiffness: 150, mass: 0.8 };
+  const ringX = useSpring(mouseX, ringSpringConfig);
+  const ringY = useSpring(mouseY, ringSpringConfig);
 
   const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -23,7 +29,6 @@ export default function MouseFollower() {
 
     window.addEventListener("mousemove", moveCursor);
 
-    // Event listeners to detect hovering over hoverable elements
     const handleMouseEnter = () => setIsHovered(true);
     const handleMouseLeave = () => setIsHovered(false);
 
@@ -37,7 +42,6 @@ export default function MouseFollower() {
       });
     };
 
-    // Set up MutationObserver to re-bind events if elements dynamically mount
     const observer = new MutationObserver(updateHoverListeners);
     observer.observe(document.body, { childList: true, subtree: true });
 
@@ -60,38 +64,53 @@ export default function MouseFollower() {
 
   return (
     <>
-      {/* Outer Glow Ring */}
+      {/* Outer Glow Ring (with elastic lag trailing) */}
       <motion.div
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999]"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999] flex items-center justify-center overflow-hidden"
         style={{
-          x: cursorX,
-          y: cursorY,
+          x: ringX,
+          y: ringY,
           translateX: "-50%",
           translateY: "-50%",
-          width: isHovered ? 64 : 24,
-          height: isHovered ? 64 : 24,
+          width: isHovered ? 52 : 24,
+          height: isHovered ? 52 : 24,
           border: isHovered
-            ? "1px solid rgba(255, 255, 255, 0.8)"
-            : "1px solid rgba(212, 175, 55, 0.6)",
+            ? "1px solid rgba(255, 90, 31, 0.7)"
+            : "1px solid rgba(255, 255, 255, 0.3)",
           background: isHovered
-            ? "radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0) 70%)"
-            : "radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0) 70%)",
+            ? "rgba(255, 90, 31, 0.08)"
+            : "rgba(255, 255, 255, 0.01)",
           boxShadow: isHovered
-            ? "0 0 20px rgba(212, 175, 55, 0.3)"
-            : "0 0 8px rgba(212, 175, 55, 0.1)",
+            ? "0 0 15px rgba(255, 90, 31, 0.25)"
+            : "none",
         }}
-        transition={{ type: "tween", ease: "backOut", duration: 0.2 }}
-      />
-      {/* Inner Dot */}
+        transition={{ type: "spring", stiffness: 180, damping: 20 }}
+      >
+        <AnimatePresence>
+          {isHovered && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              className="font-serif italic text-[#ff5a1f] text-[9px] tracking-wide"
+            >
+              view
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Inner Sparkle Dot (tight snap tracking) */}
       <motion.div
-        className="fixed top-0 left-0 w-1.5 h-1.5 bg-luxury-gold rounded-full pointer-events-none z-[10000]"
+        className="fixed top-0 left-0 w-1.5 h-1.5 bg-[#ff5a1f] rounded-full pointer-events-none z-[10000] shadow-[0_0_8px_#ff5a1f]"
         style={{
-          x: cursorX,
-          y: cursorY,
+          x: dotX,
+          y: dotY,
           translateX: "-50%",
           translateY: "-50%",
-          scale: isHovered ? 0.5 : 1,
+          scale: isHovered ? 0 : 1,
         }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.15 }}
       />
     </>
   );

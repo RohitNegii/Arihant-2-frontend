@@ -18,28 +18,28 @@ export default function BestSellers() {
       id: 1,
       name: "Solitaire Emerald Pendant",
       price: "$8,200",
-      image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=500&q=80",
+      image: "/emerald_necklace.png",
       category: "Necklaces",
     },
     {
       id: 2,
       name: "Botanical Cluster Ring",
       price: "$12,500",
-      image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=500&q=80",
+      image: "/emerald_ring.png",
       category: "Rings",
     },
     {
       id: 3,
       name: "Dewdrop Emerald Studs",
       price: "$6,800",
-      image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=500&q=80",
+      image: "/emerald_earrings.png",
       category: "Earrings",
     },
     {
       id: 4,
       name: "Intertwined Vines Bracelet",
       price: "$9,400",
-      image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=500&q=80",
+      image: "/gold_bracelet.png",
       category: "Bracelets",
     },
   ];
@@ -65,7 +65,7 @@ export default function BestSellers() {
       <div className="absolute top-[20%] left-[-15%] w-[45vw] h-[45vw] bg-radial from-[#C8A96A]/3 to-transparent blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        
+
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-16 md:mb-24">
           <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold mb-3 font-light">
@@ -95,7 +95,7 @@ export default function BestSellers() {
                 {/* Product Image Wrapper */}
                 <div className="w-full aspect-square overflow-hidden relative bg-[#F8F4EA]/20 flex items-center justify-center p-4">
                   <div className="absolute inset-0 bg-radial from-verdant-gold/3 via-transparent to-transparent opacity-60" />
-                  
+
                   {/* Floating Action Buttons */}
                   <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
                     <button
@@ -103,9 +103,8 @@ export default function BestSellers() {
                       className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-xs flex items-center justify-center text-verdant-emerald border border-verdant-emerald/5 hover:border-verdant-gold/50 shadow-md transition-all duration-300 hover:scale-110 cursor-pointer"
                     >
                       <Heart
-                        className={`w-4 h-4 transition-colors ${
-                          isWishlisted ? "fill-red-500 text-red-500" : "text-verdant-emerald"
-                        }`}
+                        className={`w-4 h-4 transition-colors ${isWishlisted ? "fill-red-500 text-red-500" : "text-verdant-emerald"
+                          }`}
                       />
                     </button>
                     <button
@@ -142,11 +141,10 @@ export default function BestSellers() {
                     {/* Add to Cart CTA */}
                     <button
                       onClick={() => toggleCart(prod.id)}
-                      className={`hover-target flex items-center gap-1 px-4 py-2 rounded-full text-[10px] tracking-widest uppercase font-semibold border transition-all duration-300 cursor-pointer ${
-                        isInCart
+                      className={`hover-target flex items-center gap-1 px-4 py-2 rounded-full text-[10px] tracking-widest uppercase font-semibold border transition-all duration-300 cursor-pointer ${isInCart
                           ? "bg-verdant-emerald border-verdant-emerald text-[#F8F4EA]"
                           : "border-verdant-emerald/20 text-verdant-emerald hover:border-verdant-gold hover:bg-verdant-gold/5"
-                      }`}
+                        }`}
                     >
                       {isInCart ? (
                         <>
@@ -229,7 +227,7 @@ export default function BestSellers() {
             </motion.div>
           )}
         </AnimatePresence>
-        
+
       </div>
     </section>
   );

@@ -34,10 +34,10 @@ function ScrollControlledRing() {
 
     let targetX = 1.0 * xMultiplier;
     let targetY = 0.0;
-    let targetZ = 0.0;
+    const targetZ = 0.0;
     let targetScale = isMobile ? 0.8 : 1.05;
     let targetRotX = 0.0;
-    let targetRotY = time * 0.15 + progress * 6.5;
+    const targetRotY = time * 0.15 + progress * 6.5;
 
     // Define scroll keyframes
     if (progress < 0.12) {

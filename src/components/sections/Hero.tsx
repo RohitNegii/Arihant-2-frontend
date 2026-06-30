@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar } from "lucide-react";
 
 function MagneticButton({
@@ -42,15 +42,67 @@ function MagneticButton({
 }
 
 export default function Hero() {
+  const [holdProgress, setHoldProgress] = useState(0);
+  const [isHolding, setIsHolding] = useState(false);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isHolding) {
+      interval = setInterval(() => {
+        setHoldProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            triggerBlast();
+            return 100;
+          }
+          return prev + 4; // Fill progress in ~750ms
+        });
+      }, 30);
+    } else {
+      interval = setInterval(() => {
+        setHoldProgress((prev) => {
+          if (prev <= 0) {
+            clearInterval(interval);
+            return 0;
+          }
+          return Math.max(prev - 8, 0); // Deplete progress quickly
+        });
+      }, 20);
+    }
+    return () => clearInterval(interval);
+  }, [isHolding]);
+
+  const triggerBlast = () => {
+    setIsHolding(false);
+    if (typeof window !== "undefined" && typeof document !== "undefined") {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight || 1;
+      const targetScroll = (1 / 12) * maxScroll;
+      window.scrollTo({ top: targetScroll, behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="relative min-h-screen w-full flex items-center justify-center bg-transparent overflow-hidden pt-20 md:pt-0">
+      {/* BLAST ZOOM-BLUR FULLSCREEN OVERLAY */}
+      <AnimatePresence>
+        {holdProgress > 0 && (
+          <motion.div
+            className="fixed inset-0 z-40 pointer-events-none bg-black/10"
+            style={{
+              backdropFilter: `blur(${holdProgress * 0.08}px)`,
+              WebkitBackdropFilter: `blur(${holdProgress * 0.08}px)`,
+              scale: 1 + (holdProgress * 0.0005),
+            }}
+          />
+        )}
+      </AnimatePresence>
       
       {/* Background Soft Glows */}
-      <div className="absolute top-[20%] left-[10%] w-[30vw] h-[30vw] bg-radial from-[#0F4C3A]/5 to-transparent blur-[120px] pointer-events-none -z-10" />
-      <div className="absolute bottom-[20%] right-[10%] w-[40vw] h-[40vw] bg-radial from-[#C8A96A]/5 to-transparent blur-[140px] pointer-events-none -z-10" />
+      <div className="absolute top-[20%] left-[10%] w-[30vw] h-[30vw] bg-radial from-[#ff5a1f]/5 to-transparent blur-[120px] pointer-events-none -z-10" />
+      <div className="absolute bottom-[20%] right-[10%] w-[40vw] h-[40vw] bg-radial from-[#c300ff]/5 to-transparent blur-[140px] pointer-events-none -z-10" />
 
       {/* Abstract Green Silk Waves (Morphing SVG Path) */}
-      <div className="absolute inset-0 pointer-events-none z-0 opacity-40 -z-10">
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-20 -z-10">
         <svg className="w-full h-full" viewBox="0 0 1440 800" fill="none" preserveAspectRatio="none">
           <motion.path
             animate={{
@@ -69,9 +121,9 @@ export default function Hero() {
           />
           <defs>
             <linearGradient id="emerald-wave-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#0F4C3A" stopOpacity="0.12" />
-              <stop offset="50%" stopColor="#C8A96A" stopOpacity="0.04" />
-              <stop offset="100%" stopColor="#F8F4EA" stopOpacity="0.15" />
+              <stop offset="0%" stopColor="#ff5a1f" stopOpacity="0.12" />
+              <stop offset="50%" stopColor="#c300ff" stopOpacity="0.04" />
+              <stop offset="100%" stopColor="#080808" stopOpacity="0.15" />
             </linearGradient>
           </defs>
         </svg>
@@ -85,10 +137,10 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/20 bg-verdant-gold/5 mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 mb-6"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-verdant-emerald animate-pulse" />
-            <span className="text-[10px] tracking-[0.25em] uppercase text-verdant-emerald font-light">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ff5a1f] animate-pulse" />
+            <span className="text-[10px] tracking-[0.25em] uppercase text-white/80 font-light">
               Bespoke Nature Collection
             </span>
           </motion.div>
@@ -97,19 +149,20 @@ export default function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.0, ease: "easeOut", delay: 0.15 }}
-            className="font-serif text-4xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tight leading-[1.0] text-verdant-emerald mb-6 font-light"
+            className="font-serif text-4xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tight leading-[1.1] text-white mb-6 font-light capitalize text-left"
           >
-            Jewelry Crafted
+            Designed
             <br />
-            To Tell Your{" "}
-            <span className="gold-gradient-text font-serif italic font-light">Story</span>
+            To Shine
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff5a1f] to-[#c300ff] font-serif italic">Depth.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.35 }}
-            className="text-verdant-emerald/70 text-sm md:text-base max-w-md font-light leading-relaxed mb-10 tracking-[0.03em]"
+            className="text-white/60 text-sm md:text-base max-w-md font-light leading-relaxed mb-10 tracking-[0.03em]"
           >
             Discover jewelry that tells your story. Our bespoke creations redefine the boundary between luxury fashion and high art.
           </motion.p>
@@ -121,34 +174,78 @@ export default function Hero() {
             className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto z-20"
           >
             <MagneticButton
-              href="#collections"
-              className="hover-target gold-gradient-bg text-[#F8F4EA] font-semibold text-xs tracking-[0.2em] uppercase px-8 py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(200,169,6,0.15)] hover:shadow-[0_0_30px_rgba(200,169,106,0.35)] transition-all duration-300"
+              href="#explore"
+              className="hover-target bg-white hover:bg-white/90 text-black font-semibold text-xs tracking-[0.2em] uppercase px-8 py-4 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all duration-300"
             >
-              Explore Collection
-              <ArrowRight className="w-4 h-4 text-[#F8F4EA]" />
+              Start a Project
+              <ArrowRight className="w-4 h-4 text-black" />
             </MagneticButton>
             <MagneticButton
-              href="#story"
-              className="hover-target glass-effect hover:bg-verdant-emerald/5 border border-verdant-emerald/10 hover:border-verdant-gold/50 text-verdant-emerald font-medium text-xs tracking-[0.2em] uppercase px-8 py-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 bg-white/10"
+              href="#consult"
+              className="hover-target glass-effect hover:bg-white/5 border border-white/10 text-white font-medium text-xs tracking-[0.2em] uppercase px-8 py-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300"
             >
               Book Consultation
-              <Calendar className="w-4 h-4 text-verdant-gold" />
+              <Calendar className="w-4 h-4 text-[#ff5a1f]" />
             </MagneticButton>
           </motion.div>
         </div>
 
-        {/* Right Column: Empty placeholder to let background canvas show through */}
-        <div className="w-full order-1 lg:order-2 h-[400px] md:h-[500px] lg:h-[600px] relative pointer-events-none" />
+        {/* Right Column: Interactive Hold To Blast button */}
+        <div className="w-full order-1 lg:order-2 h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center relative pointer-events-auto">
+          <div
+            onMouseDown={() => setIsHolding(true)}
+            onMouseUp={() => setIsHolding(false)}
+            onMouseLeave={() => setIsHolding(false)}
+            onTouchStart={() => setIsHolding(true)}
+            onTouchEnd={() => setIsHolding(false)}
+            className="relative w-44 h-44 rounded-full flex flex-col items-center justify-center border border-white/10 hover:border-white/20 bg-white/5 cursor-pointer select-none transition-all duration-300 group shadow-lg hover:shadow-white/[0.02]"
+          >
+            {/* SVG Circular Progress Loader */}
+            <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="46"
+                stroke="rgba(255,255,255,0.03)"
+                strokeWidth="2"
+                fill="transparent"
+              />
+              <motion.circle
+                cx="50"
+                cy="50"
+                r="46"
+                stroke="#ff5a1f"
+                strokeWidth="2"
+                fill="transparent"
+                strokeDasharray={2 * Math.PI * 46}
+                strokeDashoffset={2 * Math.PI * 46 * (1 - holdProgress / 100)}
+                transition={{ ease: "linear" }}
+              />
+            </svg>
+
+            <span className="text-[10px] tracking-[0.3em] text-[#ff5a1f] uppercase font-bold group-hover:scale-105 transition-transform duration-300 mb-1">
+              Hold To
+            </span>
+            <span className="text-sm tracking-[0.2em] text-white uppercase font-black group-hover:scale-105 transition-transform duration-300">
+              Blast
+            </span>
+
+            {/* Progress percentage label */}
+            <span className="text-[8px] tracking-[0.1em] text-white/40 uppercase absolute bottom-8">
+              {Math.round(holdProgress)}%
+            </span>
+          </div>
+        </div>
         
       </div>
 
       {/* Scroll indicator at bottom */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/50">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[9px] uppercase tracking-[0.25em] text-white/50">
         <span>Scroll to Explore</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          className="w-1.5 h-1.5 rounded-full bg-verdant-gold"
+          className="w-1.5 h-1.5 rounded-full bg-[#ff5a1f]"
         />
       </div>
     </section>

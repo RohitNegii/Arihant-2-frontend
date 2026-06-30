@@ -13,10 +13,10 @@ export default function Footer() {
   return (
     <footer className="relative bg-[#F2EDE0] pt-20 pb-12 border-t border-verdant-gold/20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-16">
-        
+
         {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-          
+
           {/* Brand Info */}
           <div className="md:col-span-4 flex flex-col items-start gap-6">
             <span className="font-serif text-xl tracking-[0.2em] font-light text-verdant-emerald">
@@ -112,7 +112,7 @@ export default function Footer() {
               ))}
             </div>
           </div>
-          
+
         </div>
 
         {/* Bottom Section */}
@@ -124,7 +124,7 @@ export default function Footer() {
             Sown in Nature, Reaped in Elegance
           </span>
         </div>
-        
+
       </div>
     </footer>
   );

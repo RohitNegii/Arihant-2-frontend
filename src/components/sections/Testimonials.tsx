@@ -39,7 +39,7 @@ export default function Testimonials() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[55vw] h-[55vw] bg-radial from-verdant-gold/3 to-transparent blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        
+
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-16 md:mb-24">
           <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold mb-3 font-light">
@@ -59,13 +59,13 @@ export default function Testimonials() {
               initial={{ opacity: 0, y: 50, rotate: test.rotation * 0.8 }}
               whileInView={{ opacity: 1, y: 0, rotate: test.rotation }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
               animate={{
                 y: [0, -12, 0],
               }}
-              // Infinite smooth floating wave
-              // @ts-expect-error keyframe animation options are checked by react compiler correctly
               transition={{
+                duration: 1.0,
+                ease: [0.16, 1, 0.3, 1],
+                delay: index * 0.15,
                 y: {
                   duration: test.floatDuration,
                   repeat: Infinity,
@@ -113,7 +113,7 @@ export default function Testimonials() {
             </motion.div>
           ))}
         </div>
-        
+
       </div>
     </section>
   );

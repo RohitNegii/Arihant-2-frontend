@@ -21,7 +21,7 @@ function ShowcaseGroup() {
       const viewportHeight = window.innerHeight;
       const totalDist = rect.height + viewportHeight;
       const currentDist = viewportHeight - rect.top;
-      
+
       const progress = Math.min(Math.max(currentDist / totalDist, 0), 1);
       scrollProgress.current = progress;
     };
@@ -123,16 +123,16 @@ export default function ShowcaseModel() {
         gl={{ antialias: true, alpha: true }}
       >
         <ambientLight intensity={0.4} />
-        
+
         {/* Shifting background lights */}
         <pointLight position={[5, 5, 5]} intensity={1.5} color="#C8A96A" />
         <pointLight position={[-5, -5, -5]} intensity={1} color="#0F4C3A" />
         <pointLight position={[0, -5, 5]} intensity={1} color="#ffffff" />
-        
+
         <directionalLight position={[0, 10, 0]} intensity={1} />
-        
+
         <ShowcaseGroup />
-        
+
         <Sparkles
           count={50}
           scale={4.5}

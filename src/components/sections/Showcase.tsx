@@ -46,7 +46,7 @@ export default function Showcase() {
       <div className="absolute top-[30%] left-[-10%] w-[50vw] h-[50vw] bg-radial from-verdant-gold/5 to-transparent blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        
+
         {/* Header copy */}
         <div className="flex flex-col items-center text-center mb-16 md:mb-20">
           <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold mb-3 font-light">
@@ -63,7 +63,7 @@ export default function Showcase() {
 
         {/* Showcase Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-12">
-          
+
           {/* Left Column: 3D interactive model */}
           <div className="lg:col-span-7 w-full h-[400px] md:h-[500px] lg:h-[600px] glass-effect rounded-3xl overflow-hidden relative flex items-center justify-center border border-verdant-emerald/5 bg-[#F8F4EA]/20">
             {/* Ambient gold glow behind the canvas */}
@@ -98,7 +98,7 @@ export default function Showcase() {
               </motion.div>
             ))}
           </div>
-          
+
         </div>
       </div>
     </section>

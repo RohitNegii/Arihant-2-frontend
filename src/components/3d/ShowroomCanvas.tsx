@@ -50,7 +50,7 @@ function CameraController() {
 
 export default function ShowroomCanvas() {
   return (
-    <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#F6F2EA]">
+    <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#080808]">
       <Canvas
         camera={{ position: [0, 0.5, 4.0], fov: 45 }}
         gl={{ antialias: true, alpha: true }}

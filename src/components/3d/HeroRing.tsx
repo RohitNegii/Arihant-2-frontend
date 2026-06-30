@@ -16,23 +16,23 @@ function EmeraldRing() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  
+
   useFrame((state) => {
     if (!groupRef.current) return;
-    
+
     const time = state.clock.getElapsedTime();
     const currentScroll = scrollY.current;
-    
+
     // Parallax scroll calculations
     const scrollFactor = currentScroll * 0.0035;
-    
+
     // Continuous base rotation + scroll parallax rotation
     groupRef.current.rotation.y = time * 0.15 + scrollFactor * 2.0;
-    
+
     // Mouse parallax tracking
     const targetMouseX = (state.pointer.x * Math.PI) / 8;
     const targetMouseY = (state.pointer.y * Math.PI) / 8;
-    
+
     groupRef.current.rotation.x = THREE.MathUtils.lerp(
       groupRef.current.rotation.x,
       targetMouseY + scrollFactor * 0.6,
@@ -43,7 +43,7 @@ function EmeraldRing() {
       -targetMouseX,
       0.05
     );
-    
+
     // Vertical floating + scroll parallax drop
     const floatY = Math.sin(time * 1.5) * 0.15 - scrollFactor * 1.2;
     groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, floatY, 0.08);
@@ -121,17 +121,17 @@ export default function HeroRing() {
         gl={{ antialias: true, alpha: true }}
       >
         <ambientLight intensity={0.5} />
-        
+
         {/* Cinematic lights */}
         <directionalLight
           position={[5, 10, 5]}
           intensity={1.5}
           castShadow
         />
-        
+
         <pointLight position={[-10, 5, -10]} intensity={1} color="#C8A96A" />
         <pointLight position={[10, -5, 10]} intensity={1.2} color="#ffffff" />
-        
+
         <spotLight
           position={[0, 10, 0]}
           intensity={2.5}
@@ -141,7 +141,7 @@ export default function HeroRing() {
         />
 
         <EmeraldRing />
-        
+
         {/* Champagne particles */}
         <Sparkles
           count={60}

@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans`}
     >
-      <body className="min-h-full flex flex-col bg-luxury-black text-white">
+      <body className="min-h-full flex flex-col bg-[#080808] text-white">
         {children}
       </body>
     </html>

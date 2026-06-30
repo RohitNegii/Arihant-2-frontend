@@ -22,16 +22,15 @@ export default function Navbar() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-          isScrolled
-            ? "py-4 bg-[#F8F4EA]/70 backdrop-blur-md border-b border-verdant-emerald/5"
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled
+            ? "py-4 bg-[#080808]/75 backdrop-blur-md border-b border-white/8"
             : "py-6 bg-transparent"
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           {/* Logo */}
           <a href="#" className="hover-target flex items-center gap-2">
-            <span className="font-serif text-xl tracking-[0.2em] font-light text-verdant-emerald">
+            <span className="font-serif font-light text-xl tracking-[0.25em] text-white uppercase">
               V E R D A N T
             </span>
           </a>
@@ -42,7 +41,7 @@ export default function Navbar() {
               <a
                 key={link}
                 href={`#${link.toLowerCase()}`}
-                className="hover-target text-xs tracking-[0.2em] uppercase text-verdant-emerald/70 hover:text-verdant-gold transition-colors duration-300"
+                className="hover-target text-[10px] tracking-[0.2em] uppercase text-white/70 hover:text-[#ff5a1f] transition-colors duration-300 font-semibold"
               >
                 {link}
               </a>
@@ -51,16 +50,16 @@ export default function Navbar() {
 
           {/* Call to Action Button */}
           <div className="hidden md:block">
-            <button className="hover-target glass-effect px-6 py-2.5 rounded-full text-xs tracking-[0.15em] uppercase hover:bg-verdant-emerald/5 transition-all duration-300 flex items-center gap-2 border border-verdant-emerald/10 hover:border-verdant-gold/50 group text-verdant-emerald">
+            <button className="hover-target glass-effect px-5 py-2 rounded-full text-[10px] tracking-[0.15em] uppercase hover:bg-white/5 transition-all duration-300 flex items-center gap-2 border border-white/10 hover:border-white/20 group text-white">
               Book Consultation
-              <ArrowRight className="w-3.5 h-3.5 text-verdant-gold group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5 text-[#ff5a1f] group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="hover-target md:hidden text-verdant-emerald/80 hover:text-verdant-emerald transition-colors"
+            className="hover-target md:hidden text-white/80 hover:text-white transition-colors"
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -75,24 +74,24 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 top-[70px] z-40 bg-[#F8F4EA]/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 md:hidden border-t border-verdant-emerald/5"
+            className="fixed inset-0 top-[70px] z-40 bg-[#080808]/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 md:hidden border-t border-white/8"
           >
             {["Collections", "Showcase", "Story", "Aesthetics"].map((link) => (
               <a
                 key={link}
                 href={`#${link.toLowerCase()}`}
                 onClick={() => setIsOpen(false)}
-                className="text-lg tracking-[0.2em] uppercase text-verdant-emerald/80 hover:text-verdant-gold transition-colors duration-300"
+                className="text-sm tracking-[0.2em] uppercase text-white/80 hover:text-[#ff5a1f] transition-colors duration-300 font-semibold"
               >
                 {link}
               </a>
             ))}
             <button
               onClick={() => setIsOpen(false)}
-              className="glass-effect px-8 py-3 rounded-full text-xs tracking-[0.15em] uppercase hover:bg-verdant-emerald/5 flex items-center gap-2 border border-verdant-emerald/10 text-verdant-emerald"
+              className="glass-effect px-8 py-3 rounded-full text-[10px] tracking-[0.15em] uppercase hover:bg-white/5 flex items-center gap-2 border border-white/10 text-white"
             >
               Book Consultation
-              <ArrowRight className="w-3.5 h-3.5 text-verdant-gold" />
+              <ArrowRight className="w-3.5 h-3.5 text-[#ff5a1f]" />
             </button>
           </motion.div>
         )}
