@@ -24,9 +24,8 @@ export default function Craftsmanship() {
       {/* Shifting Gradient Backdrop with vertical parallax offset */}
       <div className="absolute inset-0 bg-transparent pointer-events-none" />
       <motion.div
-        style={{ y: yGlow }}
+        style={{ y: yGlow, animationDuration: '8s' }}
         className="absolute top-1/4 left-1/4 w-[75vw] h-[75vw] bg-radial from-verdant-gold/5 via-transparent to-transparent blur-[160px] pointer-events-none animate-pulse"
-        style={{ animationDuration: '8s' }}
       />
 
       {/* Floating Laser-Thin Gold Lines */}
