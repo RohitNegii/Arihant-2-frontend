@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
+import SmoothScroll from "@/components/SmoothScroll";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -15,8 +16,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "AURUM | Immersive Futuristic Luxury Jewelry",
-  description: "Experience timeless craftsmanship with modern elegance. Explore our 3D interactive collection of custom diamond rings, necklaces, and luxury watches.",
+  title: "AURA | Immersive Fine Luxury Jewelry Atelier",
+  description: "Explore AURA, a cinematic 3D digital exhibition of fine bespoke rings, diamond necklaces, and organic jewelry crafted in Milan.",
 };
 
 export default function RootLayout({
@@ -29,8 +30,10 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans`}
     >
-      <body className="min-h-full flex flex-col bg-[#080808] text-white">
-        {children}
+      <body className="min-h-full flex flex-col bg-[#0D0D0D] text-[#F5F0E8] overflow-x-hidden">
+        <SmoothScroll>
+          {children}
+        </SmoothScroll>
       </body>
     </html>
   );

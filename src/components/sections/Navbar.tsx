@@ -10,58 +10,74 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 40);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const menuItems = [
+    { name: "Story", href: "#story" },
+    { name: "Craftsmanship", href: "#craftsmanship" },
+    { name: "Materials", href: "#materials" },
+    { name: "Collection", href: "#collection" },
+    { name: "Showcase", href: "#showcase" },
+  ];
 
   return (
     <>
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled
-            ? "py-4 bg-[#080808]/75 backdrop-blur-md border-b border-white/8"
+        transition={{ duration: 1.0, ease: [0.76, 0, 0.24, 1] }}
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+          isScrolled
+            ? "py-4 bg-[#0D0D0D]/85 backdrop-blur-xl border-b border-[#F5F0E8]/5 shadow-lg"
             : "py-6 bg-transparent"
-          }`}
+        }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           {/* Logo */}
-          <a href="#" className="hover-target flex items-center gap-2">
-            <span className="font-serif font-light text-xl tracking-[0.25em] text-white uppercase">
-              V E R D A N T
+          <a href="#" className="hover-target flex flex-col items-start select-none">
+            <span className="font-serif font-light text-xl tracking-[0.35em] text-[#F5F0E8] uppercase leading-none">
+              A U R A
+            </span>
+            <span className="text-[6.5px] tracking-[0.25em] text-[#C7A66A] font-sans uppercase font-medium mt-1">
+              HAUTE JOAILLERIE
             </span>
           </a>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-10">
-            {["Collections", "Showcase", "Story", "Aesthetics"].map((link) => (
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center gap-9">
+            {menuItems.map((item) => (
               <a
-                key={link}
-                href={`#${link.toLowerCase()}`}
-                className="hover-target text-[10px] tracking-[0.2em] uppercase text-white/70 hover:text-[#ff5a1f] transition-colors duration-300 font-semibold"
+                key={item.name}
+                href={item.href}
+                className="hover-target text-[9px] tracking-[0.25em] uppercase text-[#F5F0E8]/85 hover:text-[#C7A66A] transition-colors duration-300 font-medium luxury-underline"
               >
-                {link}
+                {item.name}
               </a>
             ))}
           </div>
 
           {/* Call to Action Button */}
           <div className="hidden md:block">
-            <button className="hover-target glass-effect px-5 py-2 rounded-full text-[10px] tracking-[0.15em] uppercase hover:bg-white/5 transition-all duration-300 flex items-center gap-2 border border-white/10 hover:border-white/20 group text-white">
-              Book Consultation
-              <ArrowRight className="w-3.5 h-3.5 text-[#ff5a1f] group-hover:translate-x-1 transition-transform" />
-            </button>
+            <a
+              href="#appointment"
+              className="hover-target shimmer-btn px-6 py-2.5 rounded-full text-[9px] tracking-[0.2em] uppercase hover:bg-[#F5F0E8]/5 transition-all duration-300 flex items-center gap-2 border border-[#F5F0E8]/10 hover:border-[#C7A66A]/40 text-[#F5F0E8] font-medium"
+            >
+              Book Appointment
+              <ArrowRight className="w-3 h-3 text-[#C7A66A] transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="hover-target md:hidden text-white/80 hover:text-white transition-colors"
+            className="hover-target md:hidden text-[#F5F0E8]/85 hover:text-white transition-colors p-1"
+            aria-label="Toggle Menu"
           >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </motion.nav>
@@ -70,29 +86,30 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 top-[70px] z-40 bg-[#080808]/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 md:hidden border-t border-white/8"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
+            className="fixed inset-0 top-[70px] z-40 bg-[#0D0D0D]/95 backdrop-blur-2xl flex flex-col items-center justify-center gap-7 md:hidden border-t border-[#F5F0E8]/5"
           >
-            {["Collections", "Showcase", "Story", "Aesthetics"].map((link) => (
+            {menuItems.map((item) => (
               <a
-                key={link}
-                href={`#${link.toLowerCase()}`}
+                key={item.name}
+                href={item.href}
                 onClick={() => setIsOpen(false)}
-                className="text-sm tracking-[0.2em] uppercase text-white/80 hover:text-[#ff5a1f] transition-colors duration-300 font-semibold"
+                className="text-xs tracking-[0.25em] uppercase text-[#F5F0E8]/85 hover:text-[#C7A66A] transition-colors duration-300 font-semibold"
               >
-                {link}
+                {item.name}
               </a>
             ))}
-            <button
+            <a
+              href="#appointment"
               onClick={() => setIsOpen(false)}
-              className="glass-effect px-8 py-3 rounded-full text-[10px] tracking-[0.15em] uppercase hover:bg-white/5 flex items-center gap-2 border border-white/10 text-white"
+              className="px-7 py-3.5 rounded-full text-[9px] tracking-[0.2em] uppercase bg-[#C7A66A] text-[#0D0D0D] font-bold shadow-lg flex items-center gap-2 mt-4"
             >
-              Book Consultation
-              <ArrowRight className="w-3.5 h-3.5 text-[#ff5a1f]" />
-            </button>
+              Book Appointment
+              <ArrowRight className="w-3.5 h-3.5" />
+            </a>
           </motion.div>
         )}
       </AnimatePresence>
