@@ -6,6 +6,22 @@ const api = axios.create({
   baseURL: API_URL
 });
 
+// Add request interceptor to automatically attach authorization header
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("aurum_user_token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export const getRequest = async <T = any>(url: string, config = {}): Promise<T> => {
   return (await api.get<T>(url, config)).data;
 };

@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Heart, ShoppingCart, CreditCard, Check } from "lucide-react";
+import { useState } from "react";
+import { ShoppingCart, CreditCard, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProductData } from "../../services/productListing";
 import ProductPrice from "../global/ProductPrice";
+import { useAuthStore } from "../../store/authStore";
+import { useCartStore } from "../../store/cartStore";
 
 interface ProductActionsProps {
   product: ProductData;
@@ -12,17 +14,10 @@ interface ProductActionsProps {
 
 export default function ProductActions({ product }: ProductActionsProps) {
   const [qty, setQty] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      const wishlist = JSON.parse(localStorage.getItem("aurum_wishlist") || "[]");
-      setIsWishlisted(wishlist.includes(product._id));
-    } catch (e) {
-      // Ignored
-    }
-  }, [product._id]);
+  const { isAuthenticated, openAuthModal } = useAuthStore();
+  const { addToCart: addToCartContext, setCartOpen } = useCartStore();
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -31,38 +26,38 @@ export default function ProductActions({ product }: ProductActionsProps) {
     }, 3000);
   };
 
-  const handleWishlistToggle = () => {
+  const handleAddToBag = async (quantity: number) => {
+    if (!isAuthenticated) {
+      openAuthModal("login", () => handleAddToBag(quantity));
+      return;
+    }
+
     try {
-      const wishlist = JSON.parse(localStorage.getItem("aurum_wishlist") || "[]");
-      let updated;
-      if (isWishlisted) {
-        updated = wishlist.filter((id: string) => id !== product._id);
-        showToast("Removed from Wishlist");
+      const success = await addToCartContext(product._id, quantity);
+      if (success) {
+        showToast(`Added ${quantity} item${quantity > 1 ? "s" : ""} to Bag`);
+        setCartOpen(true);
       } else {
-        updated = [...wishlist, product._id];
-        showToast("Added to Wishlist");
+        showToast("Could not update bag");
       }
-      localStorage.setItem("aurum_wishlist", JSON.stringify(updated));
-      setIsWishlisted(!isWishlisted);
     } catch (e) {
-      // Ignored
+      showToast("Could not update bag");
     }
   };
 
-  const addToCart = (quantity: number) => {
+  const handleBuyNow = async (quantity: number) => {
+    if (!isAuthenticated) {
+      openAuthModal("login", () => handleBuyNow(quantity));
+      return;
+    }
+
     try {
-      const cartStr = localStorage.getItem("aurum_cart") || "[]";
-      let cart = JSON.parse(cartStr);
-
-      const existingIndex = cart.findIndex((item: any) => item.product === product._id);
-      if (existingIndex > -1) {
-        cart[existingIndex].quantity += quantity;
+      const success = await addToCartContext(product._id, quantity);
+      if (success) {
+        setCartOpen(true);
       } else {
-        cart.push({ product: product._id, quantity });
+        showToast("Could not update bag");
       }
-
-      localStorage.setItem("aurum_cart", JSON.stringify(cart));
-      showToast(`Added ${quantity} item${quantity > 1 ? "s" : ""} to Bag`);
     } catch (e) {
       showToast("Could not update bag");
     }
@@ -102,7 +97,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
           <div className="flex items-center border border-verdant-emerald/10 bg-white/40 rounded-full px-2 py-1 h-12">
             <button
               onClick={() => setQty((prev) => Math.max(1, prev - 1))}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-verdant-emerald hover:bg-verdant-emerald/5 hover:scale-105 active:scale-95 transition-all text-sm font-bold"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-verdant-emerald hover:bg-verdant-emerald/5 hover:scale-105 active:scale-95 transition-all text-sm font-bold cursor-pointer"
             >
               -
             </button>
@@ -111,7 +106,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
             </span>
             <button
               onClick={() => setQty((prev) => Math.min(product.stock, prev + 1))}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-verdant-emerald hover:bg-verdant-emerald/5 hover:scale-105 active:scale-95 transition-all text-sm font-bold"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-verdant-emerald hover:bg-verdant-emerald/5 hover:scale-105 active:scale-95 transition-all text-sm font-bold cursor-pointer"
             >
               +
             </button>
@@ -121,9 +116,9 @@ export default function ProductActions({ product }: ProductActionsProps) {
         {/* Buttons */}
         <div className="flex-1 flex gap-3">
           <button
-            onClick={() => addToCart(qty)}
+            onClick={() => handleAddToBag(qty)}
             disabled={outOfStock}
-            className={`flex-1 hover-target px-8 py-3 h-12 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+            className={`flex-1 hover-target px-8 py-3 h-12 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-md cursor-pointer ${
               outOfStock
                 ? "bg-verdant-emerald/5 border border-verdant-emerald/10 text-verdant-emerald/30 cursor-not-allowed"
                 : "glass-effect hover:bg-verdant-emerald/5 border border-verdant-emerald/15 text-verdant-emerald active:scale-95"
@@ -134,12 +129,9 @@ export default function ProductActions({ product }: ProductActionsProps) {
           </button>
 
           <button
-            onClick={() => {
-              addToCart(qty);
-              showToast("Opening Secure Checkout Portal...");
-            }}
+            onClick={() => handleBuyNow(qty)}
             disabled={outOfStock}
-            className={`flex-1 hover-target px-8 py-3 h-12 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+            className={`flex-1 hover-target px-8 py-3 h-12 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-md cursor-pointer ${
               outOfStock
                 ? "bg-verdant-gold/10 text-verdant-gold/30 cursor-not-allowed"
                 : "gold-gradient-bg text-black hover:scale-103 active:scale-95"
@@ -147,18 +139,6 @@ export default function ProductActions({ product }: ProductActionsProps) {
           >
             <CreditCard className="w-3.5 h-3.5" />
             Buy Now
-          </button>
-
-          <button
-            onClick={handleWishlistToggle}
-            className="w-12 h-12 rounded-full border border-verdant-emerald/10 bg-white/40 flex items-center justify-center text-verdant-emerald hover:text-red-500 hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-xs"
-            aria-label="Toggle Wishlist"
-          >
-            <Heart
-              className={`w-4.5 h-4.5 ${
-                isWishlisted ? "fill-red-500 text-red-500" : ""
-              }`}
-            />
           </button>
         </div>
       </div>

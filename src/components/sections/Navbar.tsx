@@ -2,59 +2,43 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, User, LogOut } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { UserProfile } from "../../services/auth";
+import { Menu, X, ArrowRight, User, LogOut, ShoppingBag } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import LoginForm from "../global/LoginForm";
 import SignupForm from "../global/SignupForm";
+import { useAuthStore } from "../../store/authStore";
+import { useCartStore } from "../../store/cartStore";
+import CartDrawer from "../global/CartDrawer";
 
 export default function Navbar() {
+  const prefersReducedMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Authentication State
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  // Authentication Context State
+  const {
+    user,
+    showAuthModal,
+    authMode,
+    openAuthModal,
+    closeAuthModal,
+    setAuthMode,
+    loginSuccess,
+    logout
+  } = useAuthStore();
+
+  // Cart Context State
+  const { cartCount, setCartOpen } = useCartStore();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-
-    // Load active session from local storage
-    try {
-      const storedToken = localStorage.getItem("aurum_user_token");
-      const storedUser = localStorage.getItem("aurum_user");
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (e) {
-      // Ignored
-    }
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleAuthSuccess = (newToken: string, newUser: UserProfile) => {
-    localStorage.setItem("aurum_user_token", newToken);
-    localStorage.setItem("aurum_user", JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
-    
-    // Auto-close modal after brief delay
-    setTimeout(() => {
-      setShowAuthModal(false);
-    }, 1000);
-  };
-
   const handleSignOut = () => {
-    localStorage.removeItem("aurum_user_token");
-    localStorage.removeItem("aurum_user");
-    setToken(null);
-    setUser(null);
+    logout();
     setIsOpen(false);
   };
 
@@ -65,11 +49,10 @@ export default function Navbar() {
         initial={prefersReducedMotion ? false : { y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`w-full transition-all duration-500 ${
-          isScrolled
-            ? "py-4 bg-verdant-cream/70 backdrop-blur-md border-b border-verdant-emerald/5"
-            : "py-6 bg-transparent"
-        }`}
+        className={`w-full transition-all duration-500 ${isScrolled
+          ? "py-4 bg-verdant-cream/70 backdrop-blur-md border-b border-verdant-emerald/5"
+          : "py-6 bg-transparent"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex justify-between items-center">
           {/* Logo */}
@@ -92,8 +75,26 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Dynamic Sign-In / User Profile CTA Button */}
+          {/* Dynamic Sign-In / User Profile CTA Button & Cart */}
           <div className="hidden md:flex items-center gap-4">
+            {/* Cart Icon Button */}
+            <button
+              onClick={() => setCartOpen(true)}
+              className="hover-target relative w-10 h-10 rounded-full border border-verdant-emerald/10 bg-white/40 flex items-center justify-center text-verdant-emerald hover:text-verdant-gold hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+              aria-label="Shopping Bag"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              {cartCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 bg-verdant-gold text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-verdant-cream"
+                >
+                  {cartCount}
+                </motion.span>
+              )}
+            </button>
+
             {user ? (
               <div className="flex items-center gap-3">
                 <span className="text-[10px] tracking-widest font-bold uppercase text-verdant-emerald bg-verdant-emerald/5 px-4 py-2 rounded-full border border-verdant-emerald/10 flex items-center gap-1.5">
@@ -109,7 +110,7 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={() => { setAuthMode("login"); setShowAuthModal(true); }}
+                onClick={() => { openAuthModal("login"); }}
                 className="hover-target glass-effect px-6 py-2.5 rounded-full text-xs tracking-[0.15em] uppercase hover:bg-verdant-emerald/5 transition-all duration-300 flex items-center gap-2 border border-verdant-emerald/10 hover:border-verdant-gold/50 group text-verdant-emerald cursor-pointer font-bold"
               >
                 Sign In
@@ -171,7 +172,7 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={() => { setIsOpen(false); setAuthMode("login"); setShowAuthModal(true); }}
+                onClick={() => { setIsOpen(false); openAuthModal("login"); }}
                 className="glass-effect px-8 py-3 rounded-full text-xs tracking-[0.15em] uppercase hover:bg-verdant-emerald/5 flex items-center gap-2 border border-verdant-emerald/10 text-verdant-emerald font-bold"
               >
                 Sign In
@@ -201,7 +202,7 @@ export default function Navbar() {
             >
               {/* Close Button */}
               <button
-                onClick={() => setShowAuthModal(false)}
+                onClick={closeAuthModal}
                 className="absolute top-6 right-6 text-white/50 hover:text-white bg-white/5 p-2 rounded-full border border-white/10 cursor-pointer transition-colors"
                 aria-label="Close"
               >
@@ -212,21 +213,19 @@ export default function Navbar() {
               <div className="flex border-b border-white/10 mb-6">
                 <button
                   onClick={() => setAuthMode("login")}
-                  className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${
-                    authMode === "login"
-                      ? "text-white border-b-2 border-verdant-gold"
-                      : "text-white/40 hover:text-white"
-                  }`}
+                  className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${authMode === "login"
+                    ? "text-white border-b-2 border-verdant-gold"
+                    : "text-white/40 hover:text-white"
+                    }`}
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => setAuthMode("signup")}
-                  className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${
-                    authMode === "signup"
-                      ? "text-white border-b-2 border-verdant-gold"
-                      : "text-white/40 hover:text-white"
-                  }`}
+                  className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${authMode === "signup"
+                    ? "text-white border-b-2 border-verdant-gold"
+                    : "text-white/40 hover:text-white"
+                    }`}
                 >
                   Create Account
                 </button>
@@ -235,12 +234,12 @@ export default function Navbar() {
               {/* Render Selected View Form */}
               {authMode === "login" ? (
                 <LoginForm
-                  onSuccess={handleAuthSuccess}
+                  onSuccess={loginSuccess}
                   onSwitchToSignup={() => setAuthMode("signup")}
                 />
               ) : (
                 <SignupForm
-                  onSuccess={handleAuthSuccess}
+                  onSuccess={loginSuccess}
                   onSwitchToLogin={() => setAuthMode("login")}
                 />
               )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Eye, ShoppingBag, Check } from "lucide-react";
+import { Eye, ShoppingBag, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Product {
@@ -44,15 +44,8 @@ export default function BestSellers() {
     },
   ];
 
-  const [wishlisted, setWishlisted] = useState<number[]>([]);
   const [cart, setCart] = useState<number[]>([]);
   const [activeQuickView, setActiveQuickView] = useState<Product | null>(null);
-
-  const toggleWishlist = (id: number) => {
-    setWishlisted((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
 
   const toggleCart = (id: number) => {
     setCart((prev) =>
@@ -80,7 +73,6 @@ export default function BestSellers() {
         {/* Carousel Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((prod, idx) => {
-            const isWishlisted = wishlisted.includes(prod.id);
             const isInCart = cart.includes(prod.id);
 
             return (
@@ -99,16 +91,6 @@ export default function BestSellers() {
                   {/* Floating Action Buttons */}
                   <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
                     <button
-                      onClick={() => toggleWishlist(prod.id)}
-                      className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-xs flex items-center justify-center text-verdant-emerald border border-verdant-emerald/5 hover:border-verdant-gold/50 shadow-md transition-all duration-300 hover:scale-110 cursor-pointer"
-                    >
-                      <Heart
-                        className={`w-4 h-4 transition-colors ${
-                          isWishlisted ? "fill-red-500 text-red-500" : "text-verdant-emerald"
-                        }`}
-                      />
-                    </button>
-                    <button
                       onClick={() => setActiveQuickView(prod)}
                       className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-xs flex items-center justify-center text-verdant-emerald border border-verdant-emerald/5 hover:border-verdant-gold/50 shadow-md transition-all duration-300 hover:scale-110 cursor-pointer"
                     >
@@ -123,40 +105,40 @@ export default function BestSellers() {
                   />
                 </div>
 
-                {/* Product Info */}
-                <div className="p-6 flex flex-col justify-between flex-1 border-t border-verdant-emerald/5 bg-white/20">
-                  <div className="mb-4 text-left">
-                    <span className="text-[9px] tracking-widest uppercase text-verdant-gold block mb-1 font-light">
+                {/* Content description */}
+                <div className="p-6 flex flex-col flex-1 justify-between select-none">
+                  <div>
+                    <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-light font-serif">
                       {prod.category}
                     </span>
-                    <h3 className="font-serif text-base tracking-wide text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
+                    <h4 className="font-serif text-base text-verdant-emerald font-light mt-1 hover:text-verdant-gold transition-colors duration-200">
                       {prod.name}
-                    </h3>
+                    </h4>
                   </div>
 
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-serif text-sm text-verdant-emerald font-medium">
+                  <div className="flex justify-between items-center mt-6 pt-4 border-t border-verdant-emerald/5">
+                    <span className="font-serif text-sm font-semibold text-verdant-emerald">
                       {prod.price}
                     </span>
-
+                    
                     {/* Add to Cart CTA */}
                     <button
                       onClick={() => toggleCart(prod.id)}
-                      className={`hover-target flex items-center gap-1 px-4 py-2 rounded-full text-[10px] tracking-widest uppercase font-semibold border transition-all duration-300 cursor-pointer ${
+                      className={`hover-target border px-4 py-2 rounded-full text-[9px] tracking-widest font-bold uppercase transition-all duration-300 flex items-center gap-1 cursor-pointer ${
                         isInCart
-                          ? "bg-verdant-emerald border-verdant-emerald text-[#F8F4EA]"
-                          : "border-verdant-emerald/20 text-verdant-emerald hover:border-verdant-gold hover:bg-verdant-gold/5"
+                          ? "bg-verdant-emerald text-verdant-cream border-verdant-emerald"
+                          : "bg-white/40 hover:bg-white text-verdant-emerald border-verdant-emerald/10 hover:border-verdant-gold"
                       }`}
                     >
                       {isInCart ? (
                         <>
-                          <Check className="w-3 h-3 text-[#F8F4EA]" />
-                          Added
+                          <Check className="w-3 h-3 text-verdant-gold" />
+                          Acquired
                         </>
                       ) : (
                         <>
                           <ShoppingBag className="w-3 h-3" />
-                          Add
+                          Acquire
                         </>
                       )}
                     </button>
@@ -167,14 +149,14 @@ export default function BestSellers() {
           })}
         </div>
 
-        {/* Quick View Modal */}
+        {/* Dynamic Quick View Modal Popup overlay */}
         <AnimatePresence>
           {activeQuickView && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/45 backdrop-blur-md"
+              className="fixed inset-0 z-150 bg-black/60 backdrop-blur-xs flex items-center justify-center p-6"
             >
               <motion.div
                 initial={{ scale: 0.95, y: 20 }}

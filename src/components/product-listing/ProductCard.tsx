@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Heart, ArrowRight, Eye, Sparkles } from "lucide-react";
+import { ArrowRight, Eye, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { getImageUrl } from "../../utils/api";
 import { ProductData } from "../../services/productListing";
@@ -14,36 +14,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, isListView = false }: ProductCardProps) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
-
-  // Load wishlist from local storage on mount
-  useEffect(() => {
-    try {
-      const wishlist = JSON.parse(localStorage.getItem("aurum_wishlist") || "[]");
-      setIsWishlisted(wishlist.includes(product._id));
-    } catch (e) {
-      // Ignored
-    }
-  }, [product._id]);
-
-  const toggleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      const wishlist = JSON.parse(localStorage.getItem("aurum_wishlist") || "[]");
-      let updated;
-      if (isWishlisted) {
-        updated = wishlist.filter((id: string) => id !== product._id);
-      } else {
-        updated = [...wishlist, product._id];
-      }
-      localStorage.setItem("aurum_wishlist", JSON.stringify(updated));
-      setIsWishlisted(!isWishlisted);
-    } catch (err) {
-      // Ignored
-    }
-  };
 
   const productLink = `/products/${product.slug}`;
   const outOfStock = product.stock <= 0;
@@ -93,17 +64,6 @@ export default function ProductCard({ product, isListView = false }: ProductCard
                   <Link href={productLink}>{product.name}</Link>
                 </h4>
               </div>
-              <button
-                onClick={toggleWishlist}
-                className="w-8 h-8 rounded-full bg-white/40 border border-verdant-emerald/5 flex items-center justify-center text-verdant-emerald hover:text-red-500 hover:bg-white/80 hover:scale-105 active:scale-95 transition-all duration-200 shadow-xs"
-                aria-label="Toggle Wishlist"
-              >
-                <Heart
-                  className={`w-4 h-4 ${
-                    isWishlisted ? "fill-red-500 text-red-500" : ""
-                  }`}
-                />
-              </button>
             </div>
             <p className="text-verdant-emerald/65 text-xs font-light leading-relaxed tracking-wide my-4 line-clamp-3">
               {product.shortDescription || product.description}
@@ -185,17 +145,6 @@ export default function ProductCard({ product, isListView = false }: ProductCard
             <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono">
               {product.category?.name || "Jewelry"}
             </span>
-            <button
-              onClick={toggleWishlist}
-              className="w-7 h-7 rounded-full bg-white/50 border border-verdant-emerald/5 flex items-center justify-center text-verdant-emerald hover:text-red-500 hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-xs"
-              aria-label="Toggle Wishlist"
-            >
-              <Heart
-                className={`w-3.5 h-3.5 ${
-                  isWishlisted ? "fill-red-500 text-red-500" : ""
-                }`}
-              />
-            </button>
           </div>
 
           <h4 className="font-serif text-base md:text-lg text-verdant-emerald font-light mt-1.5 leading-tight hover:text-verdant-gold transition-colors duration-200 line-clamp-1">
