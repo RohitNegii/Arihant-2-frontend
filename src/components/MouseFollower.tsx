@@ -13,50 +13,43 @@ export default function MouseFollower() {
 
   const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [hasFinePointer, setHasFinePointer] = useState(false);
 
   useEffect(() => {
+    setHasFinePointer(window.matchMedia("(pointer: fine)").matches);
+  }, []);
+
+  useEffect(() => {
+    if (!hasFinePointer) return;
+
     const moveCursor = (e: MouseEvent) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
-      if (!isVisible) setIsVisible(true);
+      setIsVisible(true);
     };
 
-    window.addEventListener("mousemove", moveCursor);
-
-    // Event listeners to detect hovering over hoverable elements
-    const handleMouseEnter = () => setIsHovered(true);
-    const handleMouseLeave = () => setIsHovered(false);
-
-    const updateHoverListeners = () => {
-      const hoverables = document.querySelectorAll(
-        "a, button, [role='button'], .hover-target"
-      );
-      hoverables.forEach((el) => {
-        el.addEventListener("mouseenter", handleMouseEnter);
-        el.addEventListener("mouseleave", handleMouseLeave);
-      });
+    const HOVERABLE = "a, button, [role='button'], .hover-target";
+    const handleOver = (e: MouseEvent) => {
+      if ((e.target as Element | null)?.closest?.(HOVERABLE)) setIsHovered(true);
+    };
+    const handleOut = (e: MouseEvent) => {
+      const from = (e.target as Element | null)?.closest?.(HOVERABLE);
+      const to = (e.relatedTarget as Element | null)?.closest?.(HOVERABLE);
+      if (from && from !== to) setIsHovered(false);
     };
 
-    // Set up MutationObserver to re-bind events if elements dynamically mount
-    const observer = new MutationObserver(updateHoverListeners);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    updateHoverListeners();
+    window.addEventListener("mousemove", moveCursor, { passive: true });
+    document.addEventListener("mouseover", handleOver, { passive: true });
+    document.addEventListener("mouseout", handleOut, { passive: true });
 
     return () => {
       window.removeEventListener("mousemove", moveCursor);
-      const hoverables = document.querySelectorAll(
-        "a, button, [role='button'], .hover-target"
-      );
-      hoverables.forEach((el) => {
-        el.removeEventListener("mouseenter", handleMouseEnter);
-        el.removeEventListener("mouseleave", handleMouseLeave);
-      });
-      observer.disconnect();
+      document.removeEventListener("mouseover", handleOver);
+      document.removeEventListener("mouseout", handleOut);
     };
-  }, [mouseX, mouseY, isVisible]);
+  }, [mouseX, mouseY, hasFinePointer]);
 
-  if (!isVisible) return null;
+  if (!hasFinePointer || !isVisible) return null;
 
   return (
     <>

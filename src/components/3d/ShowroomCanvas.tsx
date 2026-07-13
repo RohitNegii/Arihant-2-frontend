@@ -53,8 +53,12 @@ export default function ShowroomCanvas() {
     <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#F6F2EA]">
       <Canvas
         camera={{ position: [0, 0.5, 4.0], fov: 45 }}
-        gl={{ antialias: true, alpha: true }}
-        shadows
+        // dpr cap keeps high-DPI displays from quadrupling the pixel workload
+        dpr={[1, 1.75]}
+        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        // "percentage" = PCFShadowMap; PCFSoftShadowMap is deprecated in this
+        // three version and silently falls back to PCF anyway
+        shadows="percentage"
       >
         <CameraController />
 
@@ -73,23 +77,23 @@ export default function ShowroomCanvas() {
             castShadow
           />
           
-          {/* Lab Spotlight */}
+          {/* Lab Spotlight — no castShadow: each shadow-casting light is a
+              full extra scene render pass per frame, and this one is far
+              from the camera for most of the journey */}
           <spotLight
             position={[0, 8, -36]}
             intensity={4.5}
             angle={0.5}
             color="#ffffff"
-            castShadow
           />
 
-          {/* Arena Spotlight */}
+          {/* Arena Spotlight — same: shadows dropped for perf */}
           <spotLight
             position={[0, 10, -132]}
             intensity={5.0}
             angle={0.8}
             penumbra={1}
             color="#C8A96A"
-            castShadow
           />
 
           <directionalLight position={[5, 10, 5]} intensity={2.0} castShadow />

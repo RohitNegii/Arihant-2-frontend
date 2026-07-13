@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar, Sparkles } from "lucide-react";
 import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Navbar from "@/components/sections/Navbar";
+import { scrollToOffset } from "@/store/scroll-store";
 
 // Load 3D dynamic showroom canvas with SSR disabled
 const ShowroomCanvas = dynamic(() => import("@/components/3d/ShowroomCanvas"), {
@@ -14,13 +15,27 @@ const ShowroomCanvas = dynamic(() => import("@/components/3d/ShowroomCanvas"), {
 });
 
 export default function Home() {
-  const [scrollY, setScrollY] = useState(0);
+  const [activeZone, setActiveZone] = useState(0);
   const [showEntranceCTA, setShowEntranceCTA] = useState(false);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const progressTextRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight || 1;
+      const progress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+
+      if (progressBarRef.current) {
+        progressBarRef.current.style.width = `${progress * 100}%`;
+      }
+      if (progressTextRef.current) {
+        progressTextRef.current.textContent = `${Math.round(progress * 100)}%`;
+      }
+
+      setActiveZone(Math.min(Math.floor(progress * 13), 12));
     };
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -33,16 +48,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  const getScrollLimit = () => {
-    if (typeof document === "undefined") return 1;
-    return document.documentElement.scrollHeight - window.innerHeight || 1;
-  };
-
-  const progress = scrollY / getScrollLimit();
-  
   // 13 scenes mapped evenly from 0.0 to 1.0
-  const activeZone = Math.min(Math.floor(progress * 13), 12);
-
   const zones = [
     {
       title: "Entrance Hall",
@@ -54,7 +60,7 @@ export default function Home() {
             href="#explore"
             onClick={(e) => {
               e.preventDefault();
-              window.scrollTo({ top: window.innerHeight * 1.5, behavior: "smooth" });
+              scrollToOffset(window.innerHeight * 1.5);
             }}
             className="gold-gradient-bg text-black px-6 py-2.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center gap-1.5 shadow-md hover:scale-105 transition-transform"
           >
@@ -146,8 +152,8 @@ export default function Home() {
       {/* FIXED 3D BACKGROUND CANVAS */}
       <ShowroomCanvas />
 
-      {/* SCROLL TRANSITION CARD OVERLAYS */}
-      <div className="fixed top-1/2 left-6 md:left-16 -translate-y-1/2 w-[90%] max-w-sm md:max-w-md z-10 pointer-events-none">
+      {/* SCROLL TRANSITION CARD OVERLAYS — bottom sheet on mobile, left panel on desktop */}
+      <div className="fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-16 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-md">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeZone}
@@ -155,11 +161,11 @@ export default function Home() {
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, x: 30, filter: "blur(8px)" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="glass-effect p-8 md:p-10 rounded-3xl border border-verdant-emerald/5 bg-[#F6F2EA]/65 shadow-lg text-left"
+            className="glass-effect-gold p-5 sm:p-8 md:p-10 rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[#FAF4E6]/85 to-[#F1E6CC]/75 shadow-[0_8px_40px_rgba(200,169,106,0.18)] text-left"
           >
             {/* Tag */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/20 bg-verdant-gold/5 mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#5D7A68] animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-verdant-gold animate-pulse" />
               <span className="text-[9px] tracking-[0.25em] uppercase text-[#5D7A68] font-semibold">
                 {currentZone.title}
               </span>
@@ -171,7 +177,7 @@ export default function Home() {
             </h3>
 
             {/* Description */}
-            <p className="text-verdant-emerald/70 text-xs md:text-sm font-light leading-relaxed tracking-wide mb-8">
+            <p className="text-verdant-emerald/70 text-xs md:text-sm font-light leading-relaxed tracking-wide mb-5 md:mb-8">
               {currentZone.desc}
             </p>
 
@@ -182,16 +188,17 @@ export default function Home() {
       </div>
 
       {/* PERSISTENT PROGRESS SCROLL INDICATOR */}
-      <div className="fixed bottom-8 right-8 z-10 flex items-center gap-4 text-[9px] uppercase tracking-[0.25em] text-[#5D7A68]/60">
-        <span>Exhibition Progress</span>
-        <div className="w-32 h-[1px] bg-[#5D7A68]/10 rounded-full overflow-hidden">
+      <div className="fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-8 md:right-8 z-10 flex items-center gap-3 md:gap-4 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/70">
+        <span className="hidden sm:inline">Exhibition Progress</span>
+        <div className="w-20 md:w-32 h-[1px] bg-[#5D7A68]/10 rounded-full overflow-hidden">
           <div
-            className="h-full bg-verdant-gold shadow-[0_0_8px_#C8A96A] transition-all duration-100"
-            style={{ width: `${progress * 100}%` }}
+            ref={progressBarRef}
+            className="h-full bg-verdant-gold shadow-[0_0_8px_#C8A96A]"
+            style={{ width: "0%" }}
           />
         </div>
-        <span className="text-verdant-gold font-bold">
-          {Math.round(progress * 100)}%
+        <span ref={progressTextRef} className="text-verdant-gold font-bold">
+          0%
         </span>
       </div>
     </div>

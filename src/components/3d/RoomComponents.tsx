@@ -6,7 +6,12 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 // --- REUSABLE BRILLIANT CUT GEMSTONE COMPONENT ---
-export function BrilliantCutGem({ color = "#0F4C3A", scale = 1.0, position = [0, 0, 0] }: { color?: string; scale?: number; position?: [number, number, number] }) {
+// Note: #0F4C3A (brand emerald) is a TEXT color — through a transmission
+// material it renders near-black. Gems use this brighter emerald instead,
+// which darkens back to a rich jewel tone once light passes through.
+const GEM_EMERALD = "#15805C";
+
+export function BrilliantCutGem({ color = GEM_EMERALD, scale = 1.0, position = [0, 0, 0] }: { color?: string; scale?: number; position?: [number, number, number] }) {
   return (
     <group position={position} scale={scale}>
       {/* Top Crown Cylinder (narrow top, wide base) */}
@@ -20,6 +25,8 @@ export function BrilliantCutGem({ color = "#0F4C3A", scale = 1.0, position = [0,
           thickness={1.1}
           clearcoat={1.0}
           envMapIntensity={2.5}
+          emissive={color}
+          emissiveIntensity={0.18}
         />
       </mesh>
       {/* Bottom Pavilion Cylinder (wide base, points to a sharp tip) */}
@@ -33,6 +40,8 @@ export function BrilliantCutGem({ color = "#0F4C3A", scale = 1.0, position = [0,
           thickness={1.1}
           clearcoat={1.0}
           envMapIntensity={2.5}
+          emissive={color}
+          emissiveIntensity={0.18}
         />
       </mesh>
     </group>
@@ -40,7 +49,7 @@ export function BrilliantCutGem({ color = "#0F4C3A", scale = 1.0, position = [0,
 }
 
 // --- REUSABLE LUXURY RING COMPONENT ---
-export function LuxuryRing({ metalColor = "#C8A96A", gemColor = "#0F4C3A", position = [0, 0, 0], scale = 1.0 }: { metalColor?: string; gemColor?: string; position?: [number, number, number]; scale?: number }) {
+export function LuxuryRing({ metalColor = "#C8A96A", gemColor = GEM_EMERALD, position = [0, 0, 0], scale = 1.0 }: { metalColor?: string; gemColor?: string; position?: [number, number, number]; scale?: number }) {
   const groupRef = useRef<THREE.Group>(null);
   
   useFrame((state) => {
@@ -50,15 +59,31 @@ export function LuxuryRing({ metalColor = "#C8A96A", gemColor = "#0F4C3A", posit
 
   return (
     <group ref={groupRef} position={position} scale={scale}>
-      {/* Main Ring Band */}
+      {/* Main Ring Band — pure metals take ALL color from env reflections,
+          so boost the envmap and add a warm emissive floor to read as gold */}
       <mesh rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow>
         <torusGeometry args={[0.85, 0.12, 32, 100]} />
-        <meshPhysicalMaterial color={metalColor} metalness={1.0} roughness={0.06} clearcoat={1.0} />
+        <meshPhysicalMaterial
+          color={metalColor}
+          metalness={1.0}
+          roughness={0.06}
+          clearcoat={1.0}
+          envMapIntensity={1.6}
+          emissive="#A38244"
+          emissiveIntensity={0.25}
+        />
       </mesh>
       {/* Prongs gem holder */}
       <mesh position={[0, 0.65, 0]} castShadow>
         <cylinderGeometry args={[0.18, 0.26, 0.32, 8]} />
-        <meshPhysicalMaterial color={metalColor} metalness={1.0} roughness={0.1} />
+        <meshPhysicalMaterial
+          color={metalColor}
+          metalness={1.0}
+          roughness={0.1}
+          envMapIntensity={1.6}
+          emissive="#A38244"
+          emissiveIntensity={0.25}
+        />
       </mesh>
       {/* Center Gemstone */}
       <BrilliantCutGem color={gemColor} position={[0, 0.9, 0]} scale={0.8} />
@@ -141,7 +166,7 @@ export function GalleryBoxes() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const boxes = [
-    { x: -1.6, y: 0.2, z: -23, gem: "#0F4C3A" },
+    { x: -1.6, y: 0.2, z: -23, gem: "#15805C" },
     { x: 0.0, y: -0.3, z: -24, gem: "#ffffff" },
     { x: 1.6, y: 0.4, z: -25, gem: "#FF1493" },
   ];
@@ -352,9 +377,9 @@ export function Pedestals() {
 
   const items = [
     { x: -1.8, label: "Rings", component: <LuxuryRing scale={0.35} /> },
-    { x: -0.6, label: "Necklaces", component: <mesh><torusGeometry args={[0.3, 0.06, 8, 32]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0}/></mesh> },
-    { x: 0.6, label: "Bracelets", component: <mesh rotation={[0.4, 0, 0.4]}><torusGeometry args={[0.26, 0.08, 16, 48]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0}/></mesh> },
-    { x: 1.8, label: "Earrings", component: <group position={[-0.15, 0, 0]}><mesh><icosahedronGeometry args={[0.1, 1]}/><meshPhysicalMaterial color="#0F4C3A" transmission={1}/></mesh></group> },
+    { x: -0.6, label: "Necklaces", component: <mesh><torusGeometry args={[0.3, 0.06, 8, 32]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.15} envMapIntensity={1.6} emissive="#A38244" emissiveIntensity={0.25}/></mesh> },
+    { x: 0.6, label: "Bracelets", component: <mesh rotation={[0.4, 0, 0.4]}><torusGeometry args={[0.26, 0.08, 16, 48]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.15} envMapIntensity={1.6} emissive="#A38244" emissiveIntensity={0.25}/></mesh> },
+    { x: 1.8, label: "Earrings", component: <group position={[-0.15, 0, 0]}><mesh><icosahedronGeometry args={[0.1, 1]}/><meshPhysicalMaterial color="#15805C" transmission={0.96} roughness={0} envMapIntensity={2.5} emissive="#15805C" emissiveIntensity={0.18}/></mesh></group> },
   ];
 
   return (
@@ -542,8 +567,8 @@ export function UndergroundCave() {
 
       {/* Raw Green Emerald Ores glowing inside rock cracks */}
       <group ref={gemsRef} position={[0, -0.2, 0.5]}>
-        <BrilliantCutGem color="#0F4C3A" scale={0.4} position={[-1.2, 0.5, -0.5]} />
-        <BrilliantCutGem color="#0F4C3A" scale={0.35} position={[1.3, 0.8, -1.2]} />
+        <BrilliantCutGem scale={0.4} position={[-1.2, 0.5, -0.5]} />
+        <BrilliantCutGem scale={0.35} position={[1.3, 0.8, -1.2]} />
       </group>
     </group>
   );

@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
+import SmoothScroll from "@/components/SmoothScroll";
+import DevConsoleFilter from "@/components/DevConsoleFilter";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -15,8 +17,26 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "AURUM | Immersive Futuristic Luxury Jewelry",
-  description: "Experience timeless craftsmanship with modern elegance. Explore our 3D interactive collection of custom diamond rings, necklaces, and luxury watches.",
+  title: {
+    default: "VERDANT JEWELS | Immersive Luxury Jewelry Showroom",
+    template: "%s | VERDANT JEWELS",
+  },
+  description:
+    "Experience timeless craftsmanship with modern elegance. Walk through our immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
+  openGraph: {
+    title: "VERDANT JEWELS | Immersive Luxury Jewelry Showroom",
+    description:
+      "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
+    type: "website",
+    siteName: "VERDANT JEWELS",
+  },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#F8F4EA",
 };
 
 export default function RootLayout({
@@ -30,7 +50,8 @@ export default function RootLayout({
       className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans`}
     >
       <body className="min-h-full flex flex-col bg-luxury-black text-white">
-        {children}
+        <DevConsoleFilter />
+        <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
   );
