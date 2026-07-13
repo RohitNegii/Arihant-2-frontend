@@ -2,8 +2,9 @@
 
 import React, { useRef, useState, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
+import { Html, useTexture } from "@react-three/drei";
 import * as THREE from "three";
+import { JEWELRY_IMAGES, type JewelryImage } from "@/content/jewelry";
 
 // --- REUSABLE BRILLIANT CUT GEMSTONE COMPONENT ---
 // Note: #0F4C3A (brand emerald) is a TEXT color — through a transmission
@@ -123,36 +124,73 @@ export function EntrancePedestal() {
 }
 
 // --- SCENE 2: HISTORY TUNNEL (Z = -12) ---
+// Photography hung on the tunnel walls, passing by on either side as the
+// camera travels through. Portrait 4:5 frames match the source photos.
+const TUNNEL_FRAMES: { frX: number; frZ: number; image: JewelryImage }[] = [
+  { frX: -2.3, frZ: -9.5, image: JEWELRY_IMAGES.royalPeacock },
+  { frX: 2.3, frZ: -10.75, image: JEWELRY_IMAGES.turquoiseChandelier },
+  { frX: -2.3, frZ: -12, image: JEWELRY_IMAGES.rubyChandbali },
+  { frX: 2.3, frZ: -13.25, image: JEWELRY_IMAGES.lapisBloom },
+  { frX: -2.3, frZ: -14.5, image: JEWELRY_IMAGES.emeraldGoddess },
+  { frX: 2.3, frZ: -15.75, image: JEWELRY_IMAGES.abaloneElephant },
+];
+
 export function HistoryTunnelFrames() {
-  const frames = [
-    { frX: -2.3, frZ: -10, label: "Sketch 2001", color: "#5D7A68" },
-    { frX: 2.3, frZ: -11, label: "18K Gold Cast", color: "#C8A96A" },
-    { frX: -2.3, frZ: -13, label: "First Solitaire", color: "#5D7A68" },
-    { frX: 2.3, frZ: -14, label: "Milan Collection", color: "#C8A96A" },
-  ];
+  // Suspends inside ShowroomCanvas' Suspense boundary until all photos load
+  const textures = useTexture(
+    TUNNEL_FRAMES.map((fr) => fr.image.src),
+    (loaded) => {
+      loaded.forEach((tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
+      });
+    }
+  );
 
   return (
     <group>
       {/* Tunnel side walls */}
-      <mesh position={[-3.0, 0, -12]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[10, 4]} />
+      <mesh position={[-3.0, 0, -12.5]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[12, 4]} />
         <meshPhysicalMaterial color="#EFE8DD" roughness={0.9} />
       </mesh>
-      <mesh position={[3.0, 0, -12]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[10, 4]} />
+      <mesh position={[3.0, 0, -12.5]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[12, 4]} />
         <meshPhysicalMaterial color="#EFE8DD" roughness={0.9} />
       </mesh>
 
-      {/* Picture Frames hanging on the walls */}
-      {frames.map((fr, idx) => (
-        <group key={idx} position={[fr.frX, 0.3, fr.frZ]}>
-          <mesh rotation={[0, fr.frX > 0 ? -Math.PI / 2 : Math.PI / 2, 0]}>
-            <boxGeometry args={[1.5, 1.2, 0.05]} />
-            <meshPhysicalMaterial color={fr.color} roughness={0.2} />
+      {/* Gilded photography frames hanging on the walls */}
+      {TUNNEL_FRAMES.map((fr, idx) => (
+        <group
+          key={idx}
+          position={[fr.frX, 0.35, fr.frZ]}
+          rotation={[0, fr.frX > 0 ? -Math.PI / 2 : Math.PI / 2, 0]}
+        >
+          {/* Gold frame border */}
+          <mesh castShadow>
+            <boxGeometry args={[1.26, 1.56, 0.06]} />
+            <meshPhysicalMaterial
+              color="#C8A96A"
+              metalness={1.0}
+              roughness={0.25}
+              envMapIntensity={1.4}
+              emissive="#A38244"
+              emissiveIntensity={0.15}
+            />
           </mesh>
-          <Html position={[0, 0.8, 0]} center transform distanceFactor={4}>
-            <div className="bg-[#F6F2EA]/95 border border-verdant-gold/30 rounded-lg px-2 py-0.5 shadow-sm text-[8px] uppercase tracking-widest text-[#5D7A68]">
-              {fr.label}
+          {/* Cream mat */}
+          <mesh position={[0, 0, 0.033]}>
+            <planeGeometry args={[1.18, 1.48]} />
+            <meshBasicMaterial color="#F6F2EA" />
+          </mesh>
+          {/* The photograph itself (unlit so colors stay true) */}
+          <mesh position={[0, 0, 0.036]}>
+            <planeGeometry args={[1.08, 1.35]} />
+            <meshBasicMaterial map={textures[idx]} toneMapped={false} />
+          </mesh>
+          <Html position={[0, -0.98, 0.05]} center transform distanceFactor={4}>
+            <div className="bg-[#F6F2EA]/95 border border-verdant-gold/30 rounded-lg px-2 py-0.5 shadow-sm text-[8px] uppercase tracking-widest text-[#5D7A68] whitespace-nowrap">
+              {fr.image.name}
             </div>
           </Html>
         </group>
@@ -412,6 +450,12 @@ export function Pedestals() {
 export function TryOnMirror() {
   const ringRef = useRef<THREE.Group>(null);
 
+  // The mirror "reflects" a styled look — a photo behind a glass sheen
+  const reflection = useTexture(JEWELRY_IMAGES.jadeMedallion.src, (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+  });
+
   useFrame((state) => {
     if (ringRef.current) {
       ringRef.current.rotation.y = state.clock.getElapsedTime() * 0.8;
@@ -426,14 +470,27 @@ export function TryOnMirror() {
         <boxGeometry args={[2.5, 3.2, 0.08]} />
         <meshPhysicalMaterial color="#5D7A68" roughness={0.3} thickness={0.5} />
       </mesh>
-      {/* Mirror surface */}
+      {/* Styled look showing inside the mirror */}
       <mesh position={[0, 0, 0.05]}>
+        <planeGeometry args={[2.2, 2.75]} />
+        <meshBasicMaterial map={reflection} toneMapped={false} />
+      </mesh>
+      {/* Glass sheen over the reflection */}
+      <mesh position={[0, 0, 0.08]}>
         <planeGeometry args={[2.2, 2.9]} />
-        <meshPhysicalMaterial color="#ffffff" transmission={0.9} roughness={0.0} envMapIntensity={3.0} />
+        <meshPhysicalMaterial
+          color="#ffffff"
+          transmission={0.92}
+          roughness={0.0}
+          envMapIntensity={1.5}
+          transparent
+          opacity={0.35}
+        />
       </mesh>
 
-      {/* Floating ring orbiting mirror space */}
-      <group ref={ringRef} position={[0, 0.2, 0.6]} scale={0.4}>
+      {/* Floating ring beside the mirror — kept off the camera's center
+          flight path so it never blocks the reflection as we pass through */}
+      <group ref={ringRef} position={[1.5, 0.15, 0.4]} scale={0.4}>
         <LuxuryRing />
       </group>
     </group>

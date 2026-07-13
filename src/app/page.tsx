@@ -2,12 +2,23 @@
 
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar, Sparkles } from "lucide-react";
 import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Navbar from "@/components/sections/Navbar";
 import { scrollToOffset } from "@/store/scroll-store";
+import { JEWELRY_IMAGES, type JewelryImage } from "@/content/jewelry";
+
+interface Zone {
+  title: string;
+  subtitle: string;
+  desc: string;
+  cta?: React.ReactNode;
+  /** Photography shown in the fixed side showcase while this zone is active. */
+  image?: JewelryImage;
+}
 
 // Load 3D dynamic showroom canvas with SSR disabled
 const ShowroomCanvas = dynamic(() => import("@/components/3d/ShowroomCanvas"), {
@@ -49,7 +60,7 @@ export default function Home() {
   }, []);
 
   // 13 scenes mapped evenly from 0.0 to 1.0
-  const zones = [
+  const zones: Zone[] = [
     {
       title: "Entrance Hall",
       subtitle: "Jewelry Crafted Beyond Time",
@@ -72,12 +83,13 @@ export default function Home() {
     {
       title: "History Tunnel",
       subtitle: "The Archives of Creation",
-      desc: "Hover pictures on the left wall to inspect heritage paper sketches, and frames on the right wall to see modern renders.",
+      desc: "Drift between gilded frames of our signature heirlooms — six handcrafted pieces photographed in the atelier, hanging along both gallery walls.",
     },
     {
       title: "Floating Gallery",
       subtitle: "Gemstone Levitations",
       desc: "Hover over the glass jewelry boxes floating in space. Watch the lids lift and gems slide upwards on organic rings.",
+      image: JEWELRY_IMAGES.royalPeacock,
     },
     {
       title: "Diamond Laboratory",
@@ -88,21 +100,24 @@ export default function Home() {
       title: "Craftsmanship Atelier",
       subtitle: "From fire to form",
       desc: "Scroll to watch raw gold casting melt, morph, and solidify into a mirror-polished luxury band.",
+      image: JEWELRY_IMAGES.peacockHexagon,
     },
     {
       title: "Signature Collections",
       subtitle: "Sown in Botany",
       desc: "Witness Rings, Necklaces, Bracelets, and Earrings floating on giant pedestals. Click pedestals to rotate them.",
+      image: JEWELRY_IMAGES.emeraldGoddess,
     },
     {
       title: "Virtual Try-On Mirror",
       subtitle: "Interactive Reflexes",
-      desc: "A floating physical mirror coordinates styling and contour wraps. Custom adjustments hug the skin like a second tissue.",
+      desc: "The atelier mirror previews a styled look — jade medallions reflected back as if already worn.",
     },
     {
       title: "Atelier Museum",
       subtitle: "Best Sellers Selection",
       desc: "Hover over the museum display glass cubes to open them, floating the jewelry upwards and showing boutique prices.",
+      image: JEWELRY_IMAGES.rubyChandbali,
     },
     {
       title: "Voices of Elegance",
@@ -123,19 +138,43 @@ export default function Home() {
       title: "Masterpiece Arena",
       subtitle: "The Crown Jewel",
       desc: "Enter a massive circular arena. The most detailed custom ring floats in golden stardust under spotlight matrices.",
+      image: JEWELRY_IMAGES.turquoiseChandelier,
     },
     {
       title: "Create Your Forever Story",
       subtitle: "VERDANT JEWELS",
       desc: "Begin your bespoke design consultation with our Milan master craftsmen today.",
       cta: (
-        <div className="flex flex-col sm:flex-row gap-4 pointer-events-auto mt-4">
-          <button className="gold-gradient-bg text-black px-8 py-3.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2 shadow-lg">
-            Explore Collection <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-          <button className="glass-effect hover:bg-white/5 border border-verdant-emerald/20 text-[#5D7A68] px-8 py-3.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2">
-            Book Appointment <Calendar className="w-3.5 h-3.5 text-verdant-gold" />
-          </button>
+        <div className="pointer-events-auto mt-2">
+          {/* Farewell strip of the collection */}
+          <div className="flex gap-2.5 mb-6">
+            {[
+              JEWELRY_IMAGES.abaloneElephant,
+              JEWELRY_IMAGES.jadeMedallion,
+              JEWELRY_IMAGES.lapisBloom,
+            ].map((img) => (
+              <div
+                key={img.src}
+                className="relative flex-1 aspect-[4/5] rounded-xl overflow-hidden ring-1 ring-verdant-gold/40 shadow-md"
+              >
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="10rem"
+                  className="object-cover hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button className="gold-gradient-bg text-black px-8 py-3.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2 shadow-lg">
+              Explore Collection <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button className="glass-effect hover:bg-white/5 border border-verdant-emerald/20 text-[#5D7A68] px-8 py-3.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2">
+              Book Appointment <Calendar className="w-3.5 h-3.5 text-verdant-gold" />
+            </button>
+          </div>
         </div>
       ),
     },
@@ -184,6 +223,50 @@ export default function Home() {
             {/* CTA wrapper */}
             {currentZone.cta && currentZone.cta}
           </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* SIDE JEWELRY SHOWCASE — real photography easing in beside the 3D scene */}
+      <div className="hidden lg:block fixed right-10 xl:right-16 top-1/2 -translate-y-1/2 z-10 pointer-events-none w-60 xl:w-72">
+        <AnimatePresence mode="wait">
+          {currentZone.image && (
+            <motion.div
+              key={currentZone.image.src}
+              initial={{ opacity: 0, x: 60, rotate: 3, filter: "blur(10px)" }}
+              animate={{ opacity: 1, x: 0, rotate: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, x: 60, rotate: -3, filter: "blur(10px)" }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="relative"
+              >
+                <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-verdant-gold/40 shadow-[0_20px_60px_rgba(200,169,106,0.28)]">
+                  <Image
+                    src={currentZone.image.src}
+                    alt={currentZone.image.alt}
+                    fill
+                    sizes="(min-width: 1280px) 18rem, 15rem"
+                    className="object-cover"
+                  />
+                  {/* Soft gradient so the caption stays legible */}
+                  <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <p className="text-[8px] tracking-[0.3em] uppercase text-verdant-gold font-bold mb-1 flex items-center gap-1.5">
+                      <Sparkles className="w-2.5 h-2.5" /> Verdant Jewels
+                    </p>
+                    <p className="font-serif text-lg text-white leading-snug">
+                      {currentZone.image.name}
+                    </p>
+                  </div>
+                </div>
+                {/* Gold corner accents */}
+                <div className="absolute -top-3 -right-3 w-10 h-10 border-t-2 border-r-2 border-verdant-gold/70 rounded-tr-[1.75rem]" />
+                <div className="absolute -bottom-3 -left-3 w-10 h-10 border-b-2 border-l-2 border-verdant-gold/70 rounded-bl-[1.75rem]" />
+              </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
