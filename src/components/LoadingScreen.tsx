@@ -43,7 +43,7 @@ export default function LoadingScreen() {
             filter: "blur(20px)",
             transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
           }}
-          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#F8F4EA] select-none"
+          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-verdant-cream select-none"
         >
           <div className="flex flex-col items-center gap-8 max-w-xs w-full">
             {/* Monogram Monolith */}

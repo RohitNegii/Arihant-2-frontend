@@ -1,8 +1,23 @@
 "use client";
 
+import { useRef } from "react";
 import { MapPin } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function Footer() {
+  const footerRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: footerRef,
+    offset: ["start end", "end end"],
+  });
+
+  // Parallax offsets for background glows and texts
+  const parallaxY1 = useTransform(scrollYProgress, [0, 1], [-80, 40]);
+  const parallaxY2 = useTransform(scrollYProgress, [0, 1], [80, -40]);
+  const contentScale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 1], [0.7, 1]);
+
   const boutiques = [
     { city: "Paris", address: "Place Vendôme 18" },
     { city: "Milan", address: "Via Montenapoleone 12" },
@@ -11,9 +26,24 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative bg-[#F2EDE0] pt-20 pb-12 border-t border-verdant-gold/20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-16">
-        
+    <footer
+      ref={footerRef}
+      className="relative bg-[#F2EDE0] pt-24 pb-12 border-t border-verdant-gold/20 overflow-hidden select-none"
+    >
+      {/* Decorative Parallax Glows */}
+      <motion.div
+        style={{ y: parallaxY1 }}
+        className="absolute top-[-20%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-[#C8A96A]/8 to-transparent blur-[120px] pointer-events-none"
+      />
+      <motion.div
+        style={{ y: parallaxY2 }}
+        className="absolute bottom-[-20%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[120px] pointer-events-none"
+      />
+
+      <motion.div
+        style={{ scale: contentScale, opacity: contentOpacity }}
+        className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-16"
+      >
         {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           
@@ -90,7 +120,7 @@ export default function Footer() {
               {["Collections", "Showcase", "Story"].map((p) => (
                 <a
                   key={p}
-                  href={`#${p.toLowerCase()}`}
+                  href={`/#${p.toLowerCase()}`}
                   className="hover-target text-[10px] tracking-[0.1em] text-verdant-emerald/50 hover:text-verdant-emerald transition-colors font-light"
                 >
                   {p}
@@ -125,7 +155,7 @@ export default function Footer() {
           </span>
         </div>
         
-      </div>
+      </motion.div>
     </footer>
   );
 }

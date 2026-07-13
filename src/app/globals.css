@@ -1,21 +1,35 @@
 @import "tailwindcss";
 
-@theme {
-  --color-verdant-emerald: #0F4C3A;
-  --color-verdant-cream: #F8F4EA;
-  --color-verdant-gold: #C8A96A;
-  --color-luxury-gold-glow: rgba(200, 169, 106, 0.08);
-  --color-luxury-border: rgba(15, 76, 58, 0.05);
-  --color-luxury-card: rgba(248, 244, 234, 0.5);
-  
-  --font-serif: var(--font-serif);
-  --font-sans: var(--font-sans);
+:root {
+  /* Fonts */
+  --font-primary: var(--font-sans);
+  --font-secondary: var(--font-serif);
+
+  /* Colors */
+  --color-primary: #0F4C3A;
+  --color-primary-rgb: 15, 76, 58;
+  --color-secondary: #C8A96A;
+  --color-secondary-rgb: 200, 169, 106;
+  --color-background: #F8F4EA;
+  --color-background-rgb: 248, 244, 234;
+  --color-accent: #5D7A68;
+  --color-accent-rgb: 93, 122, 104;
+
+  --background: var(--color-background);
+  --foreground: var(--color-primary);
 }
 
-/* Custom CSS styling for luxury look */
-:root {
-  --background: #F8F4EA;
-  --foreground: #0F4C3A;
+@theme {
+  --color-verdant-emerald: var(--color-primary);
+  --color-verdant-cream: var(--color-background);
+  --color-verdant-gold: var(--color-secondary);
+  --color-verdant-accent: var(--color-accent);
+  --color-luxury-gold-glow: rgba(var(--color-secondary-rgb), 0.08);
+  --color-luxury-border: rgba(var(--color-primary-rgb), 0.05);
+  --color-luxury-card: rgba(var(--color-background-rgb), 0.5);
+  
+  --font-serif: var(--font-secondary);
+  --font-sans: var(--font-primary);
 }
 
 body {
@@ -32,39 +46,39 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8F4EA;
+  background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C8A96A;
+  background: var(--color-secondary);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B69558;
+  background: var(--color-primary);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(15, 76, 58, 0.15);
-  color: #0F4C3A;
+  background: rgba(var(--color-primary-rgb), 0.15);
+  color: var(--color-primary);
 }
 
 /* Glassmorphism utility */
 .glass-effect {
-  background: rgba(248, 244, 234, 0.45);
+  background: rgba(var(--color-background-rgb), 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(15, 76, 58, 0.06);
-  box-shadow: 0 8px 32px rgba(15, 76, 58, 0.03);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.06);
+  box-shadow: 0 8px 32px rgba(var(--color-primary-rgb), 0.03);
 }
 
 .glass-effect-gold {
-  background: rgba(248, 244, 234, 0.7);
+  background: rgba(var(--color-background-rgb), 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(200, 169, 106, 0.25);
-  box-shadow: 0 8px 32px rgba(200, 169, 106, 0.05);
+  border: 1px solid rgba(var(--color-secondary-rgb), 0.25);
+  box-shadow: 0 8px 32px rgba(var(--color-secondary-rgb), 0.05);
 }
 
 /* Gold text gradient */
