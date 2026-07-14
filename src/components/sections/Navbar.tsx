@@ -64,36 +64,49 @@ export default function Navbar() {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-10">
-            {["Collections", "Showcase", "Story", "Aesthetics"].map((link) => (
+            <Link
+              href="/products"
+              className="hover-target text-xs tracking-[0.2em] uppercase text-verdant-emerald/70 hover:text-verdant-gold transition-colors duration-300 font-bold"
+            >
+              Collections
+            </Link>
+            {user && (
               <Link
-                key={link}
-                href={link === "Collections" ? "/products" : `/#${link.toLowerCase()}`}
+                href="/orders"
                 className="hover-target text-xs tracking-[0.2em] uppercase text-verdant-emerald/70 hover:text-verdant-gold transition-colors duration-300 font-bold"
               >
-                {link}
+                Orders
               </Link>
-            ))}
+            )}
+            <Link
+              href="/contact"
+              className="hover-target text-xs tracking-[0.2em] uppercase text-verdant-emerald/70 hover:text-verdant-gold transition-colors duration-300 font-bold"
+            >
+              Contact
+            </Link>
           </div>
 
           {/* Dynamic Sign-In / User Profile CTA Button & Cart */}
           <div className="hidden md:flex items-center gap-4">
             {/* Cart Icon Button */}
-            <button
-              onClick={() => setCartOpen(true)}
-              className="hover-target relative w-10 h-10 rounded-full border border-verdant-emerald/10 bg-white/40 flex items-center justify-center text-verdant-emerald hover:text-verdant-gold hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-              aria-label="Shopping Bag"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              {cartCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 bg-verdant-gold text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-verdant-cream"
-                >
-                  {cartCount}
-                </motion.span>
-              )}
-            </button>
+            {user && (
+              <button
+                onClick={() => setCartOpen(true)}
+                className="hover-target relative w-10 h-10 rounded-full border border-verdant-emerald/10 bg-white/40 flex items-center justify-center text-verdant-emerald hover:text-verdant-gold hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+                aria-label="Shopping Bag"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                {cartCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 bg-verdant-gold text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-verdant-cream"
+                  >
+                    {cartCount}
+                  </motion.span>
+                )}
+              </button>
+            )}
 
             {user ? (
               <div className="flex items-center gap-3">
@@ -147,16 +160,29 @@ export default function Navbar() {
             transition={{ duration: 0.3 }}
             className="fixed inset-0 top-[70px] z-40 bg-verdant-cream/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 md:hidden border-t border-verdant-emerald/5 select-none"
           >
-            {["Collections", "Showcase", "Story", "Aesthetics"].map((link) => (
+            <Link
+              href="/products"
+              onClick={() => setIsOpen(false)}
+              className="text-lg tracking-[0.2em] uppercase text-verdant-emerald/80 hover:text-verdant-gold transition-colors duration-300 font-bold"
+            >
+              Collections
+            </Link>
+            {user && (
               <Link
-                key={link}
-                href={link === "Collections" ? "/products" : `/#${link.toLowerCase()}`}
+                href="/orders"
                 onClick={() => setIsOpen(false)}
                 className="text-lg tracking-[0.2em] uppercase text-verdant-emerald/80 hover:text-verdant-gold transition-colors duration-300 font-bold"
               >
-                {link}
+                Orders
               </Link>
-            ))}
+            )}
+            <Link
+              href="/contact"
+              onClick={() => setIsOpen(false)}
+              className="text-lg tracking-[0.2em] uppercase text-verdant-emerald/80 hover:text-verdant-gold transition-colors duration-300 font-bold"
+            >
+              Contact
+            </Link>
 
             {user ? (
               <div className="flex flex-col items-center gap-4 w-full px-8">
@@ -251,6 +277,9 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CartDrawer />
     </header>
   );
 }
+

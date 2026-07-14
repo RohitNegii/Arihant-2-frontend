@@ -18,7 +18,7 @@ declare global {
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, cartTotal, isLoading: cartLoading, fetchCart } = useCartStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isInitialized } = useAuthStore();
 
   // Address form fields
   const [name, setName] = useState("");
@@ -50,10 +50,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     // If not authenticated, redirect to home
-    if (!cartLoading && !isAuthenticated) {
+    if (isInitialized && !isAuthenticated) {
       router.push("/");
     }
-  }, [isAuthenticated, cartLoading]);
+  }, [isAuthenticated, isInitialized]);
 
   // Pricing calculations (replicated from backend for UI preview only)
   const taxAmount = Math.round(cartTotal * 0.03); // 3% GST

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
@@ -117,15 +118,18 @@ export default function Footer() {
               <span className="text-[10px] tracking-[0.2em] text-verdant-emerald/80 uppercase font-medium">
                 Atelier
               </span>
-              {["Collections", "Showcase", "Story"].map((p) => (
-                <a
-                  key={p}
-                  href={`/#${p.toLowerCase()}`}
-                  className="hover-target text-[10px] tracking-[0.1em] text-verdant-emerald/50 hover:text-verdant-emerald transition-colors font-light"
-                >
-                  {p}
-                </a>
-              ))}
+              <Link
+                href="/products"
+                className="hover-target text-[10px] tracking-[0.1em] text-verdant-emerald/50 hover:text-verdant-emerald transition-colors font-light"
+              >
+                Collections
+              </Link>
+              <Link
+                href="/contact"
+                className="hover-target text-[10px] tracking-[0.1em] text-verdant-emerald/50 hover:text-verdant-emerald transition-colors font-light"
+              >
+                Contact Us
+              </Link>
             </div>
             <div className="flex flex-col gap-3">
               <span className="text-[10px] tracking-[0.2em] text-verdant-emerald/80 uppercase font-medium">

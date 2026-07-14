@@ -3,6 +3,8 @@ import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import DevConsoleFilter from "@/components/DevConsoleFilter";
+import AuthInitializer from "@/components/AuthInitializer";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -51,6 +53,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-luxury-black text-white">
         <DevConsoleFilter />
+        <AuthInitializer />
+        <Toaster position="top-right" richColors />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>
