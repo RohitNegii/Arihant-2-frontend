@@ -5,8 +5,8 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Sparkles, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 
+import StorySection from "./StoryRooms";
 import {
-  EntrancePedestal,
   HistoryTunnelFrames,
   GalleryBoxes,
   LaboratoryDiamond,
@@ -26,8 +26,9 @@ function CameraController() {
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight || 1;
     const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1); // progress 0 to 1
 
-    // Camera travels forward along the Z axis (starts at Z = 4, ends at Z = -146)
-    const targetZ = 4.0 - progress * 150;
+    // Camera travels forward along the Z axis. It starts in front of the six
+    // story rooms (Z = 76) and ends past the last original room (Z = -146).
+    const targetZ = 76.0 - progress * 222;
     
     // Smooth camera interpolation
     state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.05);
@@ -52,7 +53,7 @@ export default function ShowroomCanvas() {
   return (
     <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#F6F2EA]">
       <Canvas
-        camera={{ position: [0, 0.5, 4.0], fov: 45 }}
+        camera={{ position: [0, 0.5, 76.0], fov: 45 }}
         // dpr cap keeps high-DPI displays from quadrupling the pixel workload
         dpr={[1, 1.75]}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
@@ -64,7 +65,7 @@ export default function ShowroomCanvas() {
 
         {/* Depth fade into the cream backdrop — distant rooms emerge from
             haze instead of popping in fully lit */}
-        <fog attach="fog" args={["#F6F2EA", 7, 30]} />
+        <fog attach="fog" args={["#F6F2EA", 8, 42]} />
 
         {/* Suspense boundary is critical to prevent CDN loaders from suspending the canvas */}
         <Suspense fallback={null}>
@@ -130,11 +131,15 @@ export default function ShowroomCanvas() {
             <meshStandardMaterial color="#F1EAD9" roughness={0.92} />
           </mesh>
 
-          {/* --- 13 VIRTUAL ROOM ENVIRONMENTS MOUNTED ON Z-AXIS --- */}
+          {/* --- STORY JOURNEY: 6 rooms in front of the gallery (Z = 72 → 12) --- */}
+          <StorySection />
+
+          {/* --- ORIGINAL ROOM ENVIRONMENTS MOUNTED ON Z-AXIS --- */}
           <group position={[0, 0, 0]}>
-            {/* Scene 1: Entrance Hall (Z = 0) */}
-            <EntrancePedestal />
-            
+            {/* Scene 1 (Z = 0) — the Entrance Hall ring + gem is parked:
+                `EntrancePedestal` still lives in RoomComponents.tsx, it is
+                just no longer mounted */}
+
             {/* Scene 2: History Tunnel (Z = -12) */}
             <HistoryTunnelFrames />
 
