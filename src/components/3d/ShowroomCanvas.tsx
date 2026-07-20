@@ -2,7 +2,7 @@
 
 import { useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Sparkles, Environment } from "@react-three/drei";
+import { Sparkles, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 
 import {
@@ -62,27 +62,37 @@ export default function ShowroomCanvas() {
       >
         <CameraController />
 
+        {/* Depth fade into the cream backdrop — distant rooms emerge from
+            haze instead of popping in fully lit */}
+        <fog attach="fog" args={["#F6F2EA", 7, 30]} />
+
         {/* Suspense boundary is critical to prevent CDN loaders from suspending the canvas */}
         <Suspense fallback={null}>
-          {/* Global Lighting */}
-          <ambientLight intensity={1.5} />
-          
-          {/* Entrance Hall Spotlight */}
+          {/* Low base fill — the key lights and environment do the modeling.
+              High ambient flattens every form into cardboard */}
+          <ambientLight intensity={0.25} />
+          <hemisphereLight intensity={0.5} color="#FFF9EE" groundColor="#CBBA97" />
+
+          {/* Entrance Hall key light — off-axis so forms get light/shade
+              modeling instead of a flat head-on wash */}
           <spotLight
-            position={[0, 8, 2]}
-            intensity={4.0}
-            angle={0.6}
+            position={[2.5, 7, 4]}
+            intensity={3.5}
+            angle={0.55}
             penumbra={1}
-            color="#C8A96A"
+            color="#FFEFD6"
             castShadow
+            shadow-mapSize={[1024, 1024]}
+            shadow-bias={-0.0002}
+            shadow-normalBias={0.02}
           />
-          
+
           {/* Lab Spotlight — no castShadow: each shadow-casting light is a
               full extra scene render pass per frame, and this one is far
               from the camera for most of the journey */}
           <spotLight
             position={[0, 8, -36]}
-            intensity={4.5}
+            intensity={3.5}
             angle={0.5}
             color="#ffffff"
           />
@@ -90,14 +100,35 @@ export default function ShowroomCanvas() {
           {/* Arena Spotlight — same: shadows dropped for perf */}
           <spotLight
             position={[0, 10, -132]}
-            intensity={5.0}
+            intensity={4.5}
             angle={0.8}
             penumbra={1}
-            color="#C8A96A"
+            color="#FFE2B8"
           />
 
-          <directionalLight position={[5, 10, 5]} intensity={2.0} castShadow />
-          <pointLight position={[0, 2, 2]} intensity={2.5} color="#C8A96A" />
+          <directionalLight
+            position={[6, 9, 6]}
+            intensity={1.7}
+            color="#FFF6E8"
+            castShadow
+            shadow-mapSize={[2048, 2048]}
+            shadow-camera-left={-9}
+            shadow-camera-right={9}
+            shadow-camera-top={9}
+            shadow-camera-bottom={-9}
+            shadow-camera-near={1}
+            shadow-camera-far={40}
+            shadow-bias={-0.0003}
+            shadow-normalBias={0.03}
+          />
+          <pointLight position={[0, 2, 2]} intensity={1.0} color="#E9CE9C" />
+
+          {/* Gallery floor running the full journey — grounds every room and
+              catches the entrance shadows; without it everything floats */}
+          <mesh position={[0, -1.5, -70]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <planeGeometry args={[18, 170]} />
+            <meshStandardMaterial color="#F1EAD9" roughness={0.92} />
+          </mesh>
 
           {/* --- 13 VIRTUAL ROOM ENVIRONMENTS MOUNTED ON Z-AXIS --- */}
           <group position={[0, 0, 0]}>
@@ -138,17 +169,59 @@ export default function ShowroomCanvas() {
             <ShowcaseArena />
           </group>
 
-          {/* Floating Sparkles & Dust Particles */}
+          {/* Floating dust motes — kept faint; big bright dots read as fake */}
           <Sparkles
-            count={120}
+            count={80}
             scale={12}
-            size={3.5}
-            speed={0.4}
+            size={1.8}
+            speed={0.25}
             color="#C8A96A"
-            opacity={0.6}
+            opacity={0.35}
           />
 
-          <Environment preset="studio" />
+          {/* Custom jewelry-studio environment: elongated softboxes give the
+              metals the long, natural highlight streaks of product photography
+              instead of the harsh blobs of the "studio" preset. Rendered once
+              (frames={1}) — costs nothing per frame */}
+          <Environment resolution={256} frames={1}>
+            <color attach="background" args={["#E9DFCB"]} />
+            {/* Overhead softbox */}
+            <Lightformer
+              form="rect"
+              intensity={2.6}
+              color="#FFFBF0"
+              position={[0, 5, 0]}
+              rotation-x={Math.PI / 2}
+              scale={[10, 14, 1]}
+            />
+            {/* Warm strip light, camera left */}
+            <Lightformer
+              form="rect"
+              intensity={1.4}
+              color="#FFF3DC"
+              position={[-5, 1, 0]}
+              rotation-y={Math.PI / 2}
+              scale={[16, 2.5, 1]}
+            />
+            {/* Cool strip light, camera right — the warm/cool contrast is what
+                makes polished metal look dimensional */}
+            <Lightformer
+              form="rect"
+              intensity={1.2}
+              color="#F2F7FF"
+              position={[5, 1, 2]}
+              rotation-y={-Math.PI / 2}
+              scale={[16, 2.5, 1]}
+            />
+            {/* Gold accent ring behind the scene */}
+            <Lightformer
+              form="ring"
+              intensity={1.0}
+              color="#FFE6BC"
+              position={[0, 3, -6]}
+              scale={4}
+            />
+          </Environment>
         </Suspense>
       </Canvas>
     </div>

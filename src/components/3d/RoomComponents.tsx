@@ -20,14 +20,18 @@ export function BrilliantCutGem({ color = GEM_EMERALD, scale = 1.0, position = [
         <cylinderGeometry args={[0.26, 0.45, 0.18, 12, 1]} />
         <meshPhysicalMaterial
           color={color}
-          transmission={0.96}
-          roughness={0.0}
+          transmission={0.95}
+          roughness={0.02}
           ior={2.42}
-          thickness={1.1}
+          thickness={1.4}
           clearcoat={1.0}
-          envMapIntensity={2.5}
+          clearcoatRoughness={0.04}
+          envMapIntensity={1.8}
+          attenuationColor={color}
+          attenuationDistance={0.5}
+          flatShading
           emissive={color}
-          emissiveIntensity={0.18}
+          emissiveIntensity={0.12}
         />
       </mesh>
       {/* Bottom Pavilion Cylinder (wide base, points to a sharp tip) */}
@@ -35,14 +39,18 @@ export function BrilliantCutGem({ color = GEM_EMERALD, scale = 1.0, position = [
         <cylinderGeometry args={[0.45, 0.01, 0.45, 12, 1]} />
         <meshPhysicalMaterial
           color={color}
-          transmission={0.96}
-          roughness={0.0}
+          transmission={0.95}
+          roughness={0.02}
           ior={2.42}
-          thickness={1.1}
+          thickness={1.4}
           clearcoat={1.0}
-          envMapIntensity={2.5}
+          clearcoatRoughness={0.04}
+          envMapIntensity={1.8}
+          attenuationColor={color}
+          attenuationDistance={0.5}
+          flatShading
           emissive={color}
-          emissiveIntensity={0.18}
+          emissiveIntensity={0.12}
         />
       </mesh>
     </group>
@@ -60,34 +68,35 @@ export function LuxuryRing({ metalColor = "#C8A96A", gemColor = GEM_EMERALD, pos
 
   return (
     <group ref={groupRef} position={position} scale={scale}>
-      {/* Main Ring Band — pure metals take ALL color from env reflections,
-          so boost the envmap and add a warm emissive floor to read as gold */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow>
+      {/* Main Ring Band — upright like a ring on a display stand; lying it
+          flat reads as an inflatable, not jewelry. Pure metals take ALL
+          color from env reflections; a small warm emissive floor keeps gold
+          from going black in shade, but anything stronger reads as plastic */}
+      <mesh castShadow receiveShadow>
         <torusGeometry args={[0.85, 0.12, 32, 100]} />
         <meshPhysicalMaterial
           color={metalColor}
           metalness={1.0}
-          roughness={0.06}
-          clearcoat={1.0}
-          envMapIntensity={1.6}
-          emissive="#A38244"
-          emissiveIntensity={0.25}
+          roughness={0.16}
+          envMapIntensity={1.1}
+          emissive="#6B5426"
+          emissiveIntensity={0.08}
         />
       </mesh>
-      {/* Prongs gem holder */}
-      <mesh position={[0, 0.65, 0]} castShadow>
-        <cylinderGeometry args={[0.18, 0.26, 0.32, 8]} />
+      {/* Prong seat straddling the top of the band */}
+      <mesh position={[0, 0.99, 0]} castShadow>
+        <cylinderGeometry args={[0.13, 0.2, 0.26, 8]} />
         <meshPhysicalMaterial
           color={metalColor}
           metalness={1.0}
-          roughness={0.1}
-          envMapIntensity={1.6}
-          emissive="#A38244"
-          emissiveIntensity={0.25}
+          roughness={0.2}
+          envMapIntensity={1.1}
+          emissive="#6B5426"
+          emissiveIntensity={0.08}
         />
       </mesh>
-      {/* Center Gemstone */}
-      <BrilliantCutGem color={gemColor} position={[0, 0.9, 0]} scale={0.8} />
+      {/* Center Gemstone seated on the prongs */}
+      <BrilliantCutGem color={gemColor} position={[0, 1.2, 0]} scale={0.62} />
     </group>
   );
 }
@@ -107,17 +116,18 @@ export function EntrancePedestal() {
     <group position={[0, -0.6, 0]}>
       {/* Volumetric pedestal base (white marble) */}
       <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.2, 1.3, 0.8, 32]} />
-        <meshPhysicalMaterial color="#EFE8DD" roughness={0.15} clearcoat={0.5} />
+        <cylinderGeometry args={[1.2, 1.3, 0.8, 48]} />
+        <meshPhysicalMaterial color="#EFE8DD" roughness={0.32} clearcoat={0.12} clearcoatRoughness={0.5} />
       </mesh>
 
-      {/* Floating Ring centerpiece */}
-      <LuxuryRing position={[0, 0.5, 0]} scale={0.9} />
+      {/* Floating Ring centerpiece — jewelry-sized; an oversized band reads
+          as an inflatable, not a ring */}
+      <LuxuryRing position={[0, 0.55, 0]} scale={0.68} />
 
       {/* Silk Ribbon orbit frame */}
       <mesh ref={ribbonRef} rotation={[0.4, 0, 0.2]}>
-        <torusGeometry args={[2.0, 0.02, 8, 64]} />
-        <meshPhysicalMaterial color="#5D7A68" roughness={0.4} />
+        <torusGeometry args={[2.0, 0.015, 8, 96]} />
+        <meshPhysicalMaterial color="#5D7A68" roughness={0.55} sheen={0.5} sheenColor="#9DBBA6" />
       </mesh>
     </group>
   );
@@ -172,10 +182,10 @@ export function HistoryTunnelFrames() {
             <meshPhysicalMaterial
               color="#C8A96A"
               metalness={1.0}
-              roughness={0.25}
-              envMapIntensity={1.4}
-              emissive="#A38244"
-              emissiveIntensity={0.15}
+              roughness={0.3}
+              envMapIntensity={1.0}
+              emissive="#6B5426"
+              emissiveIntensity={0.06}
             />
           </mesh>
           {/* Cream mat */}
@@ -214,7 +224,7 @@ export function GalleryBoxes() {
       {boxes.map((bx, idx) => {
         const isHovered = hoveredIndex === idx;
         const lidY = isHovered ? 0.6 : 0.0;
-        const ringY = isHovered ? 0.35 : 0.08;
+        const ringY = isHovered ? 0.42 : 0.3;
 
         return (
           <group
@@ -229,14 +239,15 @@ export function GalleryBoxes() {
               <meshPhysicalMaterial color="#8B5A2B" roughness={0.3} />
             </mesh>
 
-            {/* Glass Lid (translates up on hover) */}
-            <mesh position={[0, 0.22 + lidY, 0]} castShadow>
-              <boxGeometry args={[0.76, 0.4, 0.76]} />
+            {/* Glass Lid (translates up on hover) — tall enough to house the
+                upright ring */}
+            <mesh position={[0, 0.3 + lidY, 0]} castShadow>
+              <boxGeometry args={[0.76, 0.56, 0.76]} />
               <meshPhysicalMaterial color="#ffffff" transmission={0.9} roughness={0.0} thickness={0.1} />
             </mesh>
 
-            {/* Floating Ring inside the box */}
-            <LuxuryRing position={[0, ringY, 0]} scale={0.25} gemColor={bx.gem} />
+            {/* Upright Ring inside the box */}
+            <LuxuryRing position={[0, ringY, 0]} scale={0.2} gemColor={bx.gem} />
           </group>
         );
       })}
@@ -379,9 +390,9 @@ export function CraftingAtelier() {
   return (
     <group position={[0, 0, -48]}>
       {/* Melting Puddle */}
-      <mesh ref={puddleRef} position={[0, -0.6, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh ref={puddleRef} position={[0, -1.15, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <dodecahedronGeometry args={[0.5, 1]} />
-        <meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.15} emissive="#A38244" emissiveIntensity={0.2} />
+        <meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.25} envMapIntensity={1.1} emissive="#8A5B26" emissiveIntensity={0.25} />
       </mesh>
 
       {/* Morphing formed Ring */}
@@ -414,14 +425,15 @@ export function Pedestals() {
   const [clickedPedestal, setClickedPedestal] = useState<number | null>(null);
 
   const items = [
-    { x: -1.8, label: "Rings", component: <LuxuryRing scale={0.35} /> },
-    { x: -0.6, label: "Necklaces", component: <mesh><torusGeometry args={[0.3, 0.06, 8, 32]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.15} envMapIntensity={1.6} emissive="#A38244" emissiveIntensity={0.25}/></mesh> },
-    { x: 0.6, label: "Bracelets", component: <mesh rotation={[0.4, 0, 0.4]}><torusGeometry args={[0.26, 0.08, 16, 48]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.15} envMapIntensity={1.6} emissive="#A38244" emissiveIntensity={0.25}/></mesh> },
-    { x: 1.8, label: "Earrings", component: <group position={[-0.15, 0, 0]}><mesh><icosahedronGeometry args={[0.1, 1]}/><meshPhysicalMaterial color="#15805C" transmission={0.96} roughness={0} envMapIntensity={2.5} emissive="#15805C" emissiveIntensity={0.18}/></mesh></group> },
+    { x: -1.8, label: "Rings", component: <LuxuryRing position={[0, 0.09, 0]} scale={0.35} /> },
+    { x: -0.6, label: "Necklaces", component: <mesh><torusGeometry args={[0.3, 0.06, 8, 32]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.2} envMapIntensity={1.1} emissive="#6B5426" emissiveIntensity={0.08}/></mesh> },
+    { x: 0.6, label: "Bracelets", component: <mesh rotation={[0.4, 0, 0.4]}><torusGeometry args={[0.26, 0.08, 16, 48]}/><meshPhysicalMaterial color="#C8A96A" metalness={1.0} roughness={0.2} envMapIntensity={1.1} emissive="#6B5426" emissiveIntensity={0.08}/></mesh> },
+    { x: 1.8, label: "Earrings", component: <group position={[-0.15, 0, 0]}><mesh><icosahedronGeometry args={[0.1, 1]}/><meshPhysicalMaterial color="#15805C" transmission={0.95} roughness={0.02} ior={2.42} thickness={0.6} attenuationColor="#15805C" attenuationDistance={0.8} envMapIntensity={1.8} flatShading emissive="#15805C" emissiveIntensity={0.05}/></mesh></group> },
   ];
 
   return (
-    <group position={[0, -0.4, -60]}>
+    // y offset drops the pedestal bases onto the gallery floor (y = -1.5)
+    <group position={[0, -0.75, -60]}>
       {items.map((ped, idx) => {
         const isClicked = clickedPedestal === idx;
 
@@ -433,8 +445,8 @@ export function Pedestals() {
           >
             {/* Marble Pedestal base */}
             <mesh castShadow receiveShadow>
-              <cylinderGeometry args={[0.4, 0.45, 0.8, 16]} />
-              <meshPhysicalMaterial color="#EFE8DD" roughness={0.2} />
+              <cylinderGeometry args={[0.4, 0.45, 0.8, 24]} />
+              <meshPhysicalMaterial color="#EFE8DD" roughness={0.32} />
             </mesh>
 
             {/* Rotating container */}
@@ -507,10 +519,11 @@ export function MuseumCubes() {
   ];
 
   return (
-    <group position={[0, -0.2, -84]}>
+    // y offset drops the museum bases onto the gallery floor (y = -1.5)
+    <group position={[0, -0.75, -84]}>
       {cubes.map((cb, idx) => {
         const isHovered = hovered === idx;
-        const itemY = isHovered ? 0.7 : 0.45;
+        const itemY = isHovered ? 0.66 : 0.58;
 
         return (
           <group
@@ -522,12 +535,12 @@ export function MuseumCubes() {
             {/* Museum Base Pedestal */}
             <mesh castShadow receiveShadow>
               <boxGeometry args={[0.7, 0.7, 0.7]} />
-              <meshPhysicalMaterial color="#EFE8DD" roughness={0.15} />
+              <meshPhysicalMaterial color="#EFE8DD" roughness={0.32} />
             </mesh>
 
-            {/* Glass Cube frame */}
-            <mesh position={[0, 0.6, 0]}>
-              <boxGeometry args={[0.66, 0.6, 0.66]} />
+            {/* Glass Cube frame — tall enough to house the upright ring */}
+            <mesh position={[0, 0.64, 0]}>
+              <boxGeometry args={[0.66, 0.78, 0.66]} />
               <meshPhysicalMaterial color="#ffffff" transmission={0.95} roughness={0.0} transparent opacity={0.3} />
             </mesh>
 
@@ -664,14 +677,15 @@ export function PromisePillars() {
 export function ShowcaseArena() {
   return (
     <group position={[0, -0.4, -132]}>
-      {/* Massive circular marble showcase base */}
-      <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[1.5, 1.6, 0.4, 32]} />
-        <meshPhysicalMaterial color="#EFE8DD" roughness={0.08} clearcoat={1.0} />
+      {/* Massive circular marble showcase base — tall enough to reach the
+          gallery floor so the arena doesn't hover */}
+      <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[1.5, 1.6, 1.2, 48]} />
+        <meshPhysicalMaterial color="#EFE8DD" roughness={0.12} clearcoat={0.6} clearcoatRoughness={0.25} />
       </mesh>
 
-      {/* Floating Crown Ring centerpiece */}
-      <LuxuryRing position={[0, 0.6, 0]} scale={0.9} />
+      {/* Crown Ring centerpiece standing on the showcase */}
+      <LuxuryRing position={[0, 0.95, 0]} scale={0.9} />
     </group>
   );
 }

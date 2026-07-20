@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, ShoppingBag, Loader2, ArrowRight, Home, Calendar, Truck } from "lucide-react";
 import { getOrderDetailsApi } from "../../services/checkout";
 import { getImageUrl } from "../../utils/api";
 
-export default function OrderSuccessPage() {
+// useSearchParams() must live under a Suspense boundary or the static build
+// of this page fails — see the default export at the bottom
+function OrderSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
@@ -161,5 +163,19 @@ export default function OrderSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8F4EA] py-20 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-verdant-emerald" />
+        </div>
+      }
+    >
+      <OrderSuccessContent />
+    </Suspense>
   );
 }
