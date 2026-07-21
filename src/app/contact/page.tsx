@@ -145,7 +145,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#F8F4EA] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
       {/* Navbar */}
       <Navbar />
 
@@ -154,28 +154,27 @@ export default function ContactPage() {
       <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[140px] pointer-events-none animate-pulse" style={{ animationDuration: "10s" }} />
 
       {/* HERO BANNER */}
-      <div className="relative w-full h-[320px] bg-[#0B1B17] overflow-hidden flex items-center justify-center">
-        {/* Background Image with Dark Emerald Overlay */}
+      <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
+        {/* Background Image with Elegant Light Overlays */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=2000&q=80"
-            alt="Jewelry Atelier"
-            className="w-full h-full object-cover object-center opacity-30 select-none pointer-events-none filter blur-[1px]"
+            src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&w=2000&q=80"
+            alt="Luxury Jewelry Showroom"
+            className="w-full h-full object-cover object-center opacity-85 select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0B1B17]/95 via-[#0B1B17]/70 to-[#F8F4EA]" />
-          <div className="absolute inset-0 bg-[#0F4C3A]/10 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/45 to-[#FAF7F2]" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-6xl w-full mx-auto px-6 pt-16 text-left">
-          <div className="space-y-3">
-            <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center gap-1.5 animate-pulse">
+        <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-16 flex justify-center">
+          <div className="glass-effect rounded-3xl p-8 md:p-10 max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-3">
+            <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" /> Direct Atelier Connection
             </span>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-light tracking-wide text-white leading-tight">
+            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-verdant-emerald leading-tight">
               Get in Touch
             </h1>
-            <p className="text-xs text-white/60 leading-relaxed font-sans max-w-xl">
+            <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans max-w-xl mx-auto">
               Whether searching for GIA certification details, custom bridal consults, or boutique booking, our representatives are ready to assist.
             </p>
           </div>
@@ -185,12 +184,12 @@ export default function ContactPage() {
       {/* MAIN CONTENT BLOCK */}
       <div className="max-w-6xl mx-auto px-6 py-16 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
+
           {/* LEFT COLUMN: CONTACT INFORMATION */}
           <div className="lg:col-span-5 space-y-6">
             <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-8 shadow-[0_12px_40px_rgba(15,76,58,0.03)] text-left relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-verdant-gold/10 to-transparent blur-2xl pointer-events-none" />
-              
+
               <h2 className="font-serif text-2xl font-light text-verdant-emerald mb-2">Our Boutiques</h2>
               <p className="text-xs text-verdant-emerald/60 leading-relaxed mb-8">
                 Verdant Jewels blends the geometry of rare raw crystals with clean modern settings. Connect with us online, call our support desks, or visit one of our flagship global galleries.
@@ -241,7 +240,7 @@ export default function ContactPage() {
               <h2 className="font-serif text-2xl font-light text-verdant-emerald mb-6">Send an Inquiry</h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                
+
                 {/* Name & Email Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {/* Name */}
@@ -255,9 +254,8 @@ export default function ContactPage() {
                       value={form.name}
                       onChange={handleChange}
                       placeholder="e.g. Eleanor Vance"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${
-                        errors.name ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
-                      }`}
+                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.name ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                        }`}
                     />
                     {errors.name && (
                       <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
@@ -277,9 +275,8 @@ export default function ContactPage() {
                       value={form.email}
                       onChange={handleChange}
                       placeholder="e.g. eleanor@vance.com"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${
-                        errors.email ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
-                      }`}
+                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.email ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                        }`}
                     />
                     {errors.email && (
                       <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
@@ -302,9 +299,8 @@ export default function ContactPage() {
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="e.g. +1 555-0199"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${
-                        errors.phone ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
-                      }`}
+                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.phone ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                        }`}
                     />
                     {errors.phone && (
                       <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
@@ -324,9 +320,8 @@ export default function ContactPage() {
                       value={form.subject}
                       onChange={handleChange}
                       placeholder="e.g. Kundan ring customization details"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${
-                        errors.subject ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
-                      }`}
+                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.subject ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                        }`}
                     />
                     {errors.subject && (
                       <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
@@ -347,9 +342,8 @@ export default function ContactPage() {
                     onChange={handleChange}
                     rows={6}
                     placeholder="Provide details about your custom request, reservation date, or general question..."
-                    className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all resize-none ${
-                      errors.message ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
-                    }`}
+                    className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all resize-none ${errors.message ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                      }`}
                   />
                   {errors.message && (
                     <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">

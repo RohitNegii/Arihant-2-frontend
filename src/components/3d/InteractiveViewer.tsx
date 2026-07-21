@@ -102,7 +102,7 @@ export default function InteractiveViewer({ metalColor, gemColor }: ModelProps) 
           intensity={2.5}
           angle={0.6}
           penumbra={1}
-          color="#F8F4EA"
+          color="#FAF7F2"
         />
 
         <CustomizableRing metalColor={metalColor} gemColor={gemColor} />

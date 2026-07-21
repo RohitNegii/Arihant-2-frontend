@@ -10,9 +10,11 @@ import { useCartStore } from "../../store/cartStore";
 
 interface ProductActionsProps {
   product: ProductData;
+  selectedSize: string;
+  selectedVariant?: string;
 }
 
-export default function ProductActions({ product }: ProductActionsProps) {
+export default function ProductActions({ product, selectedSize, selectedVariant }: ProductActionsProps) {
   const [qty, setQty] = useState(1);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -27,13 +29,24 @@ export default function ProductActions({ product }: ProductActionsProps) {
   };
 
   const handleAddToBag = async (quantity: number) => {
+    const hasSizes = (product.sizes && product.sizes.length > 0) || product.allowCustomSize;
+    if (hasSizes && !selectedSize) {
+      showToast("Please select a size before adding to bag");
+      return;
+    }
+
+    if (product.hasVariants && !selectedVariant) {
+      showToast("Please select a variety option before adding to bag");
+      return;
+    }
+
     if (!isAuthenticated) {
       openAuthModal("login", () => handleAddToBag(quantity));
       return;
     }
 
     try {
-      const success = await addToCartContext(product._id, quantity);
+      const success = await addToCartContext(product._id, quantity, selectedSize || undefined, selectedVariant || undefined);
       if (success) {
         showToast(`Added ${quantity} item${quantity > 1 ? "s" : ""} to Bag`);
         setCartOpen(true);
@@ -46,13 +59,24 @@ export default function ProductActions({ product }: ProductActionsProps) {
   };
 
   const handleBuyNow = async (quantity: number) => {
+    const hasSizes = (product.sizes && product.sizes.length > 0) || product.allowCustomSize;
+    if (hasSizes && !selectedSize) {
+      showToast("Please select a size before checkout");
+      return;
+    }
+
+    if (product.hasVariants && !selectedVariant) {
+      showToast("Please select a variety option before checkout");
+      return;
+    }
+
     if (!isAuthenticated) {
       openAuthModal("login", () => handleBuyNow(quantity));
       return;
     }
 
     try {
-      const success = await addToCartContext(product._id, quantity);
+      const success = await addToCartContext(product._id, quantity, selectedSize || undefined, selectedVariant || undefined);
       if (success) {
         setCartOpen(true);
       } else {
@@ -63,7 +87,11 @@ export default function ProductActions({ product }: ProductActionsProps) {
     }
   };
 
-  const outOfStock = product.stock <= 0;
+  const selectedVariantData = product.hasVariants && selectedVariant
+    ? product.variants?.find(v => v.name === selectedVariant)
+    : null;
+  const currentStock = selectedVariantData ? selectedVariantData.stock : (product.stock ?? 0);
+  const outOfStock = currentStock <= 0;
 
   return (
     <div className="flex flex-col gap-4 text-left select-none relative">
@@ -81,15 +109,15 @@ export default function ProductActions({ product }: ProductActionsProps) {
           </motion.div>
         )}
       </AnimatePresence>
-
+ 
       {/* Stock Status details */}
       <div className="flex items-center gap-2 mb-2">
         <span className={`w-2 h-2 rounded-full ${outOfStock ? "bg-red-600 animate-pulse" : "bg-emerald-600 animate-pulse"}`} />
         <span className="text-[10px] tracking-widest font-bold uppercase text-verdant-emerald/60">
-          {outOfStock ? "Unavailable (Out of Stock)" : `In Stock (Only ${product.stock} units left)`}
+          {outOfStock ? "Unavailable (Out of Stock)" : `In Stock (Only ${currentStock} units left)`}
         </span>
       </div>
-
+ 
       {/* Quantity adjustment & Actions */}
       <div className="flex flex-col sm:flex-row gap-4 items-stretch">
         {/* Quantity Select widget */}
@@ -105,7 +133,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
               {qty}
             </span>
             <button
-              onClick={() => setQty((prev) => Math.min(product.stock, prev + 1))}
+              onClick={() => setQty((prev) => Math.min(currentStock, prev + 1))}
               className="w-8 h-8 rounded-full flex items-center justify-center text-verdant-emerald hover:bg-verdant-emerald/5 hover:scale-105 active:scale-95 transition-all text-sm font-bold cursor-pointer"
             >
               +

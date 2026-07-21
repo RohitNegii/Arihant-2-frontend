@@ -6,13 +6,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Package, ArrowLeft, ArrowRight, X, MapPin, Truck, Calendar, CreditCard, ExternalLink, ShieldCheck, Sparkles, Award } from "lucide-react";
 import { getMyOrdersApi } from "../../services/checkout";
 import { useAuthStore } from "../../store/authStore";
+import { useScrollStore } from "../../store/scroll-store";
 import { getImageUrl } from "../../utils/api";
+
+const isVideoUrl = (url: string) => {
+  if (!url) return false;
+  const ext = url.split(".").pop()?.toLowerCase();
+  return ["mp4", "webm", "ogg", "mov"].includes(ext || "");
+};
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 
 export default function MyOrdersPage() {
   const router = useRouter();
   const { user, isAuthenticated, isInitialized } = useAuthStore();
+  const { lenis } = useScrollStore();
   const authLoading = !isInitialized;
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,13 +40,16 @@ export default function MyOrdersPage() {
   useEffect(() => {
     if (selectedOrder) {
       document.body.style.overflow = "hidden";
+      lenis?.stop();
     } else {
       document.body.style.overflow = "unset";
+      lenis?.start();
     }
     return () => {
       document.body.style.overflow = "unset";
+      lenis?.start();
     };
-  }, [selectedOrder]);
+  }, [selectedOrder, lenis]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -66,24 +77,26 @@ export default function MyOrdersPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="relative min-h-screen bg-[#F8F4EA] text-verdant-emerald overflow-hidden">
+      <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden">
         {/* Navbar */}
         <Navbar />
 
         {/* Hero Banner Section */}
-        <div className="relative w-full h-[320px] bg-[#0B1B17] overflow-hidden flex items-center justify-center">
+        <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
           <div className="absolute inset-0 z-0">
             <img
-              src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=80"
+              src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=2000&q=80"
               alt="Luxury Jewelry Banner"
-              className="w-full h-full object-cover object-center opacity-30 select-none pointer-events-none filter blur-[1px]"
+              className="w-full h-full object-cover object-center opacity-20 select-none pointer-events-none filter blur-[0.5px]"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0B1B17]/90 via-[#0B1B17]/70 to-[#F8F4EA]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FAF7F2]/40 to-[#FAF7F2]" />
           </div>
-          <div className="relative z-10 max-w-6xl w-full mx-auto px-6 pt-16 text-left space-y-3">
-            <div className="w-24 h-4 bg-white/10 rounded animate-pulse" />
-            <div className="w-64 h-10 bg-white/20 rounded-lg animate-pulse" />
-            <div className="w-96 h-4 bg-white/10 rounded animate-pulse" />
+          <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-16 flex justify-center">
+            <div className="glass-effect rounded-3xl p-8 md:p-10 w-full max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col items-center space-y-3">
+              <div className="w-24 h-4 bg-verdant-emerald/10 rounded animate-pulse" />
+              <div className="w-64 h-10 bg-verdant-emerald/15 rounded-lg animate-pulse" />
+              <div className="w-96 h-4 bg-verdant-emerald/10 rounded animate-pulse" />
+            </div>
           </div>
         </div>
 
@@ -132,7 +145,7 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#F8F4EA] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
       {/* Navbar */}
       <Navbar />
 
@@ -141,35 +154,28 @@ export default function MyOrdersPage() {
       <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[140px] pointer-events-none animate-pulse" style={{ animationDuration: '10s' }} />
 
       {/* HERO BANNER SECTION */}
-      <div className="relative w-full h-[320px] bg-[#0B1B17] overflow-hidden flex items-center justify-center">
-        {/* Background Image with Dark Emerald Overlay */}
+      <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
+        {/* Background Image with Elegant Light Overlays */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=80"
+            src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=2000&q=80"
             alt="Luxury Jewelry Banner"
-            className="w-full h-full object-cover object-center opacity-40 scale-105 select-none pointer-events-none filter blur-[1px]"
+            className="w-full h-full object-cover object-center opacity-80 scale-105 select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0B1B17]/90 via-[#0B1B17]/70 to-[#F8F4EA]" />
-          <div className="absolute inset-0 bg-[#0F4C3A]/10 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/45 to-[#FAF7F2]" />
         </div>
 
         {/* Banner Content */}
-        <div className="relative z-10 max-w-6xl w-full mx-auto px-6 pt-16 text-left">
-          <button
-            onClick={() => router.push("/")}
-            className="flex items-center gap-2 text-[9px] tracking-[0.25em] uppercase font-bold text-white/60 hover:text-verdant-gold hover:translate-x-[-4px] mb-6 transition-all select-none cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Home
-          </button>
-          
-          <div className="space-y-3">
-            <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center gap-1.5 animate-pulse">
+        <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-16 flex justify-center">
+          <div className="glass-effect rounded-3xl p-8 md:p-10 w-full max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-3 relative">
+            
+            <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5 pt-2">
               <Sparkles className="w-3.5 h-3.5" /> Secure Client Vault
             </span>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-light tracking-wide text-white leading-tight">
+            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-verdant-emerald leading-tight">
               My Purchase Logs
             </h1>
-            <p className="text-xs text-white/60 leading-relaxed font-sans max-w-xl">
+            <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans max-w-xl mx-auto">
               Track the creation progress, delivery logs, and authenticated GIA invoices of your bespoke collections.
             </p>
           </div>
@@ -350,7 +356,7 @@ export default function MyOrdersPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="glass-card bg-[#F8F4EA] border border-verdant-emerald/10 w-full max-w-4xl rounded-[2rem] shadow-[0_25px_70px_-10px_rgba(15,76,58,0.2)] relative z-10 overflow-hidden max-h-[90vh] flex flex-col text-left text-verdant-emerald"
+              className="glass-card bg-[#FAF7F2] border border-verdant-emerald/10 w-full max-w-4xl rounded-[2rem] shadow-[0_25px_70px_-10px_rgba(15,76,58,0.2)] relative z-10 overflow-hidden max-h-[90vh] flex flex-col text-left text-verdant-emerald"
             >
               {/* Modal Header */}
               <div className="p-6 md:p-8 border-b border-verdant-emerald/5 flex justify-between items-center bg-white/20">
@@ -371,7 +377,7 @@ export default function MyOrdersPage() {
               </div>
 
               {/* Modal Scrollable Body */}
-              <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-8 bg-[#FAF4EA]/40">
+              <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-8 bg-[#FAF4EA]/40" data-lenis-prevent>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   
                   {/* Left Column: Items & Shipment */}
@@ -384,18 +390,39 @@ export default function MyOrdersPage() {
                       <div className="divide-y divide-verdant-emerald/5">
                         {selectedOrder.items.map((item: any, idx: number) => (
                           <div key={idx} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                            <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-verdant-emerald/10 bg-white/50 shrink-0 shadow-xs">
-                              <img
-                                        src={getImageUrl(item.image)}
-                                        alt={item.name}
-                                        className="w-full h-full object-cover"
-                              />
+                            <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-verdant-emerald/10 bg-white/50 shrink-0 shadow-xs flex items-center justify-center p-0.5">
+                              {isVideoUrl(item.image) ? (
+                                <video
+                                  src={getImageUrl(item.image)}
+                                  className="w-full h-full object-cover"
+                                  muted
+                                  playsInline
+                                  autoPlay
+                                  loop
+                                />
+                              ) : (
+                                <img
+                                  src={getImageUrl(item.image)}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 text-left">
                               <h4 className="font-serif text-sm text-verdant-emerald font-medium truncate">{item.name}</h4>
-                              <span className="text-[10px] text-verdant-emerald/50 font-sans tracking-wide block mt-1">
-                                Qty: {item.quantity} &times; ₹{item.price.toLocaleString("en-IN")}
-                              </span>
+                              <div className="flex items-center gap-3 text-[10px] text-verdant-emerald/50 font-sans tracking-wide mt-1">
+                                <span>Qty: {item.quantity} &times; ₹{item.price.toLocaleString("en-IN")}</span>
+                                {item.size && (
+                                  <span className="text-verdant-gold font-bold">
+                                    Size: {item.size}
+                                  </span>
+                                )}
+                                {item.variant && (
+                                  <span className="text-verdant-gold font-bold">
+                                    Option: {item.variant}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div className="text-right shrink-0">
                               <span className="font-semibold text-xs text-verdant-emerald font-mono">

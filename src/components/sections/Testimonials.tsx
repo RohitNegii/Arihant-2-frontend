@@ -76,7 +76,7 @@ export default function Testimonials() {
               style={{
                 transformStyle: "preserve-3d",
               }}
-              className="hover-target glass-effect flex flex-col justify-between p-8 rounded-3xl border border-verdant-emerald/5 hover:border-verdant-gold/30 hover:bg-[#F8F4EA]/60 transition-colors duration-500 relative shadow-xs"
+              className="hover-target glass-effect flex flex-col justify-between p-8 rounded-3xl border border-verdant-emerald/5 hover:border-verdant-gold/30 hover:bg-[#FAF7F2]/60 transition-colors duration-500 relative shadow-xs"
             >
               <Quote className="absolute top-6 right-6 w-8 h-8 text-verdant-gold/10 pointer-events-none" />
 

@@ -1,98 +1,122 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star, MessageSquare, Send, Check } from "lucide-react";
+import { Star, MessageSquare, Send, Check, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Review {
-  name: string;
-  rating: number;
-  comment: string;
-  date: string;
-}
+import { useAuthStore } from "../../store/authStore";
+import { getRequest, postRequest } from "../../utils/api";
+import { ReviewData } from "../../services/productListing";
 
 interface ProductReviewsProps {
   productId: string;
   productName: string;
+  initialReviews: ReviewData[];
 }
 
-export default function ProductReviews({ productId, productName }: ProductReviewsProps) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [name, setName] = useState("");
+export default function ProductReviews({ productId, productName, initialReviews }: ProductReviewsProps) {
+  const [reviews, setReviews] = useState<ReviewData[]>(initialReviews);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  // Default mock reviews matching the premium tone
-  const getMockReviews = (): Review[] => {
-    return [
-      {
-        name: "Aria Thorne",
-        rating: 5,
-        comment: `Absolutely spectacular craftsmanship. The geometry of this piece catches the light in a way standard rings never do. Truly a signature addition to my jewelry collection.`,
-        date: "May 14, 2026",
-      },
-      {
-        name: "Devon Vance",
-        rating: 5,
-        comment: `Commissioned this for a bespoke wedding gift. The purity is immaculate, and the weight feels solid and rich. The packaging and delivery was perfectly secured. Excellent boutique service.`,
-        date: "May 10, 2026",
-      },
-    ];
-  };
+  const { isAuthenticated, user } = useAuthStore();
+  const [canReview, setCanReview] = useState(false);
+  const [checkMessage, setCheckMessage] = useState("");
 
+  // Default mock reviews matching the premium tone to act as fallback if no critiques exist yet
+  const mockReviews: ReviewData[] = [
+    {
+      user: "mock1",
+      name: "Aria Thorne",
+      rating: 5,
+      comment: `Absolutely spectacular craftsmanship. The geometry of this piece catches the light in a way standard rings never do. Truly a signature addition to my jewelry collection.`,
+      createdAt: "2026-05-14T00:00:00.000Z",
+    },
+    {
+      user: "mock2",
+      name: "Devon Vance",
+      rating: 5,
+      comment: `Commissioned this for a bespoke wedding gift. The purity is immaculate, and the weight feels solid and rich. The packaging and delivery was perfectly secured. Excellent boutique service.`,
+      createdAt: "2026-05-10T00:00:00.000Z",
+    },
+  ];
+
+  // Sync reviews when initialReviews prop changes
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(`aurum_reviews_${productId}`);
-      if (stored) {
-        setReviews(JSON.parse(stored));
-      } else {
-        const mocks = getMockReviews();
-        setReviews(mocks);
-        localStorage.setItem(`aurum_reviews_${productId}`, JSON.stringify(mocks));
+    setReviews(initialReviews);
+  }, [initialReviews]);
+
+  // Check if authenticated user can write a review for this product
+  useEffect(() => {
+    const checkReviewStatus = async () => {
+      if (!isAuthenticated) {
+        setCanReview(false);
+        setCheckMessage("Please log in to share your experience.");
+        return;
       }
-    } catch (e) {
-      // Ignored
-    }
-  }, [productId]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !comment) return;
-
-    const newReview: Review = {
-      name,
-      rating,
-      comment,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
+      try {
+        const res = await getRequest<{ success: boolean; canReview: boolean; message?: string }>(
+          `/products/${productId}/can-review`
+        );
+        if (res.success) {
+          setCanReview(res.canReview);
+          if (res.message) {
+            setCheckMessage(res.message);
+          }
+        }
+      } catch (err: any) {
+        setCanReview(false);
+        setCheckMessage("Could not verify purchase status.");
+      }
     };
 
-    const updated = [newReview, ...reviews];
-    try {
-      localStorage.setItem(`aurum_reviews_${productId}`, JSON.stringify(updated));
-    } catch (err) {
-      // Ignored
+    if (productId) {
+      checkReviewStatus();
     }
-    setReviews(updated);
+  }, [productId, isAuthenticated]);
 
-    setName("");
-    setComment("");
-    setRating(5);
-    setShowForm(false);
-    setSuccessMsg(true);
-    setTimeout(() => {
-      setSuccessMsg(false);
-    }, 4000);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!comment) return;
+
+    setSubmitting(true);
+    setFormError("");
+
+    try {
+      const res = await postRequest<{ success: boolean; reviews: ReviewData[]; message?: string }>(
+        `/products/${productId}/reviews`,
+        { rating, comment }
+      );
+
+      if (res.success) {
+        setReviews(res.reviews);
+        setComment("");
+        setRating(5);
+        setShowForm(false);
+        setSuccessMsg(true);
+        setCanReview(false); // Can't review again
+        setCheckMessage("You have already reviewed this product.");
+        setTimeout(() => {
+          setSuccessMsg(false);
+        }, 4000);
+      } else {
+        setFormError(res.message || "Failed to submit critique.");
+      }
+    } catch (err: any) {
+      setFormError(err.response?.data?.message || err.message || "Could not publish your critique. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+  const displayReviews = reviews.length > 0 ? reviews : mockReviews;
+
+  const avgRating = displayReviews.length > 0
+    ? (displayReviews.reduce((sum, r) => sum + r.rating, 0) / displayReviews.length).toFixed(1)
     : "5.0";
 
   return (
@@ -105,7 +129,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
           <h3 className="font-serif text-xl md:text-2xl text-verdant-emerald font-light">
             Customer Critiques
           </h3>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2 font-mono text-[10px]">
             <div className="flex text-verdant-gold">
               {Array.from({ length: 5 }).map((_, idx) => (
                 <Star
@@ -116,18 +140,25 @@ export default function ProductReviews({ productId, productName }: ProductReview
                 />
               ))}
             </div>
-            <span className="text-xs font-bold text-verdant-emerald">
-              {avgRating} Stars ({reviews.length} reviews)
+            <span className="text-xs font-bold text-verdant-emerald font-sans">
+              {avgRating} Stars ({displayReviews.length} {displayReviews.length === 1 ? "review" : "reviews"})
             </span>
           </div>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="gold-gradient-bg text-black hover:scale-103 active:scale-95 text-[9px] tracking-widest uppercase font-bold px-6 py-3 rounded-full flex items-center gap-1.5 shadow-xs transition-all duration-300 cursor-pointer"
-        >
-          <MessageSquare className="w-3.5 h-3.5" /> Submit Critique
-        </button>
+        {canReview ? (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="gold-gradient-bg text-black hover:scale-103 active:scale-95 text-[9px] tracking-widest uppercase font-bold px-6 py-3 rounded-full flex items-center gap-1.5 shadow-xs transition-all duration-300 cursor-pointer"
+          >
+            <MessageSquare className="w-3.5 h-3.5" /> {showForm ? "Cancel Critique" : "Submit Critique"}
+          </button>
+        ) : (
+          <div className="text-[9px] tracking-wider uppercase font-bold text-verdant-emerald/40 border border-verdant-emerald/10 rounded-full px-5 py-2.5 bg-verdant-emerald/[0.02] flex items-center gap-1.5 select-none font-mono">
+            <ShieldAlert className="w-3.5 h-3.5 text-verdant-gold" />
+            {isAuthenticated ? "Verified Buyers Only" : "Log In to Critiques"}
+          </div>
+        )}
       </div>
 
       {/* Success alert message */}
@@ -137,7 +168,7 @@ export default function ProductReviews({ productId, productName }: ProductReview
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl flex items-center gap-2 text-xs font-semibold"
+            className="mb-6 bg-emerald-500/5 border border-emerald-500/10 text-emerald-700 p-4 rounded-2xl flex items-center gap-2 text-xs font-semibold"
           >
             <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             Your review has been published successfully! Thank you for sharing your feedback.
@@ -158,6 +189,12 @@ export default function ProductReviews({ productId, productName }: ProductReview
             <h4 className="font-serif text-sm text-verdant-emerald uppercase tracking-wider">
               Share Your Collection Experience
             </h4>
+
+            {formError && (
+              <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/10 text-red-700 text-[9px] uppercase tracking-wider font-semibold font-mono">
+                {formError}
+              </div>
+            )}
 
             {/* Rating Stars Input Selector */}
             <div className="flex items-center gap-2">
@@ -190,19 +227,12 @@ export default function ProductReviews({ productId, productName }: ProductReview
               </div>
             </div>
 
-            {/* Form Fields */}
-            <div className="flex flex-col gap-1.5">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="YOUR NAME / MONIKER"
-                required
-                className="w-full text-xs text-verdant-emerald bg-white/60 border border-verdant-emerald/10 rounded-xl px-4 py-3 focus:outline-hidden focus:border-verdant-gold focus:bg-white transition-all font-bold uppercase tracking-wider"
-              />
+            {/* Display Author Moniker */}
+            <div className="text-left font-mono text-[9px] uppercase tracking-widest text-verdant-emerald/60">
+              Posting As: <span className="font-sans font-bold text-verdant-emerald text-xs tracking-normal">{user?.name || "Bespoke Patron"}</span>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 mt-1">
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -215,24 +245,25 @@ export default function ProductReviews({ productId, productName }: ProductReview
 
             <button
               type="submit"
-              className="gold-gradient-bg text-black hover:scale-102 active:scale-95 text-[9px] tracking-widest uppercase font-bold py-3.5 rounded-full flex items-center justify-center gap-1.5 shadow-md transition-all duration-300 w-full cursor-pointer mt-2"
+              disabled={submitting}
+              className="gold-gradient-bg text-black hover:scale-102 active:scale-95 text-[9px] tracking-widest uppercase font-bold py-3.5 rounded-full flex items-center justify-center gap-1.5 shadow-md transition-all duration-300 w-full cursor-pointer mt-2 disabled:opacity-50"
             >
-              <Send className="w-3.5 h-3.5" /> Publish Critique
+              {submitting ? "Publishing Critique..." : "Publish Critique"}
             </button>
           </motion.form>
         )}
       </AnimatePresence>
 
       {/* Reviews list */}
-      <div className="flex flex-col gap-6 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-        {reviews.length === 0 ? (
+      <div className="flex flex-col gap-6 max-h-96 overflow-y-auto pr-2 custom-scrollbar text-left">
+        {displayReviews.length === 0 ? (
           <p className="text-verdant-emerald/50 text-xs italic tracking-wider py-4">
             Be the first to leave a critique for this masterpiece.
           </p>
         ) : (
-          reviews.map((rev, idx) => (
+          displayReviews.map((rev, idx) => (
             <div
-              key={idx}
+              key={rev._id || idx}
               className="border-b border-verdant-emerald/5 pb-5 last:border-b-0 last:pb-0"
             >
               <div className="flex justify-between items-center gap-4 mb-2">
@@ -240,7 +271,11 @@ export default function ProductReviews({ productId, productName }: ProductReview
                   {rev.name}
                 </span>
                 <span className="text-[9px] text-verdant-emerald/40 font-mono tracking-widest">
-                  {rev.date}
+                  {new Date(rev.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </span>
               </div>
               <div className="flex text-verdant-gold mb-3">
@@ -260,6 +295,13 @@ export default function ProductReviews({ productId, productName }: ProductReview
           ))
         )}
       </div>
+      
+      {/* Notice info banner */}
+      {!canReview && (
+        <div className="text-[9.5px] uppercase tracking-wider font-mono text-verdant-emerald/40 text-center mt-6 pt-4 border-t border-verdant-emerald/5 leading-relaxed">
+          {checkMessage || "Only patrons who have purchased this masterpiece are eligible to leave critiques."}
+        </div>
+      )}
     </div>
   );
 }

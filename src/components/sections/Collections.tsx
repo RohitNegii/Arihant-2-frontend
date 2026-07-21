@@ -48,7 +48,7 @@ function CollectionCard({ title, subtitle, image, price }: CardProps) {
         rotateY,
         transformStyle: "preserve-3d",
       }}
-      className="hover-target glass-effect relative h-[420px] w-full rounded-2xl p-8 flex flex-col justify-between overflow-hidden cursor-pointer group border border-verdant-emerald/5 hover:border-verdant-gold/30 transition-colors duration-500 bg-[#F8F4EA]/40 shadow-xs hover:shadow-[0_20px_40px_rgba(15,76,58,0.06)]"
+      className="hover-target glass-effect relative h-[420px] w-full rounded-2xl p-8 flex flex-col justify-between overflow-hidden cursor-pointer group border border-verdant-emerald/5 hover:border-verdant-gold/30 transition-colors duration-500 bg-[#FAF7F2]/40 shadow-xs hover:shadow-[0_20px_40px_rgba(15,76,58,0.06)]"
     >
       {/* Glow border ring */}
       <div className="absolute inset-0 bg-radial from-verdant-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />

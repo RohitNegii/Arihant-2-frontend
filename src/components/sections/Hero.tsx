@@ -71,7 +71,7 @@ export default function Hero() {
             <linearGradient id="emerald-wave-grad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#0F4C3A" stopOpacity="0.12" />
               <stop offset="50%" stopColor="#C8A96A" stopOpacity="0.04" />
-              <stop offset="100%" stopColor="#F8F4EA" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#FAF7F2" stopOpacity="0.15" />
             </linearGradient>
           </defs>
         </svg>
@@ -122,10 +122,10 @@ export default function Hero() {
           >
             <MagneticButton
               href="#collections"
-              className="hover-target gold-gradient-bg text-[#F8F4EA] font-semibold text-xs tracking-[0.2em] uppercase px-8 py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(200,169,6,0.15)] hover:shadow-[0_0_30px_rgba(200,169,106,0.35)] transition-all duration-300"
+              className="hover-target gold-gradient-bg text-[#FAF7F2] font-semibold text-xs tracking-[0.2em] uppercase px-8 py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(200,169,6,0.15)] hover:shadow-[0_0_30px_rgba(200,169,106,0.35)] transition-all duration-300"
             >
               Explore Collection
-              <ArrowRight className="w-4 h-4 text-[#F8F4EA]" />
+              <ArrowRight className="w-4 h-4 text-[#FAF7F2]" />
             </MagneticButton>
             <MagneticButton
               href="#story"

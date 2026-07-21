@@ -7,8 +7,12 @@ import { Check, ShoppingBag, Loader2, ArrowRight, Home, Calendar, Truck } from "
 import { getOrderDetailsApi } from "../../services/checkout";
 import { getImageUrl } from "../../utils/api";
 
-// useSearchParams() must live under a Suspense boundary or the static build
-// of this page fails — see the default export at the bottom
+const isVideoUrl = (url: string) => {
+  if (!url) return false;
+  const ext = url.split(".").pop()?.toLowerCase();
+  return ["mp4", "webm", "ogg", "mov"].includes(ext || "");
+};
+
 function OrderSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,7 +49,7 @@ function OrderSuccessContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F4EA] py-20 flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-[#FAF7F2] py-20 flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-verdant-emerald" />
         <span className="text-[10px] tracking-widest text-verdant-emerald/50 uppercase font-bold">Securing order logs...</span>
       </div>
@@ -53,9 +57,9 @@ function OrderSuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F4EA] text-verdant-emerald pt-28 pb-16 selection:bg-verdant-gold selection:text-black">
+    <div className="min-h-screen bg-[#FAF7F2] text-verdant-emerald pt-28 pb-16 selection:bg-verdant-gold selection:text-black">
       <div className="max-w-3xl mx-auto px-6 text-center select-none">
-        
+
         {/* Animated Check Banner */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -102,11 +106,22 @@ function OrderSuccessContent() {
               {order.items.map((item: any, idx: number) => (
                 <div key={idx} className="flex gap-4 items-center">
                   <div className="w-12 h-12 rounded-lg bg-verdant-emerald/5 flex items-center justify-center p-1 shrink-0 overflow-hidden">
-                    <img
-                      src={getImageUrl(item.image)}
-                      alt={item.name}
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    {isVideoUrl(item.image) ? (
+                      <video
+                        src={getImageUrl(item.image)}
+                        className="max-h-full max-w-full object-contain"
+                        muted
+                        playsInline
+                        autoPlay
+                        loop
+                      />
+                    ) : (
+                      <img
+                        src={getImageUrl(item.image)}
+                        alt={item.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-serif text-xs font-medium text-verdant-emerald truncate">{item.name}</h4>
@@ -153,7 +168,7 @@ function OrderSuccessContent() {
           >
             Track Orders <ArrowRight className="w-4 h-4" />
           </button>
-          
+
           <button
             onClick={() => router.push("/products")}
             className="gold-gradient-bg text-black hover:scale-103 active:scale-97 text-[10px] tracking-widest uppercase font-bold px-8 py-3.5 rounded-full shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"

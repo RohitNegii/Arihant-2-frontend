@@ -5,6 +5,12 @@ import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImageUrl } from "../../utils/api";
 
+const isVideoUrl = (url: string) => {
+  if (!url) return false;
+  const ext = url.split(".").pop()?.toLowerCase();
+  return ["mp4", "webm", "ogg", "mov"].includes(ext || "");
+};
+
 interface ProductGalleryProps {
   images: string[];
   name: string;
@@ -40,33 +46,50 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
     <div className="flex flex-col gap-4 select-none">
       {/* Active Main Image Display */}
       <div className="relative w-full aspect-square rounded-3xl border border-verdant-emerald/5 bg-verdant-emerald/5 flex items-center justify-center p-6 overflow-hidden group">
-        {/* Zoomable Image Window */}
+        {/* Zoomable Image/Video Window */}
         <div
-          className="w-full h-full relative cursor-zoom-in"
-          onMouseMove={handleMouseMove}
-          onMouseEnter={() => setIsZoomed(true)}
-          onMouseLeave={() => setIsZoomed(false)}
+          className="w-full h-full relative"
           onClick={() => setShowLightbox(true)}
         >
-          <img
-            ref={imageRef}
-            src={activeImage}
-            alt={`${name} - Active view`}
-            className={`w-full h-full object-contain transition-transform duration-200 ${
-              isZoomed ? "scale-200" : "scale-100"
-            }`}
-            style={
-              isZoomed
-                ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` }
-                : undefined
-            }
-          />
+          {isVideoUrl(galleryImages[activeIdx]) ? (
+            <video
+              src={activeImage}
+              className="w-full h-full object-cover cursor-zoom-in"
+              controls
+              autoPlay
+              muted
+              loop
+              playsInline
+              onClick={(e) => e.stopPropagation()} // Prevent clicking video controls from triggering lightbox
+            />
+          ) : (
+            <div
+              className="w-full h-full cursor-zoom-in"
+              onMouseMove={handleMouseMove}
+              onMouseEnter={() => setIsZoomed(true)}
+              onMouseLeave={() => setIsZoomed(false)}
+            >
+              <img
+                ref={imageRef}
+                src={activeImage}
+                alt={`${name} - Active view`}
+                className={`w-full h-full object-cover transition-transform duration-200 ${
+                  isZoomed ? "scale-200" : "scale-100"
+                }`}
+                style={
+                  isZoomed
+                    ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` }
+                    : undefined
+                }
+              />
+            </div>
+          )}
         </div>
 
         {/* Maximize Icon Overlay */}
         <button
           onClick={() => setShowLightbox(true)}
-          className="absolute bottom-4 right-4 bg-[#F8F4EA]/80 hover:bg-[#F8F4EA] text-verdant-emerald hover:text-verdant-gold p-2.5 rounded-full shadow-md backdrop-blur-xs transition-all active:scale-95 z-10"
+          className="absolute bottom-4 right-4 bg-[#FAF7F2]/80 hover:bg-[#FAF7F2] text-verdant-emerald hover:text-verdant-gold p-2.5 rounded-full shadow-md backdrop-blur-xs transition-all active:scale-95 z-10"
           aria-label="Enlarge Image"
         >
           <Maximize2 className="w-4 h-4" />
@@ -86,11 +109,20 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                   : "border-verdant-emerald/5 hover:border-verdant-emerald/20 opacity-70 hover:opacity-100"
               }`}
             >
-              <img
-                src={getImageUrl(img)}
-                alt={`${name} - Thumb ${idx + 1}`}
-                className="object-contain max-h-full max-w-full"
-              />
+              {isVideoUrl(img) ? (
+                <video
+                  src={getImageUrl(img)}
+                  className="object-cover w-full h-full"
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={getImageUrl(img)}
+                  alt={`${name} - Thumb ${idx + 1}`}
+                  className="object-cover w-full h-full"
+                />
+              )}
             </button>
           ))}
         </div>
@@ -126,16 +158,31 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                 </button>
               )}
 
-              <motion.img
-                key={activeIdx}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                src={activeImage}
-                alt={`${name} - Enlarged`}
-                className="max-h-[80vh] max-w-[85vw] object-contain"
-              />
+              {isVideoUrl(galleryImages[activeIdx]) ? (
+                <motion.video
+                  key={activeIdx}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  src={activeImage}
+                  className="max-h-[80vh] max-w-[85vw] object-contain"
+                  controls
+                  autoPlay
+                  loop
+                />
+              ) : (
+                <motion.img
+                  key={activeIdx}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  src={activeImage}
+                  alt={`${name} - Enlarged`}
+                  className="max-h-[80vh] max-w-[85vw] object-contain"
+                />
+              )}
 
               {galleryImages.length > 1 && (
                 <button

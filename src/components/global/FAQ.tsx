@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getRequest } from "../../utils/api";
 
 interface FAQItemProps {
   question: string;
@@ -47,8 +48,10 @@ function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [faqs, setFaqs] = useState<{ question: string; answer: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const faqs = [
+  const mockFaqs = [
     {
       question: "How do I care for my custom Verdant Jewelry?",
       answer: "We recommend cleaning your jewelry with a very soft brush, warm water, and mild detergent. Dry thoroughly with a lint-free polishing cloth. Keep pieces separated in soft pouches when stored to prevent surface scratches.",
@@ -67,23 +70,51 @@ export default function FAQ() {
     },
   ];
 
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const res = await getRequest<{ success: boolean; faqs: any[] }>("/faqs");
+        if (res.success && res.faqs && res.faqs.length > 0) {
+          setFaqs(res.faqs);
+        } else {
+          setFaqs(mockFaqs);
+        }
+      } catch (err) {
+        setFaqs(mockFaqs);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFaqs();
+  }, []);
+
   return (
-    <div className="glass-card rounded-3xl p-6 md:p-8 border border-verdant-emerald/5 max-w-3xl mx-auto w-full">
+    <div className="glass-card rounded-3xl p-6 md:p-8 border border-verdant-emerald/5 max-w-3xl mx-auto w-full text-left">
       <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-2">faq sheet</span>
       <h3 className="font-serif text-xl md:text-2xl text-verdant-emerald font-light mb-6">
         Frequently Answered Enquiries
       </h3>
-      <div className="space-y-1">
-        {faqs.map((faq, idx) => (
-          <FAQItem
-            key={idx}
-            question={faq.question}
-            answer={faq.answer}
-            isOpen={openIndex === idx}
-            onToggle={() => setOpenIndex(openIndex === idx ? null : idx)}
-          />
-        ))}
-      </div>
+
+      {loading ? (
+        <div className="py-10 flex items-center justify-center gap-2">
+          <Loader2 className="w-5 h-5 animate-spin text-verdant-gold" />
+          <span className="text-[10px] tracking-widest text-verdant-emerald/50 uppercase font-mono">
+            Loading dynamic sheet...
+          </span>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {faqs.map((faq, idx) => (
+            <FAQItem
+              key={idx}
+              question={faq.question}
+              answer={faq.answer}
+              isOpen={openIndex === idx}
+              onToggle={() => setOpenIndex(openIndex === idx ? null : idx)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

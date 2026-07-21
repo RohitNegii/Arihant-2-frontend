@@ -18,7 +18,7 @@ export default function VideoShowcase() {
       />
 
       {/* Cinematic Golden Radial Lens Flare Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#F8F4EA] via-transparent to-[#F8F4EA] pointer-events-none z-10 opacity-30" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2] via-transparent to-[#FAF7F2] pointer-events-none z-10 opacity-30" />
       <div className="absolute inset-0 bg-radial from-verdant-gold/10 via-transparent to-transparent pointer-events-none z-10 animate-pulse" style={{ animationDuration: '6s' }} />
 
       <div className="max-w-4xl mx-auto px-6 relative z-20 text-center flex flex-col items-center">

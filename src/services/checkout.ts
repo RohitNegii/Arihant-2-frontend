@@ -21,33 +21,15 @@ export interface CheckoutResponse {
     taxAmount: number;
     shippingAmount: number;
   };
-  razorpayOrder: {
-    id: string;
-    amount: number;
-    currency: string;
+  ccavenueData?: {
+    encRequest: string;
+    accessCode: string;
+    paymentUrl: string;
   };
-  razorpayKeyId: string;
-}
-
-export interface VerifyPaymentPayload {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-}
-
-export interface VerifyPaymentResponse {
-  success: boolean;
-  message: string;
-  orderNumber: string;
-  orderId: string;
 }
 
 export const createCheckoutOrderApi = async (shippingAddress: AddressDetails): Promise<CheckoutResponse> => {
   return await postRequest("/checkout/create-order", { shippingAddress });
-};
-
-export const verifyCheckoutPaymentApi = async (payload: VerifyPaymentPayload): Promise<VerifyPaymentResponse> => {
-  return await postRequest("/checkout/verify-payment", payload);
 };
 
 export const getMyOrdersApi = async (): Promise<any> => {

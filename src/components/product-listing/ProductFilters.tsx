@@ -7,7 +7,6 @@ import { Filter, RotateCcw } from "lucide-react";
 interface FilterState {
   category: string;
   material: string;
-  stone: string;
   gender: string;
   minPrice: string;
   maxPrice: string;
@@ -42,7 +41,6 @@ export default function ProductFilters({ filters, onChange, onClear }: ProductFi
   }, []);
 
   const materials = ["Gold", "Platinum", "Silver", "Rose Gold", "White Gold"];
-  const stones = ["Diamond", "Emerald", "Ruby", "Sapphire", "Pearl", "None"];
   const genders = ["Men", "Women", "Unisex"];
 
   return (
@@ -64,16 +62,16 @@ export default function ProductFilters({ filters, onChange, onClear }: ProductFi
 
       {/* Category Section */}
       <div>
-        <label className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-2.5">
+        <label className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-3">
           exhibit collections
         </label>
-        <div className="flex flex-col gap-1.5 max-h-44 overflow-y-auto pr-2 custom-scrollbar">
+        <div className="flex flex-col gap-2 max-h-44 overflow-y-auto pr-2 custom-scrollbar">
           <button
             onClick={() => onChange({ category: "" })}
-            className={`text-xs text-left px-3 py-1.5 rounded-lg transition-colors font-medium tracking-wide uppercase ${
+            className={`text-[10px] text-left py-1.5 transition-all duration-300 font-bold tracking-widest uppercase flex items-center gap-2 cursor-pointer ${
               filters.category === ""
-                ? "bg-verdant-emerald/10 text-verdant-emerald font-bold"
-                : "text-verdant-emerald/60 hover:bg-verdant-emerald/5 hover:text-verdant-emerald"
+                ? "text-verdant-emerald border-l-2 border-verdant-gold pl-2.5"
+                : "text-verdant-emerald/50 hover:text-verdant-emerald pl-0 hover:translate-x-1"
             }`}
           >
             All Exhibits
@@ -85,10 +83,10 @@ export default function ProductFilters({ filters, onChange, onClear }: ProductFi
               <button
                 key={cat._id}
                 onClick={() => onChange({ category: cat.slug })}
-                className={`text-xs text-left px-3 py-1.5 rounded-lg transition-colors font-medium tracking-wide uppercase ${
+                className={`text-[10px] text-left py-1.5 transition-all duration-300 font-bold tracking-widest uppercase flex items-center gap-2 cursor-pointer ${
                   filters.category === cat.slug
-                    ? "bg-verdant-emerald/10 text-verdant-emerald font-bold"
-                    : "text-verdant-emerald/60 hover:bg-verdant-emerald/5 hover:text-verdant-emerald"
+                    ? "text-verdant-emerald border-l-2 border-verdant-gold pl-2.5"
+                    : "text-verdant-emerald/50 hover:text-verdant-emerald pl-0 hover:translate-x-1"
                 }`}
               >
                 {cat.name}
@@ -100,37 +98,42 @@ export default function ProductFilters({ filters, onChange, onClear }: ProductFi
 
       {/* Material Section */}
       <div>
-        <label className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-2">
+        <label className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-3">
           metal composition
         </label>
-        <select
-          value={filters.material}
-          onChange={(e) => onChange({ material: e.target.value })}
-          className="w-full text-xs text-verdant-emerald bg-white/40 border border-verdant-emerald/10 rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-verdant-gold focus:bg-white/80 transition-all font-bold uppercase tracking-wider cursor-pointer"
-        >
-          <option value="" className="bg-[#F8F4EA] text-verdant-emerald">ALL METALS</option>
-          {materials.map((m) => (
-            <option key={m} value={m} className="bg-[#F8F4EA] text-verdant-emerald">{m.toUpperCase()}</option>
-          ))}
-        </select>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onChange({ material: "" })}
+            className={`text-[9px] tracking-widest uppercase font-bold px-3 py-2 border rounded-xl transition-all duration-300 cursor-pointer ${
+              filters.material === ""
+                ? "bg-verdant-emerald border-verdant-emerald text-white shadow-md scale-102"
+                : "border-verdant-emerald/10 text-verdant-emerald/70 hover:bg-verdant-emerald/5 hover:text-verdant-emerald bg-white/20"
+            }`}
+          >
+            All Metals
+          </button>
+          {materials.map((m) => {
+            const isActive = filters.material === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => onChange({ material: m })}
+                className={`text-[9px] tracking-widest uppercase font-bold px-3 py-2 border rounded-xl transition-all duration-300 cursor-pointer ${
+                  isActive
+                    ? "bg-verdant-emerald border-verdant-emerald text-white shadow-md scale-102"
+                    : "border-verdant-emerald/10 text-verdant-emerald/70 hover:bg-verdant-emerald/5 hover:text-verdant-emerald bg-white/20"
+                }`}
+              >
+                {m}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Gemstone Section */}
-      <div>
-        <label className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-2">
-          gemstone setting
-        </label>
-        <select
-          value={filters.stone}
-          onChange={(e) => onChange({ stone: e.target.value })}
-          className="w-full text-xs text-verdant-emerald bg-white/40 border border-verdant-emerald/10 rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-verdant-gold focus:bg-white/80 transition-all font-bold uppercase tracking-wider cursor-pointer"
-        >
-          <option value="" className="bg-[#F8F4EA] text-verdant-emerald">ALL GEMS</option>
-          {stones.map((s) => (
-            <option key={s} value={s} className="bg-[#F8F4EA] text-verdant-emerald">{s.toUpperCase()}</option>
-          ))}
-        </select>
-      </div>
+
 
       {/* Gender Section */}
       <div>

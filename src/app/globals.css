@@ -10,8 +10,8 @@
   --color-primary-rgb: 15, 76, 58;
   --color-secondary: #C8A96A;
   --color-secondary-rgb: 200, 169, 106;
-  --color-background: #F8F4EA;
-  --color-background-rgb: 248, 244, 234;
+  --color-background: #FAF7F2;
+  --color-background-rgb: 250, 247, 242;
   --color-accent: #5D7A68;
   --color-accent-rgb: 93, 122, 104;
 
@@ -27,11 +27,12 @@
   --color-luxury-gold-glow: rgba(var(--color-secondary-rgb), 0.08);
   --color-luxury-border: rgba(var(--color-primary-rgb), 0.05);
   --color-luxury-card: rgba(var(--color-background-rgb), 0.5);
-  
+
   --font-serif: var(--font-secondary);
   --font-sans: var(--font-primary);
 }
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);
@@ -66,11 +67,11 @@ body {
 
 /* Glassmorphism utility */
 .glass-effect {
-  background: rgba(var(--color-background-rgb), 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(var(--color-primary-rgb), 0.06);
-  box-shadow: 0 8px 32px rgba(var(--color-primary-rgb), 0.03);
+  background: rgba(248, 245, 242, 0.171);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(120, 95, 60, 0.08);
 }
 
 .glass-effect-gold {
@@ -93,8 +94,18 @@ body {
   background: linear-gradient(135deg, #A38244 0%, #E6D5B3 25%, #C8A96A 50%, #E6D5B3 75%, #8B6B2F 100%);
 }
 
+/* Glassmorphic card styling used throughout e-commerce dashboard/cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.05);
+  box-shadow: 0 10px 40px rgba(var(--color-primary-rgb), 0.03);
+}
+
 /* Lenis scrolling adjustments */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 

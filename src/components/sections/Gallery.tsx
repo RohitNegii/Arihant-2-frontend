@@ -76,7 +76,7 @@ export default function Gallery() {
                 <span className="text-[9px] tracking-widest uppercase text-verdant-gold mb-1 font-light">
                   {img.category}
                 </span>
-                <h3 className="font-serif text-lg tracking-wide text-[#F8F4EA] font-light text-left">
+                <h3 className="font-serif text-lg tracking-wide text-[#FAF7F2] font-light text-left">
                   {img.title}
                 </h3>
               </div>

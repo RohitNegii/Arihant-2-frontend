@@ -3,8 +3,8 @@ import { postRequest, getRequest } from "../utils/api";
 export interface UserProfile {
   id: string;
   name: string;
-  phone: string;
-  email?: string;
+  phone?: string;
+  email: string;
   role: "customer" | "admin";
 }
 
@@ -13,19 +13,20 @@ export interface AuthResponse {
   token?: string;
   user?: UserProfile;
   message?: string;
+  code?: string;
 }
 
-export const sendOtpApi = async (phone: string, type: "login" | "signup"): Promise<AuthResponse> => {
-  return postRequest<AuthResponse>("/auth/send-otp", { phone, type });
+export const sendOtpApi = async (email: string, type: "login" | "signup"): Promise<AuthResponse> => {
+  return postRequest<AuthResponse>("/auth/send-otp", { email, type });
 };
 
 export const verifyOtpApi = async (
-  phone: string,
+  email: string,
   otp: string,
   name?: string,
-  email?: string
+  phone?: string
 ): Promise<AuthResponse> => {
-  return postRequest<AuthResponse>("/auth/verify-otp", { phone, otp, name, email });
+  return postRequest<AuthResponse>("/auth/verify-otp", { email, otp, name, phone });
 };
 
 export const fetchCurrentUser = async (token: string): Promise<{ success: boolean; user: UserProfile }> => {

@@ -1,62 +1,75 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function Footer() {
-  const footerRef = useRef(null);
+  // Framer Motion Animation Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+  };
 
-  const { scrollYProgress } = useScroll({
-    target: footerRef,
-    offset: ["start end", "end end"],
-  });
-
-  // Parallax offsets for background glows and texts
-  const parallaxY1 = useTransform(scrollYProgress, [0, 1], [-80, 40]);
-  const parallaxY2 = useTransform(scrollYProgress, [0, 1], [80, -40]);
-  const contentScale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 1], [0.7, 1]);
-
-  const boutiques = [
-    { city: "Paris", address: "Place Vendôme 18" },
-    { city: "Milan", address: "Via Montenapoleone 12" },
-    { city: "New York", address: "Fifth Avenue 712" },
-    { city: "Tokyo", address: "Ginza Chome 5-8" },
-  ];
+  const itemVariants = {
+    hidden: { opacity: 0, y: 25 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 80,
+        damping: 15,
+      },
+    },
+  };
 
   return (
     <footer
-      ref={footerRef}
-      className="relative bg-[#F2EDE0] pt-24 pb-12 border-t border-verdant-gold/20 overflow-hidden select-none"
+      className="relative bg-[#FAF7F2] pt-16 pb-8 border-t border-verdant-gold/20 overflow-hidden select-none"
     >
-      {/* Decorative Parallax Glows */}
-      <motion.div
-        style={{ y: parallaxY1 }}
-        className="absolute top-[-20%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-[#C8A96A]/8 to-transparent blur-[120px] pointer-events-none"
+      {/* Luxury Background Watermark */}
+      <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=2000&q=80"
+          alt="Luxury Diamonds Craftsmanship"
+          className="w-full h-full object-cover object-center opacity-25"
+        />
+        {/* Soft, semi-transparent gradient overlays to showcase the image watermark clearly */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/60 to-[#FAF7F2]" />
+      </div>
+
+      {/* Decorative Glows */}
+      <div
+        className="absolute top-[-20%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-[#C8A96A]/8 to-transparent blur-[120px] pointer-events-none z-0"
       />
-      <motion.div
-        style={{ y: parallaxY2 }}
-        className="absolute bottom-[-20%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[120px] pointer-events-none"
+      <div
+        className="absolute bottom-[-20%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[120px] pointer-events-none z-0"
       />
 
-      <motion.div
-        style={{ scale: contentScale, opacity: contentOpacity }}
-        className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-16"
-      >
-        {/* Top Section */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-          
-          {/* Brand Info */}
-          <div className="md:col-span-4 flex flex-col items-start gap-6">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-10">
+        {/* Top Section with Staggered Viewport Entrance */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="grid grid-cols-1 md:grid-cols-12 gap-10"
+        >
+          {/* Brand Info Column */}
+          <motion.div variants={itemVariants} className="md:col-span-7 flex flex-col items-start gap-6">
             <span className="font-serif text-xl tracking-[0.2em] font-light text-verdant-emerald">
               V E R D A N T
             </span>
-            <p className="text-verdant-emerald/60 text-xs md:text-sm font-light leading-relaxed max-w-sm tracking-wide text-left">
+            <p className="text-verdant-emerald/60 text-sm md:text-[15px] font-normal leading-relaxed max-w-md tracking-wide text-left">
               Forging the boundary between organic botany and high-fashion aesthetics. Crafting timeless jewelry masterpieces since 2001.
             </p>
-            {/* Social Links */}
+            {/* Social Links with Bounce Animations */}
             <div className="flex gap-4 items-center mt-2">
               {[
                 {
@@ -86,80 +99,68 @@ export default function Footer() {
                   href: "#"
                 },
               ].map((social, i) => (
-                <a
+                <motion.a
                   key={i}
                   href={social.href}
-                  className="hover-target w-8 h-8 rounded-full bg-verdant-emerald/3 border border-verdant-emerald/5 hover:border-verdant-gold/50 hover:bg-verdant-gold/5 flex items-center justify-center text-verdant-emerald/60 hover:text-verdant-gold shadow-xs hover:shadow-[0_0_15px_rgba(200,169,106,0.2)] transition-all duration-300 cursor-pointer"
+                  whileHover={{ scale: 1.12, y: -3, rotate: 4 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="hover-target w-8 h-8 rounded-full bg-verdant-emerald/5 border border-verdant-emerald/10 hover:border-verdant-gold/50 hover:bg-verdant-gold/5 flex items-center justify-center text-verdant-emerald/60 hover:text-verdant-gold shadow-2xs transition-all duration-300 cursor-pointer"
                 >
                   {social.icon}
-                </a>
+                </motion.a>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Boutiques */}
-          <div className="md:col-span-5 grid grid-cols-2 gap-6 text-left">
-            {boutiques.map((b) => (
-              <div key={b.city} className="flex flex-col gap-1.5">
-                <span className="font-serif text-sm tracking-wide text-verdant-emerald font-medium flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-verdant-gold" />
-                  {b.city}
-                </span>
-                <span className="text-[10px] tracking-[0.05em] text-verdant-emerald/50 font-light">
-                  {b.address}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Legal / Pages */}
-          <div className="md:col-span-3 grid grid-cols-2 gap-4 text-left">
+          {/* Legal / Pages Column */}
+          <motion.div variants={itemVariants} className="md:col-span-5 grid grid-cols-2 gap-4 text-left">
             <div className="flex flex-col gap-3">
-              <span className="text-[10px] tracking-[0.2em] text-verdant-emerald/80 uppercase font-medium">
+              <span className="text-xs md:text-sm tracking-[0.25em] text-verdant-emerald/90 uppercase font-bold">
                 Atelier
               </span>
               <Link
                 href="/products"
-                className="hover-target text-[10px] tracking-[0.1em] text-verdant-emerald/50 hover:text-verdant-emerald transition-colors font-light"
+                className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-1"
               >
                 Collections
+                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-verdant-gold group-hover:w-full transition-all duration-300 ease-out" />
               </Link>
               <Link
                 href="/contact"
-                className="hover-target text-[10px] tracking-[0.1em] text-verdant-emerald/50 hover:text-verdant-emerald transition-colors font-light"
+                className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-1"
               >
                 Contact Us
+                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-verdant-gold group-hover:w-full transition-all duration-300 ease-out" />
               </Link>
             </div>
             <div className="flex flex-col gap-3">
-              <span className="text-[10px] tracking-[0.2em] text-verdant-emerald/80 uppercase font-medium">
+              <span className="text-xs md:text-sm tracking-[0.25em] text-verdant-emerald/90 uppercase font-bold">
                 Legal
               </span>
               {["Privacy Policy", "Terms of Use", "GIA Guarantee"].map((p) => (
                 <a
                   key={p}
                   href="#"
-                  className="hover-target text-[10px] tracking-[0.1em] text-verdant-emerald/50 hover:text-verdant-emerald transition-colors font-light"
+                  className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-1"
                 >
                   {p}
+                  <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-verdant-gold group-hover:w-full transition-all duration-300 ease-out" />
                 </a>
               ))}
             </div>
-          </div>
-          
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Bottom Section */}
         <div className="border-t border-verdant-emerald/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-[10px] tracking-[0.15em] text-verdant-emerald/40 font-light uppercase">
+          <span className="text-xs tracking-[0.15em] text-verdant-emerald/50 font-medium uppercase">
             &copy; {new Date().getFullYear()} VERDANT JEWELS Boutique Inc. All rights reserved.
           </span>
-          <span className="text-[10px] tracking-[0.25em] text-verdant-gold font-light uppercase">
+          <span className="text-xs tracking-[0.25em] text-verdant-gold font-semibold uppercase">
             Sown in Nature, Reaped in Elegance
           </span>
         </div>
-        
-      </motion.div>
+      </div>
     </footer>
   );
 }

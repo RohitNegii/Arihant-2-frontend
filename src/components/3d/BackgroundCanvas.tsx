@@ -152,7 +152,7 @@ export default function BackgroundCanvas() {
         <pointLight position={[-10, 5, -10]} intensity={1} color="#C8A96A" />
         <pointLight position={[10, -5, 10]} intensity={1.2} color="#ffffff" />
         
-        <spotLight position={[0, 10, 0]} intensity={2.5} angle={0.6} penumbra={1} color="#F8F4EA" />
+        <spotLight position={[0, 10, 0]} intensity={2.5} angle={0.6} penumbra={1} color="#FAF7F2" />
 
         <ScrollControlledRing />
 

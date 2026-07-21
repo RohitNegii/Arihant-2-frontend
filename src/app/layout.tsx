@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#F8F4EA",
+  themeColor: "#FAF7F2",
 };
 
 export default function RootLayout({
@@ -49,9 +49,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans`}
+      className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans overflow-x-hidden`}
     >
-      <body className="min-h-full flex flex-col bg-luxury-black text-white">
+      <body className="min-h-full flex flex-col bg-luxury-black text-white overflow-x-hidden">
         <DevConsoleFilter />
         <AuthInitializer />
         <Toaster position="top-right" richColors />

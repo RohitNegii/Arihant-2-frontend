@@ -5,6 +5,12 @@ import Link from "next/link";
 import { ArrowRight, Eye, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { getImageUrl } from "../../utils/api";
+
+const isVideoUrl = (url: string) => {
+  if (!url) return false;
+  const ext = url.split(".").pop()?.toLowerCase();
+  return ["mp4", "webm", "ogg", "mov"].includes(ext || "");
+};
 import { ProductData } from "../../services/productListing";
 import ProductPrice from "../global/ProductPrice";
 
@@ -17,7 +23,13 @@ export default function ProductCard({ product, isListView = false }: ProductCard
   const [showQuickView, setShowQuickView] = useState(false);
 
   const productLink = `/products/${product.slug}`;
-  const outOfStock = product.stock <= 0;
+  const outOfStock = product.hasVariants
+    ? (product.variants?.every(v => v.stock <= 0) ?? true)
+    : (product.stock ?? 0) <= 0;
+
+  const displayPrice = product.hasVariants
+    ? (product.variants && product.variants.length > 0 ? Math.min(...product.variants.map(v => v.price)) : 0)
+    : (product.price ?? 0);
 
   if (isListView) {
     return (
@@ -27,19 +39,30 @@ export default function ProductCard({ product, isListView = false }: ProductCard
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 15 }}
         transition={{ duration: 0.4 }}
-        className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/20 flex flex-col md:flex-row gap-6 p-6 shadow-xs hover:shadow-[0_12px_24px_rgba(15,76,58,0.04)] transition-all duration-300 w-full group text-left"
+        className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/30 flex flex-col md:flex-row gap-6 p-6 shadow-[0_4px_20px_rgba(15,76,58,0.02)] hover:shadow-[0_20px_40px_rgba(15,76,58,0.06)] transition-all duration-500 ease-out w-full group text-left"
       >
         {/* Image Frame */}
         <Link
           href={productLink}
-          className="relative w-full md:w-64 aspect-square rounded-2xl overflow-hidden bg-verdant-emerald/5 flex items-center justify-center p-4"
+          className="relative w-full md:w-64 aspect-square rounded-2xl overflow-hidden bg-gradient-to-b from-[#FAF7F2] to-verdant-emerald/[0.04] flex items-center justify-center p-4 border border-verdant-emerald/[0.02]"
         >
-          <img
-            src={getImageUrl(product.thumbnail || product.images[0])}
-            alt={product.name}
-            className="object-contain max-h-full max-w-full group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-          />
+          {isVideoUrl(product.thumbnail || product.images[0]) ? (
+            <video
+              src={getImageUrl(product.thumbnail || product.images[0])}
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+              muted
+              playsInline
+              autoPlay
+              loop
+            />
+          ) : (
+            <img
+              src={getImageUrl(product.thumbnail || product.images[0])}
+              alt={product.name}
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+          )}
           {product.isBestSeller && (
             <span className="absolute top-3 left-3 bg-verdant-emerald text-verdant-cream text-[7px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
               <Sparkles className="w-2.5 h-2.5 text-verdant-gold" /> Best Seller
@@ -76,7 +99,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
           </div>
 
           <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-verdant-emerald/5">
-            <ProductPrice price={product.price} />
+            <ProductPrice price={displayPrice} />
             <Link
               href={productLink}
               className="gold-gradient-bg text-black hover:scale-105 active:scale-95 text-[9px] tracking-widest uppercase font-bold px-6 py-3 rounded-full flex items-center gap-1.5 shadow-xs transition-all duration-300"
@@ -98,19 +121,30 @@ export default function ProductCard({ product, isListView = false }: ProductCard
       transition={{ duration: 0.4 }}
       onMouseEnter={() => setShowQuickView(true)}
       onMouseLeave={() => setShowQuickView(false)}
-      className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/25 flex flex-col h-full shadow-xs hover:shadow-[0_15px_30px_rgba(15,76,58,0.05)] hover:-translate-y-1.5 transition-all duration-300 group text-left relative"
+      className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/30 flex flex-col h-full shadow-[0_4px_20px_rgba(15,76,58,0.02)] hover:shadow-[0_20px_40px_rgba(15,76,58,0.06)] hover:-translate-y-2 transition-all duration-500 ease-out group text-left relative"
     >
       {/* Product Image Window */}
       <Link
         href={productLink}
-        className="w-full aspect-square overflow-hidden relative bg-verdant-emerald/5 flex items-center justify-center p-4"
+        className="w-full aspect-square overflow-hidden relative bg-gradient-to-b from-[#FAF7F2] to-verdant-emerald/[0.04] flex items-center justify-center p-6 border-b border-verdant-emerald/[0.03]"
       >
-        <img
-          src={getImageUrl(product.thumbnail || product.images[0])}
-          alt={product.name}
-          className="object-contain max-h-full max-w-full group-hover:scale-105 transition-transform duration-700 ease-out"
-          loading="lazy"
-        />
+        {isVideoUrl(product.thumbnail || product.images[0]) ? (
+          <video
+            src={getImageUrl(product.thumbnail || product.images[0])}
+            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+            muted
+            playsInline
+            autoPlay
+            loop
+          />
+        ) : (
+          <img
+            src={getImageUrl(product.thumbnail || product.images[0])}
+            alt={product.name}
+            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+            loading="lazy"
+          />
+        )}
 
         {/* Absolute Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
@@ -132,7 +166,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
             showQuickView ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <div className="bg-[#F8F4EA] text-verdant-emerald w-10 h-10 rounded-full flex items-center justify-center hover:text-verdant-gold hover:scale-105 transition-all shadow-md">
+          <div className="bg-[#FAF7F2] text-verdant-emerald w-10 h-10 rounded-full flex items-center justify-center hover:text-verdant-gold hover:scale-105 transition-all shadow-md">
             <Eye className="w-4 h-4" />
           </div>
         </div>
@@ -157,7 +191,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
         </div>
 
         <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-verdant-emerald/5">
-          <ProductPrice price={product.price} />
+          <ProductPrice price={displayPrice} />
           <Link
             href={productLink}
             className="hover-target text-[9px] tracking-widest uppercase font-bold text-verdant-emerald hover:text-verdant-gold flex items-center gap-1 transition-colors duration-300"

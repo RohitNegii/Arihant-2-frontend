@@ -10,7 +10,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     { label: "Category", value: product.category?.name || "Jewelry" },
     { label: "Metal Composition", value: product.material },
     { label: "Metal Purity", value: product.purity },
-    { label: "Gemstone Setting", value: product.stone },
     { label: "Net Weight", value: `${product.weight} grams` },
     { label: "Dimensions", value: product.dimensions || "N/A" },
     { label: "Intended Gender", value: product.gender },

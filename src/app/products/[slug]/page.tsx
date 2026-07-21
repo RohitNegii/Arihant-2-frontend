@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Sparkles, ShieldCheck, RefreshCw, Truck, BadgeAlert } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/sections/Navbar";
@@ -17,6 +18,7 @@ import ProductPrice from "@/components/global/ProductPrice";
 import { ProductDetailsSkeleton } from "@/components/global/LoadingSkeleton";
 import { ProductData } from "@/services/productListing";
 import { fetchProductBySlug } from "@/services/productDetails";
+import { getSizeConfigByCategoryName } from "@/config/sizeConfig";
 
 export default function ProductDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -25,9 +27,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState("");
-
-  // Default sizes for selection
-  const ringSizes = ["US 5", "US 6", "US 7", "US 8", "US 9", "US 10"];
+  const [customSizeVal, setCustomSizeVal] = useState("");
+  const [isCustomSelected, setIsCustomSelected] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState("");
+  const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faq">("details");
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -37,10 +40,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
         const res = await fetchProductBySlug(slug);
         if (res.success && res.product) {
           setProduct(res.product);
-          // Set initial size selection if ring or size-appropriate category
-          const isRing = res.product.category?.name?.toLowerCase().includes("ring");
-          if (isRing) {
-            setSelectedSize(ringSizes[2]); // default to US 7
+          setSelectedSize(""); // Forces explicit size selection
+          if (res.product.hasVariants && res.product.variants && res.product.variants.length > 0) {
+            setSelectedVariant(res.product.variants[0].name);
+          } else {
+            setSelectedVariant("");
           }
         } else {
           setError("Product not found");
@@ -58,7 +62,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F4EA] pb-24 text-verdant-emerald selection:bg-verdant-emerald/15">
+      <div className="min-h-screen bg-[#FAF7F2] pb-24 text-verdant-emerald selection:bg-verdant-emerald/15">
         <Navbar />
         <div className="max-w-7xl mx-auto px-6 md:px-12 pt-36">
           <ProductDetailsSkeleton />
@@ -69,7 +73,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-[#F8F4EA] pb-24 text-verdant-emerald selection:bg-verdant-emerald/15 flex flex-col justify-between">
+      <div className="min-h-screen bg-[#FAF7F2] pb-24 text-verdant-emerald selection:bg-verdant-emerald/15 flex flex-col justify-between">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center pt-36 px-6 text-center max-w-md mx-auto">
           <BadgeAlert className="w-16 h-16 text-red-800 mb-6 animate-pulse" />
@@ -88,7 +92,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
     );
   }
 
-  const isRingCategory = product.category?.name?.toLowerCase().includes("ring");
+  const hasSizes = product && ((product.sizes && product.sizes.length > 0) || product.allowCustomSize);
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -98,7 +102,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F4EA] pb-24 text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative">
+    <div className="min-h-screen bg-[#FAF7F2] text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative overflow-x-hidden">
       <MouseFollower />
       <Navbar />
 
@@ -106,7 +110,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
       <div className="absolute top-[15%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-[#C8A96A]/4 to-transparent blur-[120px] pointer-events-none" />
       <div className="absolute top-[50%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-[#0F4C3A]/3 to-transparent blur-[120px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-32">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-28 pb-12">
         {/* Navigation Breadcrumbs & Back Link */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-2 border-b border-verdant-emerald/5 mb-6">
           <Breadcrumb items={breadcrumbs} />
@@ -145,7 +149,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
 
               {/* Dynamic Prices */}
               <div className="flex items-center gap-4">
-                <ProductPrice price={product.price} className="text-xl md:text-2xl" />
+                <ProductPrice 
+                  price={
+                    product.hasVariants && selectedVariant 
+                      ? (product.variants?.find(v => v.name === selectedVariant)?.price ?? product.price ?? 0)
+                      : (product.price ?? 0)
+                  } 
+                  className="text-xl md:text-2xl" 
+                />
                 {product.isBestSeller && (
                   <span className="bg-verdant-gold/10 text-verdant-gold text-[7px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1">
                     <Sparkles className="w-2.5 h-2.5" /> Best Seller
@@ -163,34 +174,123 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
               </p>
             </div>
 
-            {/* Interactive Ring Size Selection */}
-            {isRingCategory && (
+            {/* Interactive Variety Selection */}
+            {product.hasVariants && product.variants && product.variants.length > 0 && (
               <div className="space-y-3">
-                <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block">
-                  ring size calibration
-                </span>
+                <div className="flex justify-between items-center font-mono">
+                  <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold block">
+                    select variety option
+                  </span>
+                  {selectedVariant && (
+                    <span className="text-[8px] text-verdant-emerald/50 uppercase font-bold tracking-wider">
+                      Selected: {selectedVariant}
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {ringSizes.map((size) => (
+                  {product.variants.map((v) => {
+                    const isSelected = selectedVariant === v.name;
+                    return (
+                      <button
+                        key={v.name}
+                        onClick={() => setSelectedVariant(v.name)}
+                        className={`px-4 py-2 border text-[10px] tracking-wider font-bold rounded-xl transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-verdant-emerald border-verdant-emerald text-white shadow-xs scale-102"
+                            : "border-verdant-emerald/10 text-verdant-emerald/75 hover:bg-verdant-emerald/5 hover:border-verdant-gold bg-white/20"
+                        }`}
+                      >
+                        {v.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Interactive Size Selection */}
+            {hasSizes && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center font-mono">
+                  <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold block">
+                    select size / length calibration
+                  </span>
+                  {selectedSize && (
+                    <span className="text-[8px] text-verdant-emerald/50 uppercase font-bold tracking-wider">
+                      Selected: {selectedSize}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes && product.sizes.map((size) => {
+                    const isSelected = selectedSize === size && !isCustomSelected;
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => {
+                          setIsCustomSelected(false);
+                          setSelectedSize(size);
+                        }}
+                        className={`px-4 py-2 border text-[10px] tracking-wider font-bold rounded-xl transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-verdant-emerald border-verdant-emerald text-white shadow-xs scale-102"
+                            : "border-verdant-emerald/10 text-verdant-emerald/75 hover:bg-verdant-emerald/5 hover:border-verdant-gold bg-white/20"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+
+                  {product.allowCustomSize && (
                     <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border text-[10px] tracking-wider font-bold rounded-xl transition-all ${
-                        selectedSize === size
+                      onClick={() => {
+                        setIsCustomSelected(true);
+                        setSelectedSize(customSizeVal ? "Custom: " + customSizeVal : "");
+                      }}
+                      className={`px-4 py-2 border text-[10px] tracking-wider font-bold rounded-xl transition-all cursor-pointer ${
+                        isCustomSelected
                           ? "bg-verdant-emerald border-verdant-emerald text-white shadow-xs scale-102"
                           : "border-verdant-emerald/10 text-verdant-emerald/75 hover:bg-verdant-emerald/5 hover:border-verdant-gold bg-white/20"
                       }`}
                     >
-                      {size}
+                      Custom Size
                     </button>
-                  ))}
+                  )}
                 </div>
+
+                {isCustomSelected && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-2 pt-1"
+                  >
+                    <label className="block text-[8px] tracking-widest uppercase font-bold text-verdant-emerald/60">
+                      Enter Custom Details
+                    </label>
+                    <input
+                      type="text"
+                      value={customSizeVal}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCustomSizeVal(val);
+                        setSelectedSize(val ? "Custom: " + val : "");
+                      }}
+                      placeholder="E.g. 6.5, 17 inches, or custom request"
+                      className="w-full max-w-xs px-4 py-2.5 rounded-xl bg-white/60 border border-verdant-emerald/10 text-xs focus:border-verdant-gold focus:outline-hidden transition-colors"
+                    />
+                    <p className="text-[8px] text-verdant-emerald/40 font-mono uppercase leading-relaxed">
+                      Our artisans will craft the piece to your exact specification.
+                    </p>
+                  </motion.div>
+                )}
               </div>
             )}
 
             <hr className="border-verdant-emerald/5" />
 
             {/* Shopping Quantities & Actions */}
-            <ProductActions product={product} />
+            <ProductActions product={product} selectedSize={selectedSize} selectedVariant={selectedVariant} />
 
             <hr className="border-verdant-emerald/5" />
 
@@ -223,18 +323,64 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
           </div>
         </div>
 
-        {/* Outer Sections Split Layout */}
-        <div className="mt-16 space-y-16">
-          {/* Detailed Specifications Sheet */}
-          <ProductInfo product={product} />
+        {/* Elegant Interactive Tabs Switcher (Saves immense vertical scrolling whitespace) */}
+        <div className="mt-12">
+          <div className="flex justify-start sm:justify-center overflow-x-auto scrollbar-none border-b border-verdant-emerald/10 mb-8 font-mono text-[9px] md:text-xs uppercase tracking-widest font-bold gap-4 md:gap-8 whitespace-nowrap">
+            <button
+              onClick={() => setActiveTab("details")}
+              className={`pb-3 px-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === "details"
+                  ? "border-verdant-gold text-verdant-emerald"
+                  : "border-transparent text-verdant-emerald/40 hover:text-verdant-emerald"
+              }`}
+            >
+              Details & Craft
+            </button>
+            <button
+              onClick={() => setActiveTab("reviews")}
+              className={`pb-3 px-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === "reviews"
+                  ? "border-verdant-gold text-verdant-emerald"
+                  : "border-transparent text-verdant-emerald/40 hover:text-verdant-emerald"
+              }`}
+            >
+              Client Reviews ({product.reviews?.length || 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("faq")}
+              className={`pb-3 px-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === "faq"
+                  ? "border-verdant-gold text-verdant-emerald"
+                  : "border-transparent text-verdant-emerald/40 hover:text-verdant-emerald"
+              }`}
+            >
+              Atelier FAQ
+            </button>
+          </div>
 
-          {/* Customer Reviews Critiques Section */}
-          <ProductReviews productId={product._id} productName={product.name} />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+            >
+              {activeTab === "details" && <ProductInfo product={product} />}
+              {activeTab === "reviews" && (
+                <ProductReviews
+                  productId={product._id}
+                  productName={product.name}
+                  initialReviews={product.reviews || []}
+                />
+              )}
+              {activeTab === "faq" && <FAQ />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-          {/* FAQ Sheet */}
-          <FAQ />
-
-          {/* Related products recommendation slider */}
+        {/* Related Products Recommendation Slider */}
+        <div className="mt-12">
           <RelatedProducts productId={product._id} />
         </div>
       </div>

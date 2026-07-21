@@ -87,7 +87,7 @@ export default function Experience() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: index * 0.15 }}
-              className="hover-target glass-effect rounded-3xl p-8 lg:p-10 border border-verdant-emerald/5 hover:border-verdant-gold/30 bg-[#F8F4EA]/30 hover:bg-[#F8F4EA]/60 transition-all duration-500 group flex flex-col items-start text-left shadow-xs hover:shadow-[0_15px_30px_rgba(15,76,58,0.05)]"
+              className="hover-target glass-effect rounded-3xl p-8 lg:p-10 border border-verdant-emerald/5 hover:border-verdant-gold/30 bg-[#FAF7F2]/30 hover:bg-[#FAF7F2]/60 transition-all duration-500 group flex flex-col items-start text-left shadow-xs hover:shadow-[0_15px_30px_rgba(15,76,58,0.05)]"
             >
               <div className="p-4 rounded-2xl bg-verdant-emerald/3 border border-verdant-emerald/5 group-hover:bg-verdant-gold/5 group-hover:border-verdant-gold/30 transition-all duration-500 mb-8">
                 {exp.icon}

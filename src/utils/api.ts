@@ -22,6 +22,26 @@ api.interceptors.request.use(
   }
 );
 
+// Auto-handle 401 Unauthorized responses (session expired / user deleted)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (typeof window !== "undefined" && error.response && error.response.status === 401) {
+      const isAuthEndpoint = error.config && error.config.url && (
+        error.config.url.includes("/login") || 
+        error.config.url.includes("/verify-otp") ||
+        error.config.url.includes("/send-otp")
+      );
+      if (!isAuthEndpoint) {
+        localStorage.removeItem("aurum_user_token");
+        localStorage.removeItem("aurum_user");
+        window.location.reload();
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const getRequest = async <T = any>(url: string, config = {}): Promise<T> => {
   return (await api.get<T>(url, config)).data;
 };

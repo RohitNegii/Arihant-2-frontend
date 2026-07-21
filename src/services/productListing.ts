@@ -1,5 +1,21 @@
 import { getRequest } from "../utils/api";
 
+export interface ReviewData {
+  _id?: string;
+  user: string;
+  name: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+export interface VariantData {
+  name: string;
+  price: number;
+  stock: number;
+  sku?: string;
+}
+
 export interface ProductData {
   _id: string;
   name: string;
@@ -14,19 +30,23 @@ export interface ProductData {
   };
   material: string;
   purity: string;
-  stone: string;
   weight: number;
   dimensions?: string;
   gender: "Men" | "Women" | "Unisex";
   occasion?: string;
-  price: number;
-  stock: number;
-  status: "Draft" | "Published" | "Hidden";
+  price?: number;
+  stock?: number;
+  status: "Draft" | "Published";
   isFeatured: boolean;
   isTrending: boolean;
   isBestSeller: boolean;
   images: string[];
   thumbnail: string;
+  sizes?: string[];
+  allowCustomSize?: boolean;
+  hasVariants?: boolean;
+  variants?: VariantData[];
+  reviews?: ReviewData[];
   createdAt: string;
 }
 

@@ -82,10 +82,10 @@ export default function BestSellers() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.8, delay: idx * 0.15 }}
-                className="hover-target glass-effect rounded-2xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/20 transition-all duration-500 bg-[#F8F4EA]/40 group flex flex-col h-full shadow-xs hover:shadow-[0_15px_35px_rgba(15,76,58,0.06)] hover:-translate-y-1.5"
+                className="hover-target glass-effect rounded-2xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/20 transition-all duration-500 bg-[#FAF7F2]/40 group flex flex-col h-full shadow-xs hover:shadow-[0_15px_35px_rgba(15,76,58,0.06)] hover:-translate-y-1.5"
               >
                 {/* Product Image Wrapper */}
-                <div className="w-full aspect-square overflow-hidden relative bg-[#F8F4EA]/20 flex items-center justify-center p-4">
+                <div className="w-full aspect-square overflow-hidden relative bg-[#FAF7F2]/20 flex items-center justify-center p-4">
                   <div className="absolute inset-0 bg-radial from-verdant-gold/3 via-transparent to-transparent opacity-60" />
                   
                   {/* Floating Action Buttons */}
@@ -162,7 +162,7 @@ export default function BestSellers() {
                 initial={{ scale: 0.95, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.95, y: 20 }}
-                className="w-full max-w-lg glass-effect-gold p-8 rounded-3xl relative border border-verdant-gold/30 bg-[#F8F4EA]/95 flex flex-col md:flex-row gap-6 shadow-2xl"
+                className="w-full max-w-lg glass-effect-gold p-8 rounded-3xl relative border border-verdant-gold/30 bg-[#FAF7F2]/95 flex flex-col md:flex-row gap-6 shadow-2xl"
               >
                 <button
                   onClick={() => setActiveQuickView(null)}
@@ -171,7 +171,7 @@ export default function BestSellers() {
                   Close
                 </button>
 
-                <div className="w-full md:w-1/2 aspect-square flex items-center justify-center p-2 bg-[#F8F4EA] rounded-2xl border border-verdant-emerald/5">
+                <div className="w-full md:w-1/2 aspect-square flex items-center justify-center p-2 bg-[#FAF7F2] rounded-2xl border border-verdant-emerald/5">
                   <img
                     src={activeQuickView.image}
                     alt={activeQuickView.name}

@@ -54,7 +54,7 @@ export default function InteractiveSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left Side: 3D interactive viewer canvas wrapper */}
-          <div className="lg:col-span-7 w-full h-[450px] md:h-[550px] glass-effect rounded-3xl overflow-hidden relative border border-verdant-emerald/5 bg-[#F8F4EA]/20 flex flex-col justify-between">
+          <div className="lg:col-span-7 w-full h-[450px] md:h-[550px] glass-effect rounded-3xl overflow-hidden relative border border-verdant-emerald/5 bg-[#FAF7F2]/20 flex flex-col justify-between">
             {/* Guide overlay */}
             <div className="absolute top-6 left-6 z-20 flex gap-4 pointer-events-none">
               <div className="glass-effect rounded-full px-4 py-2 flex items-center gap-2 border border-verdant-emerald/10 text-[9px] uppercase tracking-[0.15em] text-verdant-emerald/60">
@@ -76,7 +76,7 @@ export default function InteractiveSection() {
             </div>
 
             {/* Bottom active spec details panel */}
-            <div className="glass-effect-gold p-6 border-t border-verdant-gold/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#F8F4EA]/80 z-20">
+            <div className="glass-effect-gold p-6 border-t border-verdant-gold/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FAF7F2]/80 z-20">
               <div className="text-left">
                 <span className="text-[9px] tracking-widest uppercase text-verdant-gold font-light">
                   Active Configuration

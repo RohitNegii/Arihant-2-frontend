@@ -90,7 +90,7 @@ export default function Timeline() {
                   }`}
                 >
                   {/* Timeline node circle */}
-                  <div className="absolute left-[30px] md:left-1/2 top-1.5 md:top-auto -translate-x-1/2 w-7 h-7 rounded-full bg-[#F8F4EA] border border-verdant-emerald/20 hover:border-verdant-gold flex items-center justify-center text-verdant-emerald/40 hover:text-verdant-gold shadow-xs z-20 transition-all duration-300">
+                  <div className="absolute left-[30px] md:left-1/2 top-1.5 md:top-auto -translate-x-1/2 w-7 h-7 rounded-full bg-[#FAF7F2] border border-verdant-emerald/20 hover:border-verdant-gold flex items-center justify-center text-verdant-emerald/40 hover:text-verdant-gold shadow-xs z-20 transition-all duration-300">
                     <span className="text-[9px] font-bold">{idx + 1}</span>
                   </div>
 
@@ -101,7 +101,7 @@ export default function Timeline() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-100px" }}
                       transition={{ duration: 0.8, delay: 0.1 }}
-                      className="hover-target glass-effect p-6 md:p-8 rounded-2xl border border-verdant-emerald/5 hover:border-verdant-gold/30 bg-[#F8F4EA]/30 hover:bg-[#F8F4EA]/60 transition-all duration-500 group"
+                      className="hover-target glass-effect p-6 md:p-8 rounded-2xl border border-verdant-emerald/5 hover:border-verdant-gold/30 bg-[#FAF7F2]/30 hover:bg-[#FAF7F2]/60 transition-all duration-500 group"
                     >
                       <div className="flex items-center gap-4 mb-4">
                         <div className="p-2.5 rounded-lg bg-verdant-emerald/3 border border-verdant-emerald/5 text-verdant-gold group-hover:bg-verdant-gold/5 group-hover:border-verdant-gold/20 transition-colors duration-300">

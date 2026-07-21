@@ -22,7 +22,7 @@ export default function ProductSort({ value, onChange }: ProductSortProps) {
         className="w-full appearance-none bg-white/40 border border-verdant-emerald/10 text-verdant-emerald text-[9px] tracking-widest font-bold uppercase rounded-full px-5 py-3 pr-10 focus:outline-hidden focus:border-verdant-gold focus:bg-white/80 transition-all duration-300 cursor-pointer"
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="bg-[#F8F4EA] text-verdant-emerald font-bold">
+          <option key={opt.value} value={opt.value} className="bg-[#FAF7F2] text-verdant-emerald font-bold">
             {opt.label}
           </option>
         ))}
