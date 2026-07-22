@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Truck, Loader2, CreditCard, ArrowLeft, AlertCircle } from "lucide-react";
@@ -21,7 +21,7 @@ declare global {
   }
 }
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { cartItems, cartTotal, isLoading: cartLoading, fetchCart } = useCartStore();
@@ -444,3 +444,19 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FAF7F2] py-20 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-verdant-emerald" />
+          <span className="text-[10px] tracking-widest text-verdant-emerald/50 uppercase font-bold">Loading secure checkout...</span>
+        </div>
+      }
+    >
+      <CheckoutPageContent />
+    </Suspense>
+  );
+}
+
