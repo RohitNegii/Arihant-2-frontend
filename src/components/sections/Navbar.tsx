@@ -73,10 +73,10 @@ export default function Navbar() {
         initial={prefersReducedMotion ? false : { y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`w-full transition-all duration-300 ${
+        className={`w-full transition-all duration-500 ${
           isScrolled
-            ? "py-3 bg-[#FAF7F2]/90 backdrop-blur-md border-b border-verdant-emerald/5 shadow-[0_4px_30px_rgba(15,76,58,0.03)]"
-            : "py-6 bg-transparent border-b border-transparent"
+            ? "py-3 bg-[#FAF7F2]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(15,76,58,0.04)]"
+            : "py-5 bg-[#FAF7F2]/20 backdrop-blur-md border-b border-verdant-gold/5"
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
