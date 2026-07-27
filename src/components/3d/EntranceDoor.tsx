@@ -237,6 +237,36 @@ export default function DoorLeaf({ side }: { side: 1 | -1 }) {
         <Hinge key={y} y={y} side={side} />
       ))}
       <PullHandle side={side} />
+
+      {/* Brass kickplate across the foot — takes the scuffs a threshold gets,
+          and a staple of any real grand entrance door */}
+      <group position={[0, -DOOR_H / 2 + 0.2, DOOR_D / 2 + 0.004]}>
+        <mesh material={BRASS} castShadow>
+          <boxGeometry args={[DOOR_W - 2 * STILE - 0.02, 0.32, 0.02]} />
+        </mesh>
+        {/* Fixing screws top and bottom */}
+        {[0.11, -0.11].map((oy) =>
+          [-1, 1].map((sx) => (
+            <mesh
+              key={`${oy}${sx}`}
+              position={[sx * (PANEL_W / 2 - 0.08), oy, 0.012]}
+              material={BRASS}
+            >
+              <cylinderGeometry args={[0.012, 0.012, 0.01, 8]} />
+            </mesh>
+          ))
+        )}
+      </group>
+
+      {/* Cast-brass rosette boss centred on the upper panel */}
+      <group position={[0, PANELS[0].cy, DOOR_D / 2 + 0.002]}>
+        <mesh material={BRASS} castShadow>
+          <torusGeometry args={[0.12, 0.028, 10, 28]} />
+        </mesh>
+        <mesh position={[0, 0, 0.02]} material={BRASS}>
+          <sphereGeometry args={[0.06, 16, 12]} />
+        </mesh>
+      </group>
     </group>
   );
 }

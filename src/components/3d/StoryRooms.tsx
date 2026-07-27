@@ -421,6 +421,234 @@ function Foliage({
   );
 }
 
+/**
+ * A woody climbing vine — a thin tube swept along a hand-placed curve, dressed
+ * with leaves growing off its length. Because the leaves sit *on* a visible
+ * stem that follows the architecture, the greenery reads as a plant that has
+ * climbed the doorway rather than leaves hanging in the air (the failing of the
+ * old box-scatter Foliage).
+ */
+function Vine({
+  points,
+  radius = 0.022,
+  seed = 1,
+  density = 9,
+  leafScale = 1,
+  castLeafShadow = false,
+}: {
+  points: [number, number, number][];
+  radius?: number;
+  seed?: number;
+  /** Leaves grown per metre of stem. */
+  density?: number;
+  leafScale?: number;
+  castLeafShadow?: boolean;
+}) {
+  const { tube, leaves } = useMemo(() => {
+    const curve = new THREE.CatmullRomCurve3(
+      points.map((p) => new THREE.Vector3(p[0], p[1], p[2])),
+      false,
+      "catmullrom",
+      0.5
+    );
+    const tubeGeo = new THREE.TubeGeometry(curve, 48, radius, 6, false);
+    const count = Math.max(3, Math.round(curve.getLength() * density));
+    const r = rng(seed);
+    const up = new THREE.Vector3(0, 1, 0);
+
+    const grown = Array.from({ length: count }, (_, i) => {
+      const t = (i + 0.5) / count;
+      const pos = curve.getPointAt(t);
+      const tan = curve.getTangentAt(t).normalize();
+      // A frame around the stem, so leaves splay off its sides instead of
+      // skewering straight through it
+      const side = new THREE.Vector3().crossVectors(tan, up).normalize();
+      const out = new THREE.Vector3().crossVectors(side, tan).normalize();
+      const ang = r() * Math.PI * 2;
+      const dir = side
+        .clone()
+        .multiplyScalar(Math.cos(ang))
+        .addScaledVector(out, Math.sin(ang));
+      const off = radius + 0.015;
+      return {
+        p: [pos.x + dir.x * off, pos.y + dir.y * off, pos.z + dir.z * off] as [
+          number,
+          number,
+          number,
+        ],
+        rot: [
+          (r() - 0.5) * 1.3,
+          Math.atan2(dir.x, dir.z) + (r() - 0.5) * 0.9,
+          (r() - 0.5) * 1.3,
+        ] as [number, number, number],
+        s: (0.72 + r() * 0.55) * leafScale,
+        dark: r() > 0.5,
+      };
+    });
+    return { tube: tubeGeo, leaves: grown };
+  }, [points, radius, seed, density, leafScale]);
+
+  useEffect(() => () => tube.dispose(), [tube]);
+
+  return (
+    <group>
+      <mesh geometry={tube} material={MAT.branch} castShadow />
+      {leaves.map((leaf, i) => (
+        <mesh
+          key={i}
+          geometry={LEAF_GEO}
+          position={leaf.p}
+          rotation={leaf.rot}
+          scale={leaf.s}
+          material={leaf.dark ? LEAF_MATS[1] : LEAF_MATS[0]}
+          castShadow={castLeafShadow}
+        />
+      ))}
+    </group>
+  );
+}
+
+/**
+ * A filled, rounded topiary — leaves packed over an upper hemisphere so the
+ * planting reads as a solid bush, not a handful of drifting blades.
+ */
+function LeafMound({
+  position,
+  radius = 0.45,
+  count = 54,
+  seed = 5,
+  scale = 1,
+}: {
+  position: [number, number, number];
+  radius?: number;
+  count?: number;
+  seed?: number;
+  scale?: number;
+}) {
+  const leaves = useMemo(() => {
+    const r = rng(seed);
+    return Array.from({ length: count }, () => {
+      const phi = Math.acos(1 - r()); // denser toward the crown
+      const theta = r() * Math.PI * 2;
+      const rr = radius * (0.72 + r() * 0.28);
+      const x = Math.sin(phi) * Math.cos(theta) * rr;
+      const y = Math.cos(phi) * rr;
+      const z = Math.sin(phi) * Math.sin(theta) * rr;
+      return {
+        p: [x, y, z] as [number, number, number],
+        rot: [phi + (r() - 0.5) * 0.7, theta, (r() - 0.5) * 0.9] as [
+          number,
+          number,
+          number,
+        ],
+        s: 0.8 + r() * 0.5,
+        dark: r() > 0.5,
+      };
+    });
+  }, [radius, count, seed]);
+
+  return (
+    <group position={position} scale={scale}>
+      {leaves.map((l, i) => (
+        <mesh
+          key={i}
+          geometry={LEAF_GEO}
+          position={l.p}
+          rotation={l.rot}
+          scale={l.s}
+          material={l.dark ? LEAF_MATS[1] : LEAF_MATS[0]}
+        />
+      ))}
+    </group>
+  );
+}
+
+/** Stone urn planter with a topiary, flanking the entrance. */
+function Urn({
+  position,
+  scale = 1,
+  seed = 9,
+}: {
+  position: [number, number, number];
+  scale?: number;
+  seed?: number;
+}) {
+  return (
+    <group position={position} scale={scale}>
+      <GroundShadow position={[0, 0.01, 0]} radius={0.5} />
+      {/* Tapered pot + rim */}
+      <mesh position={[0, 0.36, 0]} material={MAT.stone} castShadow receiveShadow>
+        <cylinderGeometry args={[0.32, 0.22, 0.72, 20]} />
+      </mesh>
+      <mesh position={[0, 0.72, 0]} material={MAT.stone} castShadow>
+        <cylinderGeometry args={[0.38, 0.32, 0.12, 20]} />
+      </mesh>
+      <LeafMound position={[0, 0.84, 0]} radius={0.58} count={95} seed={seed} scale={1.08} />
+      {/* Leaves spilling over the rim so the plant reads as overgrown */}
+      <LeafMound position={[0, 0.6, 0]} radius={0.44} count={30} seed={seed + 5} scale={1.15} />
+    </group>
+  );
+}
+
+/**
+ * The planting that frames the portal: a climbing vine up each jamb that arcs
+ * over the arch to meet in the middle, a lower accent vine for fullness, and an
+ * urn topiary at each foot. Everything is anchored to the stone, so it looks
+ * grown-in rather than scattered.
+ */
+function EntranceGreenery() {
+  // Mirror one set of curves for the right jamb (x → −x)
+  const mirror = (pts: [number, number, number][]) =>
+    pts.map(([x, y, z]) => [-x, y, z] as [number, number, number]);
+
+  // Climbs the jamb and arcs over the arch to meet its mirror at the crown.
+  // Kept close to the stone (x ≈ 2.0) so it hugs the frame rather than drifting.
+  const climb: [number, number, number][] = [
+    [-2.5, -1.4, -1.1],
+    [-2.1, -0.4, -1.5],
+    [-2.0, 0.7, -1.7],
+    [-1.98, 1.9, -1.72],
+    [-1.96, 2.9, -1.72],
+    [-1.7, 3.6, -1.7],
+    [-1.1, 4.0, -1.68],
+    [-0.3, 4.15, -1.66],
+  ];
+  // A second strand weaving up beside the first, for a fuller braid.
+  const accent: [number, number, number][] = [
+    [-2.72, -1.42, -0.95],
+    [-2.4, -0.5, -1.3],
+    [-2.25, 0.6, -1.5],
+    [-2.12, 1.7, -1.6],
+    [-2.15, 2.6, -1.55],
+    [-2.35, 3.3, -1.4],
+  ];
+
+  return (
+    <group>
+      <Vine points={climb} seed={11} density={17} castLeafShadow />
+      <Vine points={mirror(climb)} seed={29} density={17} castLeafShadow />
+      <Vine points={accent} seed={41} density={18} leafScale={0.95} />
+      <Vine points={mirror(accent)} seed={53} density={18} leafScale={0.95} />
+
+      <Urn position={[-2.7, -1.5, -0.95]} seed={61} />
+      <Urn position={[2.7, -1.5, -0.95]} seed={73} scale={1.05} />
+
+      {/* Blossom accents nestled in the urns */}
+      {[
+        [-2.55, -0.55, -0.7],
+        [-2.85, -0.62, -0.85],
+        [2.6, -0.5, -0.7],
+        [2.9, -0.66, -0.85],
+        [2.5, -0.68, -0.6],
+      ].map((p, i) => (
+        <mesh key={i} position={p as [number, number, number]} material={MAT.blossom}>
+          <sphereGeometry args={[0.06, 8, 6]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 /** Necklace bust — used in the entrance vitrine and the collection niches. */
 function NecklaceBust({
   position,
@@ -527,7 +755,7 @@ function EntranceLight() {
 
   useEffect(() => {
     const onScroll = () => {
-      nearDoor.current = pageProgress() < 0.09;
+      nearDoor.current = pageProgress() < 0.14;
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -589,7 +817,9 @@ function GrandEntrance({ z }: { z: number }) {
   // Doors start ajar and swing wide as the visitor begins scrolling in
   useEffect(() => {
     const onScroll = () => {
-      openTarget.current = Math.min(pageProgress() / 0.02, 1);
+      // Fully open within the first ~5% of the scroll, as the camera closes on
+      // the portal (the door sits at the very start of the 6-room journey)
+      openTarget.current = Math.min(pageProgress() / 0.05, 1);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -677,26 +907,7 @@ function GrandEntrance({ z }: { z: number }) {
       </group>
 
       {/* ---- Climbing greenery framing the doorway ---- */}
-      {/* Kept out beyond the door jambs — greenery drifting across the
-          doorway itself reads as debris, not planting */}
-      <Foliage castShadow position={[-3.5, 1.7, -1.65]} seed={11} count={34} spread={[0.55, 1.7, 0.3]} scale={1.15} />
-      <Foliage castShadow position={[-4.4, -0.5, -1.5]} seed={23} count={34} spread={[0.8, 1.1, 0.45]} scale={1.3} />
-      <Foliage castShadow position={[3.6, 1.5, -1.65]} seed={31} count={34} spread={[0.55, 1.8, 0.3]} scale={1.15} />
-      <Foliage castShadow position={[4.5, -0.6, -1.5]} seed={43} count={34} spread={[0.8, 1.1, 0.45]} scale={1.35} />
-      <Foliage castShadow position={[-2.6, 4.4, -1.6]} seed={57} count={22} spread={[0.9, 0.3, 0.25]} scale={0.9} />
-      <Foliage castShadow position={[2.7, 4.5, -1.6]} seed={67} count={22} spread={[0.9, 0.3, 0.25]} scale={0.9} />
-
-      {/* Blossom accents in the bushes */}
-      {[
-        [4.0, -0.2, -1.2],
-        [4.7, -0.8, -1.3],
-        [4.2, -1.1, -1.1],
-        [-4.2, -0.9, -1.2],
-      ].map((p, i) => (
-        <mesh key={i} position={p as [number, number, number]} material={MAT.blossom}>
-          <sphereGeometry args={[0.07, 8, 6]} />
-        </mesh>
-      ))}
+      <EntranceGreenery />
 
       {/* ---- Hall interior beyond the doors ----
            Every room is open along Z: an opaque back wall here would hide the
@@ -1360,7 +1571,9 @@ function YoursForever({ z }: { z: number }) {
   // Lid finishes opening as the visitor arrives at the last story room
   useEffect(() => {
     const onScroll = () => {
-      lidOpen.current = THREE.MathUtils.clamp((pageProgress() - 0.25) / 0.035, 0, 1);
+      // Last room (Z = 12) is reached near 94% scroll on the 6-room span, so
+      // the lid finishes opening in the final approach to it
+      lidOpen.current = THREE.MathUtils.clamp((pageProgress() - 0.84) / 0.05, 0, 1);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });

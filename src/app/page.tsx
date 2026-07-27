@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Calendar, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Navbar from "@/components/sections/Navbar";
@@ -26,11 +26,12 @@ interface Zone {
 }
 
 /**
- * Six story rooms (the door-to-showroom walk) followed by the original
- * thirteen exhibition rooms. Camera travel in `ShowroomCanvas` and the room
- * Z positions in `StoryRooms`/`RoomComponents` are spaced to match this count.
+ * The six story rooms (the door-to-showroom walk). The original thirteen
+ * exhibition rooms that used to follow are disabled for now — both the zone
+ * cards below and their 3D rooms in `ShowroomCan
+ * re the exhibition.
  */
-const ZONE_COUNT = 19;
+const ZONE_COUNT = 6;
 /** How many of the leading zones belong to the story journey. */
 const STORY_ZONES = 6;
 
@@ -176,7 +177,12 @@ export default function Home() {
       image: JEWELRY_IMAGES.jadeMedallion,
     },
 
-    /* ---------- THE ORIGINAL EXHIBITION ---------- */
+    /* ---------- THE ORIGINAL EXHIBITION (disabled) ----------
+       The thirteen exhibition zone cards used to follow here, paired with the
+       3D rooms now commented out in `ShowroomCanvas`. Restore this block, the
+       room mounts there, and ZONE_COUNT = 19 together to bring the old
+       showroom back.
+
     {
       title: "Entrance Hall",
       subtitle: "Jewelry Crafted Beyond Time",
@@ -248,7 +254,6 @@ export default function Home() {
       desc: "Begin your bespoke design consultation with our Milan master craftsmen today.",
       cta: (
         <div className="pointer-events-auto mt-2">
-          {/* Farewell strip of the collection */}
           <div className="flex gap-2.5 mb-6">
             {[
               JEWELRY_IMAGES.abaloneElephant,
@@ -280,13 +285,14 @@ export default function Home() {
         </div>
       ),
     },
+    ---------- end disabled exhibition ---------- */
   ];
 
   const currentZone = zones[activeZone] || zones[0];
   const inStory = activeZone < STORY_ZONES;
 
   return (
-    <div className="relative min-h-[2000vh] bg-transparent overflow-x-hidden select-none">
+    <div className="relative min-h-[700vh] bg-transparent overflow-x-hidden select-none">
       <LoadingScreen />
       <MouseFollower />
       <Navbar />
@@ -295,7 +301,7 @@ export default function Home() {
       <ShowroomCanvas />
 
       {/* SCROLL TRANSITION CARD OVERLAYS — bottom sheet on mobile, left panel on desktop */}
-      <div className="fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-16 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-md">
+      <div className="fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-5 lg:left-8 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-sm">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeZone}

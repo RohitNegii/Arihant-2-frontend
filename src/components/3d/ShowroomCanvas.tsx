@@ -6,19 +6,22 @@ import { Sparkles, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 
 import StorySection from "./StoryRooms";
-import {
-  HistoryTunnelFrames,
-  GalleryBoxes,
-  LaboratoryDiamond,
-  CraftingAtelier,
-  Pedestals,
-  TryOnMirror,
-  MuseumCubes,
-  ReviewBubbles,
-  UndergroundCave,
-  PromisePillars,
-  ShowcaseArena,
-} from "./RoomComponents";
+// OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
+// story journey. Commented out while we build out the story rooms one by one;
+// re-enable the mounts below and this import together to bring it back.
+// import {
+//   HistoryTunnelFrames,
+//   GalleryBoxes,
+//   LaboratoryDiamond,
+//   CraftingAtelier,
+//   Pedestals,
+//   TryOnMirror,
+//   MuseumCubes,
+//   ReviewBubbles,
+//   UndergroundCave,
+//   PromisePillars,
+//   ShowcaseArena,
+// } from "./RoomComponents";
 
 function CameraController() {
   useFrame((state) => {
@@ -27,8 +30,10 @@ function CameraController() {
     const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1); // progress 0 to 1
 
     // Camera travels forward along the Z axis. It starts in front of the six
-    // story rooms (Z = 76) and ends past the last original room (Z = -146).
-    const targetZ = 76.0 - progress * 222;
+    // story rooms (Z = 76) and ends just past the last story room (Z = 8).
+    // (Was ×222, ending at Z = −146, when the old exhibition still ran behind
+    // the story journey — restore that span if those rooms are re-enabled.)
+    const targetZ = 76.0 - progress * 68;
     
     // Smooth camera interpolation
     state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.05);
@@ -134,45 +139,27 @@ export default function ShowroomCanvas() {
           {/* --- STORY JOURNEY: 6 rooms in front of the gallery (Z = 72 → 12) --- */}
           <StorySection />
 
-          {/* --- ORIGINAL ROOM ENVIRONMENTS MOUNTED ON Z-AXIS --- */}
+          {/* --- ORIGINAL EXHIBITION (disabled) ---
+              The old 13-room showroom used to mount here, on the Z axis from
+              Z = -12 (History Tunnel) back to Z = -132 (Showcase Arena). It is
+              commented out while we build the story journey; re-enable it — and
+              its import above, and restore the ×222 camera span — to bring it
+              back.
+
           <group position={[0, 0, 0]}>
-            {/* Scene 1 (Z = 0) — the Entrance Hall ring + gem is parked:
-                `EntrancePedestal` still lives in RoomComponents.tsx, it is
-                just no longer mounted */}
-
-            {/* Scene 2: History Tunnel (Z = -12) */}
-            <HistoryTunnelFrames />
-
-            {/* Scene 3: Floating Gallery (Z = -24) */}
-            <GalleryBoxes />
-
-            {/* Scene 4: Diamond Lab (Z = -36) */}
-            <LaboratoryDiamond />
-
-            {/* Scene 5: Crafting Atelier (Z = -48) */}
-            <CraftingAtelier />
-
-            {/* Scene 6: Collections Pedestals (Z = -60) */}
-            <Pedestals />
-
-            {/* Scene 7: Virtual Try-On (Z = -72) */}
-            <TryOnMirror />
-
-            {/* Scene 8: Museum Cubes (Z = -84) */}
-            <MuseumCubes />
-
-            {/* Scene 9: Review Bubbles (Z = -96) */}
-            <ReviewBubbles />
-
-            {/* Scene 10: Cave (Z = -108) */}
-            <UndergroundCave />
-
-            {/* Scene 11: Promise Pillars (Z = -120) */}
-            <PromisePillars />
-
-            {/* Scene 12: Showcase Arena (Z = -132) */}
-            <ShowcaseArena />
+            <HistoryTunnelFrames />       // Z = -12
+            <GalleryBoxes />              // Z = -24
+            <LaboratoryDiamond />         // Z = -36
+            <CraftingAtelier />           // Z = -48
+            <Pedestals />                 // Z = -60
+            <TryOnMirror />               // Z = -72
+            <MuseumCubes />               // Z = -84
+            <ReviewBubbles />             // Z = -96
+            <UndergroundCave />           // Z = -108
+            <PromisePillars />            // Z = -120
+            <ShowcaseArena />             // Z = -132
           </group>
+          */}
 
           {/* Floating dust motes — kept faint; big bright dots read as fake */}
           <Sparkles
