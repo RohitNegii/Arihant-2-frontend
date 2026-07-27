@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, Suspense } from "react";
+import { Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Sparkles, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 
-import StorySection from "./StoryRooms";
+import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
 // story journey. Commented out while we build out the story rooms one by one;
 // re-enable the mounts below and this import together to bring it back.
@@ -27,26 +27,19 @@ function CameraController() {
   useFrame((state) => {
     const scrollY = window.scrollY;
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight || 1;
-    const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1); // progress 0 to 1
+    const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
 
-    // Camera travels forward along the Z axis. It starts in front of the six
-    // story rooms (Z = 76) and ends just past the last story room (Z = 8).
-    // (Was ×222, ending at Z = −146, when the old exhibition still ran behind
-    // the story journey — restore that span if those rooms are re-enabled.)
     const targetZ = 76.0 - progress * 68;
-    
-    // Smooth camera interpolation
+
     state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.05);
 
-    // Subtle breathing / walking bobbing movement
     const time = state.clock.getElapsedTime();
     state.camera.position.y = 0.5 + Math.sin(time * 0.8) * 0.04;
     state.camera.position.x = Math.cos(time * 0.4) * 0.02;
 
-    // Mouse parallax tracking
     const targetMouseX = (state.pointer.x * Math.PI) / 14;
     const targetMouseY = (state.pointer.y * Math.PI) / 14;
-    
+
     state.camera.rotation.y = THREE.MathUtils.lerp(state.camera.rotation.y, -targetMouseX, 0.05);
     state.camera.rotation.x = THREE.MathUtils.lerp(state.camera.rotation.x, targetMouseY, 0.05);
   });
@@ -56,7 +49,7 @@ function CameraController() {
 
 export default function ShowroomCanvas() {
   return (
-    <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#F6F2EA]">
+    <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#E3D9C6]">
       <Canvas
         camera={{ position: [0, 0.5, 76.0], fov: 45 }}
         // dpr cap keeps high-DPI displays from quadrupling the pixel workload
@@ -68,19 +61,12 @@ export default function ShowroomCanvas() {
       >
         <CameraController />
 
-        {/* Depth fade into the cream backdrop — distant rooms emerge from
-            haze instead of popping in fully lit */}
-        <fog attach="fog" args={["#F6F2EA", 8, 42]} />
+        <fog attach="fog" args={["#E3D9C6", 8, 42]} />
 
-        {/* Suspense boundary is critical to prevent CDN loaders from suspending the canvas */}
         <Suspense fallback={null}>
-          {/* Low base fill — the key lights and environment do the modeling.
-              High ambient flattens every form into cardboard */}
-          <ambientLight intensity={0.25} />
-          <hemisphereLight intensity={0.5} color="#FFF9EE" groundColor="#CBBA97" />
+          <ambientLight intensity={0.15} />
+          <hemisphereLight intensity={0.4} color="#E8DEC9" groundColor="#9C9384" />
 
-          {/* Entrance Hall key light — off-axis so forms get light/shade
-              modeling instead of a flat head-on wash */}
           <spotLight
             position={[2.5, 7, 4]}
             intensity={3.5}
@@ -93,9 +79,9 @@ export default function ShowroomCanvas() {
             shadow-normalBias={0.02}
           />
 
-          {/* Lab Spotlight — no castShadow: each shadow-casting light is a
-              full extra scene render pass per frame, and this one is far
-              from the camera for most of the journey */}
+          {/* These two carry no castShadow deliberately: each shadow-casting
+              light is a full extra scene render pass every frame, and both sit
+              far behind the camera for the whole journey */}
           <spotLight
             position={[0, 8, -36]}
             intensity={3.5}
@@ -103,7 +89,6 @@ export default function ShowroomCanvas() {
             color="#ffffff"
           />
 
-          {/* Arena Spotlight — same: shadows dropped for perf */}
           <spotLight
             position={[0, 10, -132]}
             intensity={4.5}
@@ -129,14 +114,15 @@ export default function ShowroomCanvas() {
           />
           <pointLight position={[0, 2, 2]} intensity={1.0} color="#E9CE9C" />
 
-          {/* Gallery floor running the full journey — grounds every room and
-              catches the entrance shadows; without it everything floats */}
-          <mesh position={[0, -1.5, -70]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <planeGeometry args={[18, 170]} />
-            <meshStandardMaterial color="#F1EAD9" roughness={0.92} />
+          <mesh
+            position={[0, -1.5, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            receiveShadow
+            material={MAT.galleryFloor}
+          >
+            <planeGeometry args={[GALLERY_FLOOR[0], GALLERY_FLOOR[1]]} />
           </mesh>
 
-          {/* --- STORY JOURNEY: 6 rooms in front of the gallery (Z = 72 → 12) --- */}
           <StorySection />
 
           {/* --- ORIGINAL EXHIBITION (disabled) ---
@@ -161,7 +147,6 @@ export default function ShowroomCanvas() {
           </group>
           */}
 
-          {/* Floating dust motes — kept faint; big bright dots read as fake */}
           <Sparkles
             count={80}
             scale={12}
@@ -171,13 +156,8 @@ export default function ShowroomCanvas() {
             opacity={0.35}
           />
 
-          {/* Custom jewelry-studio environment: elongated softboxes give the
-              metals the long, natural highlight streaks of product photography
-              instead of the harsh blobs of the "studio" preset. Rendered once
-              (frames={1}) — costs nothing per frame */}
           <Environment resolution={256} frames={1}>
             <color attach="background" args={["#E9DFCB"]} />
-            {/* Overhead softbox */}
             <Lightformer
               form="rect"
               intensity={2.6}
@@ -186,7 +166,6 @@ export default function ShowroomCanvas() {
               rotation-x={Math.PI / 2}
               scale={[10, 14, 1]}
             />
-            {/* Warm strip light, camera left */}
             <Lightformer
               form="rect"
               intensity={1.4}
@@ -195,8 +174,6 @@ export default function ShowroomCanvas() {
               rotation-y={Math.PI / 2}
               scale={[16, 2.5, 1]}
             />
-            {/* Cool strip light, camera right — the warm/cool contrast is what
-                makes polished metal look dimensional */}
             <Lightformer
               form="rect"
               intensity={1.2}
@@ -205,7 +182,6 @@ export default function ShowroomCanvas() {
               rotation-y={-Math.PI / 2}
               scale={[16, 2.5, 1]}
             />
-            {/* Gold accent ring behind the scene */}
             <Lightformer
               form="ring"
               intensity={1.0}
