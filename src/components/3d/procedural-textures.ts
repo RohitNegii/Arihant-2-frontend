@@ -9,11 +9,6 @@ export interface SurfaceMaps {
   roughnessMap: THREE.Texture;
 }
 
-/* ------------------------------------------------------------------ */
-/* Noise + canvas plumbing                                             */
-/* ------------------------------------------------------------------ */
-
-/** Tiling value noise. Deterministic, so the surfaces never shimmer. */
 function noise2D(seed: number) {
   const N = 256;
   const grid = new Float32Array(N * N);
@@ -33,7 +28,6 @@ function noise2D(seed: number) {
     const yi = Math.floor(y);
     const xf = x - xi;
     const yf = y - yi;
-    // Smoothstep interpolation — linear interpolation leaves visible creases
     const u = xf * xf * (3 - 2 * xf);
     const v = yf * yf * (3 - 2 * yf);
     return (
@@ -82,7 +76,6 @@ function finish(canvas: HTMLCanvasElement, srgb: boolean, repeat: number) {
   return tex;
 }
 
-/** Sample a height field into a Float32Array in 0..1. */
 function heightField(size: number, fn: (x: number, y: number) => number) {
   const data = new Float32Array(size * size);
   for (let y = 0; y < size; y++) {
@@ -93,7 +86,6 @@ function heightField(size: number, fn: (x: number, y: number) => number) {
   return data;
 }
 
-/** Sobel the height field into a tangent-space normal map. */
 function normalFromHeight(data: Float32Array, size: number, strength: number) {
   const canvas = makeCanvas(size);
   const ctx = canvas.getContext("2d")!;
@@ -117,7 +109,6 @@ function normalFromHeight(data: Float32Array, size: number, strength: number) {
   return canvas;
 }
 
-/** Map the height field onto a roughness range. */
 function grayFromHeight(
   data: Float32Array,
   size: number,
@@ -139,16 +130,8 @@ function grayFromHeight(
   return canvas;
 }
 
-/* ------------------------------------------------------------------ */
-/* Painted hardwood — the entrance doors                               */
-/* ------------------------------------------------------------------ */
-
 let woodCache: SurfaceMaps | null | undefined;
 
-/**
- * Lacquered hardwood: cathedral grain running the length of the board, still
- * faintly telegraphing through the paint, plus brush drag in the roughness.
- */
 export function paintedWoodMaps(): SurfaceMaps | null {
   if (woodCache !== undefined) return woodCache;
   if (!hasDOM) return (woodCache = null);
@@ -157,7 +140,6 @@ export function paintedWoodMaps(): SurfaceMaps | null {
   const n = noise2D(9137);
 
   const grain = heightField(SIZE, (u, v) => {
-    // Grain runs along v, so warp mostly across u
     const warp = fbm(n, u * 3, v * 1.2, 4) * 2.2;
     const rings = Math.sin((u * 9 + warp * 2.6) * Math.PI) * 0.5 + 0.5;
     const fine = fbm(n, u * 90, v * 7, 2);
@@ -166,20 +148,19 @@ export function paintedWoodMaps(): SurfaceMaps | null {
   });
 
   const normalMap = finish(normalFromHeight(grain, SIZE, 1.1), false, 1);
-  // Paint pools slightly in the grain valleys, so they read glossier
   const roughnessMap = finish(grayFromHeight(grain, SIZE, 0.26, 0.46), false, 1);
 
   woodCache = { normalMap, roughnessMap };
   return woodCache;
 }
 
-/* ------------------------------------------------------------------ */
-/* Lime plaster / cast stone — facade and hall walls                   */
-/* ------------------------------------------------------------------ */
+export interface PlasterMaps extends SurfaceMaps {
+  map: THREE.Texture;
+}
 
-let plasterCache: SurfaceMaps | null | undefined;
+let plasterCache: PlasterMaps | null | undefined;
 
-export function plasterMaps(): SurfaceMaps | null {
+export function plasterMaps(): PlasterMaps | null {
   if (plasterCache !== undefined) return plasterCache;
   if (!hasDOM) return (plasterCache = null);
 
@@ -190,19 +171,255 @@ export function plasterMaps(): SurfaceMaps | null {
     const broad = fbm(n, u * 4, v * 4, 3);
     const trowel = fbm(n, u * 16, v * 16, 3);
     const tooth = fbm(n, u * 70, v * 70, 2);
-    return broad * 0.5 + trowel * 0.32 + tooth * 0.18;
+    const skip = Math.pow(fbm(n, u * 7 + 3.1, v * 6 - 1.7, 3), 2);
+    return broad * 0.42 + trowel * 0.3 + tooth * 0.16 + skip * 0.1;
   });
 
-  const normalMap = finish(normalFromHeight(surface, SIZE, 2.4), false, 1);
-  const roughnessMap = finish(grayFromHeight(surface, SIZE, 0.82, 1.0), false, 1);
+  const normalMap = finish(normalFromHeight(surface, SIZE, 3.2), false, 1);
+  const roughnessMap = finish(grayFromHeight(surface, SIZE, 0.8, 1.0), false, 1);
 
-  plasterCache = { normalMap, roughnessMap };
+  const colorCanvas = makeCanvas(SIZE);
+  const ctx = colorCanvas.getContext("2d")!;
+  const img = ctx.createImageData(SIZE, SIZE);
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const i = y * SIZE + x;
+      const h = surface[i];
+      // Two scales of drift, so big walls are neither one flat tone nor a
+      // uniform noise field: broad blotches with finer patchiness inside them.
+      // Frequencies must be whole numbers or the noise stops tiling and every
+      // repeat boundary shows up on the wall as a seam.
+      const drift = fbm(n, (x / SIZE) * 3 + 7.3, (y / SIZE) * 3 - 4.1, 3);
+      const patch = fbm(n, (x / SIZE) * 7 - 2.6, (y / SIZE) * 7 + 9.4, 2);
+      const t = 0.83 + h * 0.16 + (drift - 0.5) * 0.17 + (patch - 0.5) * 0.07;
+      const j = i * 4;
+      img.data[j] = Math.min(255, t * 255);
+      img.data[j + 1] = Math.min(255, t * (0.995 + h * 0.005) * 255);
+      img.data[j + 2] = Math.min(255, t * (0.972 + h * 0.028) * 255);
+      img.data[j + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  plasterCache = { normalMap, roughnessMap, map: finish(colorCanvas, true, 1) };
   return plasterCache;
 }
 
-/* ------------------------------------------------------------------ */
-/* Brushed / lightly aged brass — door furniture                       */
-/* ------------------------------------------------------------------ */
+let contactCache: THREE.Texture | null | undefined;
+
+/**
+ * Radial falloff for the fake contact shadows. A flat disc gives every pot a
+ * hard rubber-stamp edge; a real one is dense where the object meets the floor
+ * and gone within a radius. Clamped, not repeated — this is one disc, not a
+ * tile, and RepeatWrapping would smear the rim across the seam.
+ */
+export function contactShadowMap(): THREE.Texture | null {
+  if (contactCache !== undefined) return contactCache;
+  if (!hasDOM) return (contactCache = null);
+
+  const S = 128;
+  const canvas = makeCanvas(S);
+  const ctx = canvas.getContext("2d")!;
+  const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.3, "rgba(255,255,255,0.92)");
+  g.addColorStop(0.62, "rgba(255,255,255,0.42)");
+  g.addColorStop(0.85, "rgba(255,255,255,0.11)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  contactCache = tex;
+  return contactCache;
+}
+
+let paverCache: (SurfaceMaps & { map: THREE.Texture }) | null | undefined;
+
+export function paverMaps(): (SurfaceMaps & { map: THREE.Texture }) | null {
+  if (paverCache !== undefined) return paverCache;
+  if (!hasDOM) return (paverCache = null);
+
+  const SIZE = 1024;
+  const n = noise2D(5512);
+
+  const surface = heightField(SIZE, (u, v) => {
+    const scaleU = 8;
+    const scaleV = 16;
+    const uu = u * scaleU;
+    const vv = v * scaleV;
+
+    const row = Math.floor(vv);
+    const uOffset = (row % 2 === 0) ? 0.0 : 0.5;
+
+    const tileU = (uu + uOffset) % 1.0;
+    const tileV = vv % 1.0;
+
+    const distU = Math.min(tileU, 1.0 - tileU) / scaleU;
+    const distV = Math.min(tileV, 1.0 - tileV) / scaleV;
+    const distEdge = Math.min(distU, distV);
+
+    const edgeNoise = fbm(n, u * 25, v * 25, 3) * 0.012;
+    const finalDist = distEdge + edgeNoise;
+
+    if (finalDist < 0.004) {
+      return 0.1 + fbm(n, u * 60, v * 60, 2) * 0.1;
+    } else {
+      const bevel = Math.min((finalDist - 0.004) / 0.015, 1.0);
+      const stoneTex = fbm(n, u * 15, v * 15, 4);
+      return 0.5 + bevel * 0.15 + stoneTex * 0.35;
+    }
+  });
+
+  const normalMap = finish(normalFromHeight(surface, SIZE, 7.0), false, 1);
+  const roughnessMap = finish(grayFromHeight(surface, SIZE, 0.5, 1.0), false, 1);
+
+  const colorCanvas = document.createElement("canvas");
+  colorCanvas.width = SIZE;
+  colorCanvas.height = SIZE;
+  const ctx = colorCanvas.getContext("2d")!;
+  const img = ctx.createImageData(SIZE, SIZE);
+
+  for (let i = 0; i < surface.length; i++) {
+    const h = surface[i];
+    const j = i * 4;
+
+    let r, g, b;
+    if (h < 0.25) {
+      r = 45; g = 40; b = 35;
+    } else {
+      const intensity = 0.65 + h * 0.35;
+      r = 156 * intensity; g = 147 * intensity; b = 132 * intensity;
+    }
+
+    const noise = (Math.random() - 0.5) * 12;
+
+    img.data[j] = Math.max(0, Math.min(255, r + noise));
+    img.data[j + 1] = Math.max(0, Math.min(255, g + noise));
+    img.data[j + 2] = Math.max(0, Math.min(255, b + noise));
+    img.data[j + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  const map = finish(colorCanvas, true, 1);
+
+  paverCache = { normalMap, roughnessMap, map };
+  return paverCache;
+}
+
+/**
+ * How much of the world one repeat of the slab texture covers. The tile holds
+ * a 3 x 4 running-bond grid, so a slab comes out 1.35 wide by 0.9 deep — wide
+ * across the walk, short along it. Callers size their repeats off these rather
+ * than guessing, so a 300-unit floor and a 2-unit step get the same stones.
+ */
+export const SLAB_TILE_W = 4.05;
+export const SLAB_TILE_D = 3.6;
+
+const SLAB_COLS = 3;
+const SLAB_ROWS = 4;
+
+/**
+ * Albedo, NOT the colour you see. The floor is lit by three spots, a sun, a
+ * hemisphere and a studio environment, then ACES tone-mapped, so it renders
+ * roughly 2.5x brighter than its texture — painting the intended stone colour
+ * in here directly came out near-white. These values were calibrated by
+ * sampling the rendered frame until the lit floor measured about #96856a, a
+ * warm mid stone. Re-measure before changing them, and re-measure again if the
+ * showroom lighting is ever retuned.
+ */
+const SLAB_BASE = [62, 54, 37] as const;
+const SLAB_JOINT = [43, 37, 26] as const;
+
+let slabCache: (SurfaceMaps & { map: THREE.Texture }) | null | undefined;
+
+export function stoneSlabMaps(): (SurfaceMaps & { map: THREE.Texture }) | null {
+  if (slabCache !== undefined) return slabCache;
+  if (!hasDOM) return (slabCache = null);
+
+  const SIZE = 1024;
+  const JOINT = 3.0;
+  const BEVEL = 8;
+  const n = noise2D(8412);
+
+  function slabAt(u: number, v: number) {
+    const yy = v * SLAB_ROWS;
+    const row = Math.floor(yy);
+    const xx = u * SLAB_COLS + (row % 2 ? 0.5 : 0);
+    const col = Math.floor(xx);
+    const fx = xx - col;
+    const fy = yy - row;
+    const dx = Math.min(fx, 1 - fx) * (SIZE / SLAB_COLS);
+    const dy = Math.min(fy, 1 - fy) * (SIZE / SLAB_ROWS);
+    return {
+      id: ((col % SLAB_COLS) + SLAB_COLS) % SLAB_COLS + row * 7,
+      edge: Math.min(dx, dy),
+    };
+  }
+
+  function tone(id: number) {
+    const h = Math.sin(id * 12.9898) * 43758.5453;
+    return h - Math.floor(h);
+  }
+
+  const surface = heightField(SIZE, (u, v) => {
+    const { edge } = slabAt(u, v);
+    if (edge < JOINT) {
+      return 0.06 + fbm(n, u * 90, v * 90, 2) * 0.08;
+    }
+    const bevel = Math.min((edge - JOINT) / BEVEL, 1);
+    const grain = fbm(n, u * 26, v * 26, 4);
+    const pit = Math.pow(fbm(n, u * 170, v * 170, 2), 7);
+    return 0.6 + bevel * 0.26 + grain * 0.12 - pit * 0.22;
+  });
+
+  const normalMap = finish(normalFromHeight(surface, SIZE, 5.0), false, 1);
+  // Inverted range on purpose: the joints (height 0) must read rougher than
+  // the honed slab faces (height 1), which keep a faint sheen
+  const roughnessMap = finish(grayFromHeight(surface, SIZE, 0.96, 0.58), false, 1);
+
+  const colorCanvas = makeCanvas(SIZE);
+  const ctx = colorCanvas.getContext("2d")!;
+  const img = ctx.createImageData(SIZE, SIZE);
+
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const u = x / SIZE;
+      const v = y / SIZE;
+      const i = y * SIZE + x;
+      const h = surface[i];
+      const { id, edge } = slabAt(u, v);
+      const j = i * 4;
+
+      let r, g, b;
+      if (edge < JOINT) {
+        const m = 0.92 + fbm(n, u * 70, v * 70, 2) * 0.16;
+        r = SLAB_JOINT[0] * m;
+        g = SLAB_JOINT[1] * m;
+        b = SLAB_JOINT[2] * m;
+      } else {
+        const shade = (0.88 + tone(id) * 0.24) * (0.85 + h * 0.22);
+        const mottle = 0.93 + fbm(n, u * 12, v * 12, 3) * 0.15;
+        r = SLAB_BASE[0] * shade * mottle;
+        g = SLAB_BASE[1] * shade * mottle;
+        b = SLAB_BASE[2] * shade * mottle;
+      }
+
+      const speck = (Math.random() - 0.5) * 6;
+      img.data[j] = Math.max(0, Math.min(255, r + speck));
+      img.data[j + 1] = Math.max(0, Math.min(255, g + speck));
+      img.data[j + 2] = Math.max(0, Math.min(255, b + speck));
+      img.data[j + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const map = finish(colorCanvas, true, 1);
+
+  slabCache = { normalMap, roughnessMap, map };
+  return slabCache;
+}
 
 let brassCache: SurfaceMaps | null | undefined;
 
@@ -214,7 +431,6 @@ export function brassMaps(): SurfaceMaps | null {
   const n = noise2D(7717);
 
   const surface = heightField(SIZE, (u, v) => {
-    // Fine brushing along one axis + broad patina blotches
     const brush = fbm(n, u * 220, v * 2, 2);
     const patina = fbm(n, u * 6, v * 6, 3);
     return brush * 0.55 + patina * 0.45;
@@ -227,19 +443,15 @@ export function brassMaps(): SurfaceMaps | null {
   return brassCache;
 }
 
-/* ------------------------------------------------------------------ */
-/* Leaves — alpha-cut planes instead of blobs                          */
-/* ------------------------------------------------------------------ */
-
 export interface LeafMaps {
   map: THREE.Texture;
   alphaMap: THREE.Texture;
   normalMap: THREE.Texture;
+  roughnessMap: THREE.Texture;
 }
 
 let leafCache: LeafMaps | null | undefined;
 
-/** Traces a leaf silhouette into the current path, normalised to the canvas. */
 function leafPath(ctx: CanvasRenderingContext2D, S: number) {
   ctx.beginPath();
   ctx.moveTo(S * 0.5, S * 0.03);
@@ -254,7 +466,6 @@ export function leafMaps(): LeafMaps | null {
 
   const S = 256;
 
-  // --- Alpha silhouette (three samples the green channel) ---
   const alphaCanvas = makeCanvas(S);
   const actx = alphaCanvas.getContext("2d")!;
   actx.fillStyle = "#000";
@@ -263,52 +474,92 @@ export function leafMaps(): LeafMaps | null {
   leafPath(actx, S);
   actx.fill();
 
-  // --- Colour: base green, darker toward the midrib, warm at the tip ---
+  const strokeVeins = (ctx: CanvasRenderingContext2D, midribW: number, veinW: number) => {
+    ctx.lineCap = "round";
+    for (let i = 0; i < 12; i++) {
+      const t = i / 12;
+      ctx.lineWidth = S * midribW * (1 - t * 0.75);
+      ctx.beginPath();
+      ctx.moveTo(S * 0.5, S * (0.04 + t * 0.79));
+      ctx.lineTo(S * 0.5, S * (0.04 + (t + 1 / 12) * 0.79));
+      ctx.stroke();
+    }
+    ctx.lineWidth = S * veinW;
+    for (let i = 0; i < 9; i++) {
+      const t = i / 8;
+      const y = S * (0.14 + t * 0.66);
+      const reach = 0.34 * Math.sin(Math.PI * (0.18 + t * 0.72));
+      for (const dir of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(S * 0.5, y);
+        ctx.quadraticCurveTo(
+          S * (0.5 + dir * reach * 0.55),
+          y + S * 0.055,
+          S * (0.5 + dir * reach),
+          y + S * 0.115
+        );
+        ctx.stroke();
+      }
+    }
+  };
+
   const colorCanvas = makeCanvas(S);
   const cctx = colorCanvas.getContext("2d")!;
   const grad = cctx.createLinearGradient(0, 0, 0, S);
-  grad.addColorStop(0, "#6E9463");
-  grad.addColorStop(0.45, "#41764E");
-  grad.addColorStop(1, "#2C5638");
+  grad.addColorStop(0, "#3E6B45");
+  grad.addColorStop(0.4, "#2F5C3B");
+  grad.addColorStop(1, "#1E4029");
   cctx.fillStyle = grad;
   cctx.fillRect(0, 0, S, S);
-  // Vein tracery, slightly lighter than the blade
-  cctx.strokeStyle = "rgba(150, 180, 140, 0.5)";
-  cctx.lineWidth = S * 0.012;
-  cctx.beginPath();
-  cctx.moveTo(S * 0.5, S * 0.05);
-  cctx.lineTo(S * 0.5, S * 0.96);
+  const sheen = cctx.createRadialGradient(S * 0.36, S * 0.3, 0, S * 0.36, S * 0.3, S * 0.5);
+  sheen.addColorStop(0, "rgba(150, 190, 140, 0.34)");
+  sheen.addColorStop(1, "rgba(150, 190, 140, 0)");
+  cctx.fillStyle = sheen;
+  cctx.fillRect(0, 0, S, S);
+  cctx.save();
+  leafPath(cctx, S);
+  cctx.clip();
+  cctx.strokeStyle = "rgba(14, 38, 22, 0.55)";
+  cctx.lineWidth = S * 0.09;
+  leafPath(cctx, S);
   cctx.stroke();
-  cctx.lineWidth = S * 0.006;
-  for (let i = 1; i <= 6; i++) {
-    const y = S * (0.12 + i * 0.12);
-    for (const dir of [-1, 1]) {
-      cctx.beginPath();
-      cctx.moveTo(S * 0.5, y);
-      cctx.quadraticCurveTo(
-        S * (0.5 + dir * 0.2),
-        y + S * 0.02,
-        S * (0.5 + dir * 0.33),
-        y + S * 0.1
-      );
-      cctx.stroke();
-    }
-  }
+  cctx.restore();
+  cctx.strokeStyle = "rgba(176, 205, 158, 0.55)";
+  strokeVeins(cctx, 0.026, 0.007);
 
-  // --- Normal: raised midrib and veins ---
   const heightCanvas = makeCanvas(S);
   const hctx = heightCanvas.getContext("2d")!;
-  hctx.fillStyle = "#808080";
+  hctx.fillStyle = "#4d4d4d";
   hctx.fillRect(0, 0, S, S);
-  hctx.drawImage(colorCanvas, 0, 0); // reuse the vein strokes as height
+  hctx.strokeStyle = "#e6e6e6";
+  strokeVeins(hctx, 0.03, 0.009);
   const hdata = hctx.getImageData(0, 0, S, S).data;
   const heights = new Float32Array(S * S);
   for (let i = 0; i < heights.length; i++) heights[i] = hdata[i * 4 + 1] / 255;
 
+  const roughCanvas = makeCanvas(S);
+  const rctx = roughCanvas.getContext("2d")!;
+  const rn = noise2D(2277);
+  const rimg = rctx.createImageData(S, S);
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const i = y * S + x;
+      const mottle = fbm(rn, (x / S) * 9, (y / S) * 9, 3);
+      const v = (0.34 + mottle * 0.14 + heights[i] * 0.34) * 255;
+      const j = i * 4;
+      rimg.data[j] = v;
+      rimg.data[j + 1] = v;
+      rimg.data[j + 2] = v;
+      rimg.data[j + 3] = 255;
+    }
+  }
+  rctx.putImageData(rimg, 0, 0);
+
   leafCache = {
     map: finish(colorCanvas, true, 1),
     alphaMap: finish(alphaCanvas, false, 1),
-    normalMap: finish(normalFromHeight(heights, S, 0.6), false, 1),
+    normalMap: finish(normalFromHeight(heights, S, 1.1), false, 1),
+    roughnessMap: finish(roughCanvas, false, 1),
   };
   return leafCache;
 }
