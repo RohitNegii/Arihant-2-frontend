@@ -137,15 +137,19 @@ export default function Footer() {
               <span className="text-xs md:text-sm tracking-[0.25em] text-verdant-emerald/90 uppercase font-bold">
                 Legal
               </span>
-              {["Privacy Policy", "Terms of Use", "GIA Guarantee"].map((p) => (
-                <a
-                  key={p}
-                  href="#"
+              {[
+                { name: "Privacy Policy", href: "/privacy-policy" },
+                { name: "Terms of Use", href: "/terms-of-use" },
+                { name: "Refund Policy", href: "/refund-policy" },
+              ].map((p) => (
+                <Link
+                  key={p.name}
+                  href={p.href}
                   className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-1"
                 >
-                  {p}
+                  {p.name}
                   <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-verdant-gold group-hover:w-full transition-all duration-300 ease-out" />
-                </a>
+                </Link>
               ))}
             </div>
           </motion.div>
