@@ -1,21 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTexture } from "@react-three/drei";
 import { JEWELRY_IMAGES } from "@/content/jewelry";
 import { LuxuryRing } from "./RoomComponents";
 import DoorLeaf from "./EntranceDoor";
+import Mannequin, { MANNEQUIN_BASE_Y, setMannequinOpacity } from "./Mannequin";
 import {
   leafMaps,
   plasterMaps,
-  paverMaps,
   contactShadowMap,
   stoneSlabMaps,
   SLAB_TILE_W,
   SLAB_TILE_D,
 } from "./procedural-textures";
+import { quality } from "./quality";
 
 export const STORY_ROOM_Z = [72, 60, 48, 36, 24, 12] as const;
 
@@ -23,6 +24,9 @@ export const GALLERY_FLOOR = [60, 300] as const;
 
 const GOLD = "#C8A96A";
 const EMERALD = "#0F4C3A";
+
+const QUALITY = quality();
+const REFRACT = QUALITY.transmission;
 
 function plasterSurface(repeat: number, relief = 1) {
   const maps = plasterMaps();
@@ -42,30 +46,6 @@ function plasterSurface(repeat: number, relief = 1) {
   };
 }
 
-export function paverSurface(repeat: number) {
-  const maps = paverMaps();
-  if (!maps) return {};
-  const normalMap = maps.normalMap.clone();
-  const roughnessMap = maps.roughnessMap.clone();
-  const map = maps.map.clone();
-  for (const tex of [normalMap, roughnessMap, map]) {
-    tex.repeat.set(repeat, repeat);
-    tex.needsUpdate = true;
-  }
-  return {
-    map,
-    normalMap,
-    normalScale: new THREE.Vector2(1.5, 1.5),
-    roughnessMap,
-  };
-}
-
-/**
- * Limestone slabs sized in world units, not repeats — pass the footprint of
- * the surface and the stones come out the same size on a 300-unit floor as on
- * a doorstep. Repeating a fixed count instead is what stretched the old floor
- * into 100-unit planks.
- */
 export function stoneSlabSurface(worldW: number, worldD: number) {
   const maps = stoneSlabMaps();
   if (!maps) return {};
@@ -84,9 +64,6 @@ export function stoneSlabSurface(worldW: number, worldD: number) {
   };
 }
 
-// One shared table for the whole scene. A material per mesh at this density is
-// what turns a 60fps walk into a 30fps one, and unlike <primitive>, the
-// `material={...}` prop is safe to point at the same object from many meshes.
 export const MAT = {
   gold: new THREE.MeshPhysicalMaterial({
     color: GOLD,
@@ -130,12 +107,6 @@ export const MAT = {
     roughness: 0.95,
     ...plasterSurface(3),
   }),
-  stonePaver: new THREE.MeshStandardMaterial({
-    color: "#FFFFFF",
-    roughness: 1.0,
-    metalness: 0.0,
-    ...paverSurface(3),
-  }),
   galleryFloor: new THREE.MeshStandardMaterial({
     color: "#FFFFFF",
     roughness: 1.0,
@@ -175,31 +146,35 @@ export const MAT = {
   }),
   glass: new THREE.MeshPhysicalMaterial({
     color: "#ffffff",
-    transmission: 0.95,
+    transmission: REFRACT ? 0.95 : 0,
     roughness: 0.02,
     thickness: 0.35,
     transparent: true,
-    opacity: 0.45,
+    opacity: REFRACT ? 0.45 : 0.28,
   }),
   gemGreen: new THREE.MeshPhysicalMaterial({
     color: "#15805C",
-    transmission: 0.92,
+    transmission: REFRACT ? 0.92 : 0,
+    transparent: !REFRACT,
+    opacity: REFRACT ? 1 : 0.72,
     roughness: 0.04,
     ior: 2.42,
     thickness: 0.35,
     flatShading: true,
     emissive: new THREE.Color("#15805C"),
-    emissiveIntensity: 0.16,
+    emissiveIntensity: REFRACT ? 0.16 : 0.34,
   }),
   gemPearl: new THREE.MeshPhysicalMaterial({
     color: "#F3E3C0",
-    transmission: 0.9,
+    transmission: REFRACT ? 0.9 : 0,
+    transparent: !REFRACT,
+    opacity: REFRACT ? 1 : 0.75,
     roughness: 0.05,
     ior: 2.2,
     thickness: 0.3,
     flatShading: true,
     emissive: new THREE.Color("#B99A5E"),
-    emissiveIntensity: 0.14,
+    emissiveIntensity: REFRACT ? 0.14 : 0.3,
   }),
   blossom: new THREE.MeshStandardMaterial({ color: "#F7F1E4", roughness: 0.6 }),
   glow: new THREE.MeshBasicMaterial({ color: "#FFE6B8" }),
@@ -352,11 +327,6 @@ function TextPlane({
   );
 }
 
-/**
- * Painted contact shadow. The two shadow-casting lights in the scene only
- * cover the original rooms near the origin, so story-room objects get a soft
- * disc underneath instead of a real shadow map (an extra render pass each).
- */
 function GroundShadow({
   position,
   radius = 1,
@@ -375,18 +345,11 @@ function GroundShadow({
       scale={[1, stretch, 1]}
       material={MAT.contact}
     >
-      {/* Square, not a disc: the falloff lives in the alpha map, and a circle
-          would clip the gradient back to a hard rim */}
       <planeGeometry args={[radius * 2, radius * 2]} />
     </mesh>
   );
 }
 
-/**
- * A real leaf: a slightly cupped plane with the blade cut out by an alpha map.
- * `alphaTest` rather than `transparent` keeps it in the opaque pass, so a few
- * hundred leaves need no depth sorting and still cast correct shadows.
- */
 const LEAF_GEO = (() => {
   const geo = new THREE.PlaneGeometry(0.15, 0.25, 2, 3);
   const pos = geo.attributes.position;
@@ -407,7 +370,6 @@ function makeLeafMaterial(color: string) {
     map: leafTex?.map ?? null,
     alphaMap: leafTex?.alphaMap ?? null,
     normalMap: leafTex?.normalMap ?? null,
-    // Three *multiplies* roughness by this map, so the scalar is the ceiling
     roughnessMap: leafTex?.roughnessMap ?? null,
     normalScale: new THREE.Vector2(0.8, 0.8),
     alphaTest: 0.5,
@@ -418,11 +380,96 @@ function makeLeafMaterial(color: string) {
   });
 }
 
-const LEAF_MATS = [
-  makeLeafMaterial("#A8C495"),
-  makeLeafMaterial("#7FA679"),
-  makeLeafMaterial("#5C8460"),
-];
+const LEAF_TINTS = ["#A8C495", "#7FA679", "#5C8460"].map((c) => new THREE.Color(c));
+const LEAF_MAT = makeLeafMaterial("#FFFFFF");
+
+export interface LeafInstance {
+  p: [number, number, number];
+  rot: [number, number, number];
+  s: number;
+  tint: number;
+}
+
+interface StemInstance {
+  p: [number, number, number];
+  rot: [number, number, number];
+  len: number;
+}
+
+const _m = new THREE.Matrix4();
+const _q = new THREE.Quaternion();
+const _e = new THREE.Euler();
+const _v = new THREE.Vector3();
+const _s = new THREE.Vector3();
+
+function LeafCloud({
+  leaves,
+  castShadow = false,
+}: {
+  leaves: LeafInstance[];
+  castShadow?: boolean;
+}) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    for (let i = 0; i < leaves.length; i++) {
+      const leaf = leaves[i];
+      _e.set(leaf.rot[0], leaf.rot[1], leaf.rot[2]);
+      _q.setFromEuler(_e);
+      _v.set(leaf.p[0], leaf.p[1], leaf.p[2]);
+      _s.setScalar(leaf.s);
+      mesh.setMatrixAt(i, _m.compose(_v, _q, _s));
+      mesh.setColorAt(i, LEAF_TINTS[leaf.tint]);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    // Without this the cull test uses the single-leaf bounds and the cloud
+    // pops out of view as soon as that one leaf leaves the frustum
+    mesh.computeBoundingSphere();
+  }, [leaves]);
+
+  if (leaves.length === 0) return null;
+  return (
+    <instancedMesh
+      ref={ref}
+      args={[LEAF_GEO, LEAF_MAT, leaves.length]}
+      castShadow={castShadow}
+    />
+  );
+}
+
+function Stems({
+  stems,
+  geometry,
+}: {
+  stems: StemInstance[];
+  geometry: THREE.BufferGeometry;
+}) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    for (let i = 0; i < stems.length; i++) {
+      const stem = stems[i];
+      _e.set(stem.rot[0], stem.rot[1], stem.rot[2]);
+      _q.setFromEuler(_e);
+      _v.set(stem.p[0], stem.p[1], stem.p[2]);
+      _s.set(1, stem.len, 1);
+      mesh.setMatrixAt(i, _m.compose(_v, _q, _s));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [stems]);
+
+  if (stems.length === 0) return null;
+  return <instancedMesh ref={ref} args={[geometry, MAT.branch, stems.length]} />;
+}
+
+const FOLIAGE_STEM_GEO = new THREE.CylinderGeometry(0.008, 0.012, 1, 5);
+const BUSH_STEM_GEO = new THREE.CylinderGeometry(0.012, 0.022, 1, 5);
 
 function Foliage({
   position,
@@ -446,7 +493,8 @@ function Foliage({
 
   const { leaves, stems } = useMemo(() => {
     const r = rng(seed);
-    const nextLeaves = Array.from({ length: count }, () => ({
+    const n = Math.max(3, Math.round(count * quality().foliage));
+    const nextLeaves = Array.from({ length: n }, () => ({
       p: [(r() - 0.5) * sx * 2, (r() - 0.5) * sy * 2, (r() - 0.5) * sz * 2] as [
         number,
         number,
@@ -454,7 +502,7 @@ function Foliage({
       ],
       rot: [r() * Math.PI, r() * Math.PI, r() * Math.PI] as [number, number, number],
       s: 0.7 + r() * 0.6,
-      tint: Math.floor(r() * LEAF_MATS.length),
+      tint: Math.floor(r() * LEAF_TINTS.length),
     }));
     const nextStems = Array.from({ length: 2 }, () => ({
       p: [(r() - 0.5) * sx, (r() - 0.5) * sy * 0.7, (r() - 0.5) * sz] as [
@@ -480,27 +528,8 @@ function Foliage({
 
   return (
     <group ref={groupRef} position={position} scale={scale}>
-      {stems.map((stem, i) => (
-        <mesh
-          key={`s${i}`}
-          position={stem.p}
-          rotation={stem.rot}
-          material={MAT.branch}
-        >
-          <cylinderGeometry args={[0.008, 0.012, stem.len, 5]} />
-        </mesh>
-      ))}
-      {leaves.map((leaf, i) => (
-        <mesh
-          key={i}
-          geometry={LEAF_GEO}
-          position={leaf.p}
-          rotation={leaf.rot}
-          scale={leaf.s}
-          material={LEAF_MATS[leaf.tint]}
-          castShadow={castShadow}
-        />
-      ))}
+      <Stems stems={stems} geometry={FOLIAGE_STEM_GEO} />
+      <LeafCloud leaves={leaves} castShadow={castShadow} />
     </group>
   );
 }
@@ -527,8 +556,18 @@ function Vine({
       "catmullrom",
       0.5
     );
-    const tubeGeo = new THREE.TubeGeometry(curve, 48, radius, 6, false);
-    const count = Math.max(3, Math.round(curve.getLength() * density));
+    const detail = quality().tier === "low" ? 0.5 : 1;
+    const tubeGeo = new THREE.TubeGeometry(
+      curve,
+      Math.round(48 * detail),
+      radius,
+      quality().tier === "low" ? 4 : 6,
+      false
+    );
+    const count = Math.max(
+      3,
+      Math.round(curve.getLength() * density * quality().foliage)
+    );
     const r = rng(seed);
     const up = new THREE.Vector3(0, 1, 0);
 
@@ -556,7 +595,7 @@ function Vine({
           (r() - 0.5) * 1.3,
         ] as [number, number, number],
         s: (0.72 + r() * 0.55) * leafScale,
-        tint: Math.floor(r() * LEAF_MATS.length),
+        tint: Math.floor(r() * LEAF_TINTS.length),
       };
     });
     return { tube: tubeGeo, leaves: grown };
@@ -567,17 +606,7 @@ function Vine({
   return (
     <group>
       <mesh geometry={tube} material={MAT.branch} castShadow />
-      {leaves.map((leaf, i) => (
-        <mesh
-          key={i}
-          geometry={LEAF_GEO}
-          position={leaf.p}
-          rotation={leaf.rot}
-          scale={leaf.s}
-          material={LEAF_MATS[leaf.tint]}
-          castShadow={castLeafShadow}
-        />
-      ))}
+      <LeafCloud leaves={leaves} castShadow={castLeafShadow} />
     </group>
   );
 }
@@ -598,6 +627,7 @@ function RealisticBush({
   const { leaves, stems } = useMemo(() => {
     const r = rng(seed);
     const outLeaves = [];
+    const n = Math.max(8, Math.round(count * quality().foliage));
 
     const numClusters = 4;
     const clusters = [];
@@ -610,7 +640,7 @@ function RealisticBush({
       });
     }
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < n; i++) {
       const cluster = clusters[Math.floor(r() * numClusters)];
 
       const phi = Math.acos(1 - r());
@@ -635,7 +665,7 @@ function RealisticBush({
         p: [x, y, z] as [number, number, number],
         rot,
         s: 0.7 + r() * 0.6,
-        tint: Math.floor(r() * LEAF_MATS.length),
+        tint: Math.floor(r() * LEAF_TINTS.length),
       });
     }
 
@@ -650,22 +680,8 @@ function RealisticBush({
 
   return (
     <group position={position} scale={scale}>
-      {stems.map((stem, i) => (
-        <mesh key={`s${i}`} position={stem.p} rotation={stem.rot} material={MAT.branch}>
-          <cylinderGeometry args={[0.012, 0.022, stem.len, 5]} />
-        </mesh>
-      ))}
-      {leaves.map((l, i) => (
-        <mesh
-          key={i}
-          geometry={LEAF_GEO}
-          position={l.p}
-          rotation={l.rot}
-          scale={l.s}
-          material={LEAF_MATS[l.tint]}
-          castShadow
-        />
-      ))}
+      <Stems stems={stems} geometry={BUSH_STEM_GEO} />
+      <LeafCloud leaves={leaves} castShadow />
     </group>
   );
 }
@@ -874,8 +890,8 @@ function EntranceLight() {
         distance={32}
         decay={2}
         color="#FFEAC6"
-        castShadow
-        shadow-mapSize={[1024, 1024]}
+        castShadow={QUALITY.shadows}
+        shadow-mapSize={[QUALITY.shadowMapSize, QUALITY.shadowMapSize]}
         shadow-bias={-0.0005}
         shadow-normalBias={0.035}
         shadow-camera-near={3}
@@ -1101,6 +1117,39 @@ function GrandEntrance({ z }: { z: number }) {
   );
 }
 
+/** Water surface of the fountain's upper dish — keep in step with that mesh. */
+const FOUNTAIN_DISH_Y = -0.57;
+
+/**
+ * The display bust on the fountain's upper dish. MANNEQUIN_BASE_Y is the
+ * underside of its collar, so seating it is `dishY - MANNEQUIN_BASE_Y * scale`;
+ * the extra 0.01 sinks it in so no hairline gap opens against the stone. It
+ * fades on approach — see setMannequinOpacity.
+ */
+function FountainBust({ worldZ, scale }: { worldZ: number; scale: number }) {
+  const ref = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (!ref.current) return;
+    // Solid while the zone is reading it (~5 units out), gone by the time the
+    // camera arrives. Widen the divisor to start the fade earlier.
+    const ahead = state.camera.position.z - worldZ;
+    ref.current.visible = setMannequinOpacity(
+      THREE.MathUtils.clamp((ahead - 1.6) / 3.2, 0, 1)
+    );
+  });
+
+  return (
+    <group
+      ref={ref}
+      position={[0, FOUNTAIN_DISH_Y - 0.01 - MANNEQUIN_BASE_Y * scale, 0]}
+      scale={scale}
+    >
+      <Mannequin />
+    </group>
+  );
+}
+
 function TheBeginning({ z }: { z: number }) {
   const waterRef = useRef<THREE.Mesh>(null);
 
@@ -1146,71 +1195,64 @@ function TheBeginning({ z }: { z: number }) {
         ))}
       </group>
 
-      <Foliage position={[-2.6, 2.6, -0.5]} seed={71} count={30} spread={[0.9, 1.1, 0.4]} scale={1.1} />
-      <Foliage position={[2.6, 2.7, -0.5]} seed={83} count={30} spread={[0.9, 1.1, 0.4]} scale={1.1} />
-      <Foliage position={[-3.4, 0.2, -0.4]} seed={97} count={26} spread={[0.8, 1.5, 0.5]} scale={1.2} />
-      <Foliage position={[3.4, 0.1, -0.4]} seed={101} count={26} spread={[0.8, 1.5, 0.5]} scale={1.2} />
-      <Foliage position={[0, 4.4, -0.7]} seed={113} count={24} spread={[2.2, 0.3, 0.3]} scale={0.85} />
+      {/* Loose leaf clusters used to hang in the air around the gateway here.
+          Unlike the entrance vines they had no stem to grow from, so they read
+          as flecks floating in mid-air. Greenery in this room is potted. */}
+      <Urn position={[-3.5, -1.5, -0.5]} seed={97} scale={0.72} />
+      <Urn position={[3.5, -1.5, -0.5]} seed={101} scale={0.66} />
 
       <group position={[0, 0, -5.5]}>
-        <GroundShadow position={[0, -1.47, 0]} radius={1.7} />
-        <mesh position={[0, -1.2, 0]} material={MAT.stone}>
-          <cylinderGeometry args={[1.45, 1.55, 0.6, 28]} />
+        {/* Shadow reads wider than the basin on purpose. At radius 1.7 against
+            a 1.55 basin the whole dark core sat hidden underneath and only the
+            faint tail showed, as a hard-edged ring peeking out either side.
+            Offset away from the [6, 9, 6] sun so it falls to -x / -z. */}
+        <GroundShadow
+          position={[-0.3, -1.47, -0.25]}
+          radius={2.5}
+          stretch={1.15}
+        />
+        <mesh position={[0, -1.3, 0]} material={MAT.stone}>
+          <cylinderGeometry args={[1.45, 1.55, 0.4, 28]} />
         </mesh>
         <mesh
           ref={waterRef}
-          position={[0, -0.88, 0]}
+          position={[0, -1.08, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
           material={MAT.water}
         >
           <circleGeometry args={[1.32, 28]} />
         </mesh>
-        <mesh position={[0, -0.6, 0]} material={MAT.stone}>
-          <cylinderGeometry args={[0.16, 0.24, 0.9, 14]} />
+        <mesh position={[0, -0.975, 0]} material={MAT.stone}>
+          <cylinderGeometry args={[0.16, 0.24, 0.55, 14]} />
         </mesh>
-        <mesh position={[0, -0.12, 0]} material={MAT.stone}>
+        <mesh position={[0, -0.67, 0]} material={MAT.stone}>
           <cylinderGeometry args={[0.62, 0.3, 0.16, 20]} />
         </mesh>
         <mesh
-          position={[0, -0.02, 0]}
+          position={[0, -0.57, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
           material={MAT.water}
         >
           <circleGeometry args={[0.55, 20]} />
         </mesh>
 
+        <FountainBust worldZ={z - 5.5} scale={0.78} />
+
+        {/* The two flanking pots were plain brown cones with a cloud of loose
+            leaves hovering above them. Urn is the entrance planter — tapered
+            wall, projecting collar, soil and a rooted bush — so they now read
+            as planted rather than decorated. */}
         {[-2.3, 2.3].map((x, i) => (
-          <group key={x} position={[x, -1.15, 0.6]}>
-            <mesh material={MAT.wood}>
-              <cylinderGeometry args={[0.32, 0.24, 0.5, 14]} />
-            </mesh>
-            <Foliage
-              position={[0, 0.5, 0]}
-              seed={131 + i * 7}
-              count={32}
-              spread={[0.32, 0.36, 0.32]}
-              scale={1.05}
-            />
-          </group>
+          <Urn key={x} position={[x, -1.5, 0.6]} seed={131 + i * 7} scale={0.6} />
         ))}
 
         {[-1, 1].map((s) => (
-          <group key={s} position={[s * 3.1, 0, -1.6]}>
-            <Foliage
-              position={[0, 0.4, 0]}
-              seed={s > 0 ? 149 : 163}
-              count={44}
-              spread={[0.6, 1.0, 0.6]}
-              scale={1.25}
-            />
-            <Foliage
-              position={[s * 0.5, -0.9, 0.9]}
-              seed={s > 0 ? 173 : 191}
-              count={34}
-              spread={[0.55, 0.4, 0.55]}
-              scale={1.15}
-            />
-          </group>
+          <Urn
+            key={s}
+            position={[s * 3.1, -1.5, -1.6]}
+            seed={s > 0 ? 149 : 163}
+            scale={0.85}
+          />
         ))}
       </group>
 

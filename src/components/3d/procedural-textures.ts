@@ -1,6 +1,7 @@
 "use client";
 
 import * as THREE from "three";
+import { texSize, quality } from "./quality";
 
 const hasDOM = typeof document !== "undefined";
 
@@ -72,7 +73,7 @@ function finish(canvas: HTMLCanvasElement, srgb: boolean, repeat: number) {
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(repeat, repeat);
-  tex.anisotropy = 8;
+  tex.anisotropy = quality().tier === "high" ? 8 : 2;
   return tex;
 }
 
@@ -136,7 +137,7 @@ export function paintedWoodMaps(): SurfaceMaps | null {
   if (woodCache !== undefined) return woodCache;
   if (!hasDOM) return (woodCache = null);
 
-  const SIZE = 512;
+  const SIZE = texSize(512);
   const n = noise2D(9137);
 
   const grain = heightField(SIZE, (u, v) => {
@@ -164,7 +165,7 @@ export function plasterMaps(): PlasterMaps | null {
   if (plasterCache !== undefined) return plasterCache;
   if (!hasDOM) return (plasterCache = null);
 
-  const SIZE = 512;
+  const SIZE = texSize(512);
   const n = noise2D(4421);
 
   const surface = heightField(SIZE, (u, v) => {
@@ -207,12 +208,6 @@ export function plasterMaps(): PlasterMaps | null {
 
 let contactCache: THREE.Texture | null | undefined;
 
-/**
- * Radial falloff for the fake contact shadows. A flat disc gives every pot a
- * hard rubber-stamp edge; a real one is dense where the object meets the floor
- * and gone within a radius. Clamped, not repeated — this is one disc, not a
- * tile, and RepeatWrapping would smear the rim across the seam.
- */
 export function contactShadowMap(): THREE.Texture | null {
   if (contactCache !== undefined) return contactCache;
   if (!hasDOM) return (contactCache = null);
@@ -237,84 +232,6 @@ export function contactShadowMap(): THREE.Texture | null {
   return contactCache;
 }
 
-let paverCache: (SurfaceMaps & { map: THREE.Texture }) | null | undefined;
-
-export function paverMaps(): (SurfaceMaps & { map: THREE.Texture }) | null {
-  if (paverCache !== undefined) return paverCache;
-  if (!hasDOM) return (paverCache = null);
-
-  const SIZE = 1024;
-  const n = noise2D(5512);
-
-  const surface = heightField(SIZE, (u, v) => {
-    const scaleU = 8;
-    const scaleV = 16;
-    const uu = u * scaleU;
-    const vv = v * scaleV;
-
-    const row = Math.floor(vv);
-    const uOffset = (row % 2 === 0) ? 0.0 : 0.5;
-
-    const tileU = (uu + uOffset) % 1.0;
-    const tileV = vv % 1.0;
-
-    const distU = Math.min(tileU, 1.0 - tileU) / scaleU;
-    const distV = Math.min(tileV, 1.0 - tileV) / scaleV;
-    const distEdge = Math.min(distU, distV);
-
-    const edgeNoise = fbm(n, u * 25, v * 25, 3) * 0.012;
-    const finalDist = distEdge + edgeNoise;
-
-    if (finalDist < 0.004) {
-      return 0.1 + fbm(n, u * 60, v * 60, 2) * 0.1;
-    } else {
-      const bevel = Math.min((finalDist - 0.004) / 0.015, 1.0);
-      const stoneTex = fbm(n, u * 15, v * 15, 4);
-      return 0.5 + bevel * 0.15 + stoneTex * 0.35;
-    }
-  });
-
-  const normalMap = finish(normalFromHeight(surface, SIZE, 7.0), false, 1);
-  const roughnessMap = finish(grayFromHeight(surface, SIZE, 0.5, 1.0), false, 1);
-
-  const colorCanvas = document.createElement("canvas");
-  colorCanvas.width = SIZE;
-  colorCanvas.height = SIZE;
-  const ctx = colorCanvas.getContext("2d")!;
-  const img = ctx.createImageData(SIZE, SIZE);
-
-  for (let i = 0; i < surface.length; i++) {
-    const h = surface[i];
-    const j = i * 4;
-
-    let r, g, b;
-    if (h < 0.25) {
-      r = 45; g = 40; b = 35;
-    } else {
-      const intensity = 0.65 + h * 0.35;
-      r = 156 * intensity; g = 147 * intensity; b = 132 * intensity;
-    }
-
-    const noise = (Math.random() - 0.5) * 12;
-
-    img.data[j] = Math.max(0, Math.min(255, r + noise));
-    img.data[j + 1] = Math.max(0, Math.min(255, g + noise));
-    img.data[j + 2] = Math.max(0, Math.min(255, b + noise));
-    img.data[j + 3] = 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  const map = finish(colorCanvas, true, 1);
-
-  paverCache = { normalMap, roughnessMap, map };
-  return paverCache;
-}
-
-/**
- * How much of the world one repeat of the slab texture covers. The tile holds
- * a 3 x 4 running-bond grid, so a slab comes out 1.35 wide by 0.9 deep — wide
- * across the walk, short along it. Callers size their repeats off these rather
- * than guessing, so a 300-unit floor and a 2-unit step get the same stones.
- */
 export const SLAB_TILE_W = 4.05;
 export const SLAB_TILE_D = 3.6;
 
@@ -339,7 +256,7 @@ export function stoneSlabMaps(): (SurfaceMaps & { map: THREE.Texture }) | null {
   if (slabCache !== undefined) return slabCache;
   if (!hasDOM) return (slabCache = null);
 
-  const SIZE = 1024;
+  const SIZE = texSize(1024);
   const JOINT = 3.0;
   const BEVEL = 8;
   const n = noise2D(8412);
@@ -427,7 +344,7 @@ export function brassMaps(): SurfaceMaps | null {
   if (brassCache !== undefined) return brassCache;
   if (!hasDOM) return (brassCache = null);
 
-  const SIZE = 256;
+  const SIZE = texSize(256);
   const n = noise2D(7717);
 
   const surface = heightField(SIZE, (u, v) => {
@@ -464,7 +381,7 @@ export function leafMaps(): LeafMaps | null {
   if (leafCache !== undefined) return leafCache;
   if (!hasDOM) return (leafCache = null);
 
-  const S = 256;
+  const S = texSize(256);
 
   const alphaCanvas = makeCanvas(S);
   const actx = alphaCanvas.getContext("2d")!;

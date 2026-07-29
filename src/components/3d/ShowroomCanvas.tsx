@@ -1,11 +1,13 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Sparkles, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 
 import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
+import { quality } from "./quality";
+import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
 // story journey. Commented out while we build out the story rooms one by one;
 // re-enable the mounts below and this import together to bring it back.
@@ -22,6 +24,17 @@ import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
 //   PromisePillars,
 //   ShowcaseArena,
 // } from "./RoomComponents";
+
+const Q = quality();
+
+function ReadySignal() {
+  const frames = useRef(0);
+  useFrame(() => {
+    if (frames.current > 4) return;
+    if (++frames.current > 4) markSceneReady();
+  });
+  return null;
+}
 
 function CameraController() {
   useFrame((state) => {
@@ -48,20 +61,29 @@ function CameraController() {
 }
 
 export default function ShowroomCanvas() {
+  const [shown, setShown] = useState(isSceneReady);
+  useEffect(() => onSceneReady(() => setShown(true)), []);
+
   return (
     <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#E3D9C6]">
       <Canvas
-        camera={{ position: [0, 0.5, 76.0], fov: 45 }}
-        // dpr cap keeps high-DPI displays from quadrupling the pixel workload
-        dpr={[1, 1.75]}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-        // "percentage" = PCFShadowMap; PCFSoftShadowMap is deprecated in this
-        // three version and silently falls back to PCF anyway
-        shadows="percentage"
+        style={{
+          opacity: shown ? 1 : 0,
+          transition: "opacity 700ms ease-out",
+        }}
+        camera={{ position: [0, 0.5, 76.0], fov: 45, near: 0.5, far: Q.far }}
+        dpr={Q.dpr}
+        gl={{
+          antialias: Q.tier !== "low",
+          alpha: true,
+          powerPreference: "high-performance",
+        }}
+        shadows={Q.shadows ? "percentage" : false}
       >
         <CameraController />
+        <ReadySignal />
 
-        <fog attach="fog" args={["#E3D9C6", 8, 42]} />
+        <fog attach="fog" args={["#E3D9C6", 8, Q.fogFar]} />
 
         <Suspense fallback={null}>
           <ambientLight intensity={0.15} />
@@ -73,36 +95,18 @@ export default function ShowroomCanvas() {
             angle={0.55}
             penumbra={1}
             color="#FFEFD6"
-            castShadow
-            shadow-mapSize={[1024, 1024]}
+            castShadow={Q.shadows}
+            shadow-mapSize={[Q.shadowMapSize, Q.shadowMapSize]}
             shadow-bias={-0.0002}
             shadow-normalBias={0.02}
-          />
-
-          {/* These two carry no castShadow deliberately: each shadow-casting
-              light is a full extra scene render pass every frame, and both sit
-              far behind the camera for the whole journey */}
-          <spotLight
-            position={[0, 8, -36]}
-            intensity={3.5}
-            angle={0.5}
-            color="#ffffff"
-          />
-
-          <spotLight
-            position={[0, 10, -132]}
-            intensity={4.5}
-            angle={0.8}
-            penumbra={1}
-            color="#FFE2B8"
           />
 
           <directionalLight
             position={[6, 9, 6]}
             intensity={1.7}
             color="#FFF6E8"
-            castShadow
-            shadow-mapSize={[2048, 2048]}
+            castShadow={Q.shadows}
+            shadow-mapSize={[Q.shadowMapSize, Q.shadowMapSize]}
             shadow-camera-left={-9}
             shadow-camera-right={9}
             shadow-camera-top={9}
@@ -147,16 +151,18 @@ export default function ShowroomCanvas() {
           </group>
           */}
 
-          <Sparkles
-            count={80}
-            scale={12}
-            size={1.8}
-            speed={0.25}
-            color="#C8A96A"
-            opacity={0.35}
-          />
+          {Q.sparkles > 0 && (
+            <Sparkles
+              count={Q.sparkles}
+              scale={12}
+              size={1.8}
+              speed={0.25}
+              color="#C8A96A"
+              opacity={0.35}
+            />
+          )}
 
-          <Environment resolution={256} frames={1}>
+          <Environment resolution={Q.envResolution} frames={1}>
             <color attach="background" args={["#E9DFCB"]} />
             <Lightformer
               form="rect"

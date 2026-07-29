@@ -43,6 +43,18 @@ export default function ProductListingPage() {
     availability: "",
   });
 
+  // Deep link from the showroom finale (/products?gender=Men). Applied on mount
+  // rather than as the initial state: this page is prerendered, and seeding the
+  // filter from the URL up front makes the client markup disagree with the
+  // server's. The alternative — useSearchParams — needs a Suspense boundary
+  // that would drop this page's static HTML, which is a worse trade for one
+  // optional query param.
+  useEffect(() => {
+    const gender = new URLSearchParams(window.location.search).get("gender");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (gender) setFilters((f) => ({ ...f, gender }));
+  }, []);
+
   const loadProducts = async () => {
     setLoading(true);
     try {

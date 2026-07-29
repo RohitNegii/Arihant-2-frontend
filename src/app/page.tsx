@@ -25,6 +25,16 @@ interface Zone {
 const ZONE_COUNT = 6;
 const STORY_ZONES = 6;
 
+/** Scroll progress at which the journey hands over to the category finale. */
+const FINALE_AT = 0.95;
+
+/** `gender` is the exact value the products filter expects — see ProductFilters. */
+const CATEGORIES = [
+  { label: "For Him", gender: "Men", note: "Signet rings, cufflinks, chains" },
+  { label: "For Her", gender: "Women", note: "Chandbalis, drops, medallions" },
+  { label: "Unisex", gender: "Unisex", note: "Bands, studs, everyday pieces" },
+] as const;
+
 const ShowroomCanvas = dynamic(() => import("@/components/3d/ShowroomCanvas"), {
   ssr: false,
 });
@@ -69,9 +79,68 @@ function StoryCTA({
   );
 }
 
+/**
+ * End of the journey. Takes over from the zone card rather than sitting beside
+ * it — at this point the story is told and the only job left is to send the
+ * visitor into the catalogue.
+ */
+function CategoryFinale() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-20 flex justify-center px-4 pointer-events-none"
+    >
+      <div className="glass-effect-gold pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[#FAF4E6]/90 to-[#F1E6CC]/80 shadow-[0_8px_40px_rgba(200,169,106,0.22)] p-6 sm:p-8 md:p-10 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-4">
+          <Sparkles className="w-2.5 h-2.5 text-verdant-gold" />
+          <span className="text-[9px] tracking-[0.25em] uppercase text-[#5D7A68] font-semibold">
+            The Collection
+          </span>
+        </div>
+
+        <h3 className="font-serif text-2xl md:text-3xl tracking-tight leading-tight text-verdant-emerald font-light">
+          Find Your Forever
+          <span className="block italic text-verdant-gold">Piece</span>
+        </h3>
+
+        <div className="flex items-center justify-center gap-2 my-5">
+          <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
+          <span className="h-px w-14 bg-verdant-gold/30" />
+          <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.gender}
+              href={`/products?gender=${c.gender}`}
+              className="hover-target group flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2 rounded-2xl border border-verdant-emerald/15 bg-white/40 hover:bg-white/70 hover:border-verdant-gold/50 px-4 py-3 sm:py-4 text-left transition-all duration-300 cursor-pointer"
+            >
+              <span className="font-serif text-lg text-verdant-emerald leading-none">
+                {c.label}
+              </span>
+              <span className="hidden sm:block text-[10px] leading-snug text-verdant-emerald/50 font-light">
+                {c.note}
+              </span>
+              <span className="flex items-center gap-1.5 text-[9px] tracking-[0.2em] uppercase font-semibold text-verdant-gold sm:mt-1">
+                Shop
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const [activeZone, setActiveZone] = useState(0);
   const [showEntranceCTA, setShowEntranceCTA] = useState(false);
+  const [atFinale, setAtFinale] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressTextRef = useRef<HTMLSpanElement>(null);
 
@@ -89,6 +158,7 @@ export default function Home() {
       }
 
       setActiveZone(Math.min(Math.floor(progress * ZONE_COUNT), ZONE_COUNT - 1));
+      setAtFinale(progress >= FINALE_AT);
     };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -275,14 +345,20 @@ export default function Home() {
   const inStory = activeZone < STORY_ZONES;
 
   return (
-    <div className="relative min-h-[700vh] bg-transparent overflow-x-hidden select-none">
+    <div className="relative min-h-[700vh] bg-[#E3D9C6] overflow-x-hidden select-none">
       <LoadingScreen />
       <MouseFollower />
       <Navbar />
 
       <ShowroomCanvas />
 
-      <div className="fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-5 lg:left-8 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-sm">
+      <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
+
+      <div
+        className={`fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-5 lg:left-8 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-sm ${
+          atFinale ? "hidden" : ""
+        }`}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeZone}
@@ -376,7 +452,11 @@ export default function Home() {
         </AnimatePresence>
       </div>
 
-      <div className="hidden lg:block fixed right-20 xl:right-28 top-1/2 -translate-y-1/2 z-10 pointer-events-none w-56 xl:w-72">
+      <div
+        className={`fixed right-20 xl:right-28 top-1/2 -translate-y-1/2 z-10 pointer-events-none w-56 xl:w-72 ${
+          atFinale ? "hidden" : "hidden lg:block"
+        }`}
+      >
         <AnimatePresence mode="wait">
           {currentZone.image && (
             <motion.div

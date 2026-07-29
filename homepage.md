@@ -15,7 +15,9 @@ This document is the map. It covers what exists today, the numbers that have to 
 | `src/components/3d/StoryRooms.tsx` | The six rooms and every prop in them. Also owns `MAT`, the shared material table. The big file (~2000 lines). |
 | `src/components/3d/EntranceDoor.tsx` | One door leaf — frame, raised panels, hinges, pull handle, kickplate. Mounted twice, mirrored. |
 | `src/components/3d/procedural-textures.ts` | Every texture in the scene, drawn to a canvas at runtime. No image files. |
-| `src/components/SmoothScroll.tsx` | Creates Lenis, syncs it to GSAP's ticker. Wraps the app in `layout.tsx`. |
+| `src/components/3d/quality.ts` | Device tier (`low`/`mid`/`high`) and every performance budget. Force one with `?q=`. |
+| `src/components/3d/scene-ready.ts` | One-shot signal that the canvas has drawn, so the loading screen can wait on something real. |
+| `src/components/SmoothScroll.tsx` | Creates Lenis and drives it from a plain rAF loop. Wraps the app in `layout.tsx`. |
 | `src/store/scroll-store.ts` | Holds the Lenis instance; exports `scrollToOffset()`. |
 | `src/content/jewelry.ts` | The photography shown in the side showcase panel. |
 
@@ -78,7 +80,7 @@ A fixed-position HTML layer over the canvas. Five pieces:
 
 `goToZone(n)` scrolls to `((n + 0.25) / ZONE_COUNT) * maxScroll` — a quarter into the zone, so you land looking at the room rather than on its boundary.
 
-**Always scroll through `scrollToOffset()`** from `@/store/scroll-store`. It routes through Lenis. A direct `window.scrollTo` fights the smooth scroller. (Lenis is disabled entirely under `prefers-reduced-motion`, which is what makes headless testing possible — see §8.)
+**Always scroll through `scrollToOffset()`** from `@/store/scroll-store`. It routes through Lenis. A direct `window.scrollTo` fights the smooth scroller. (Lenis is disabled entirely under `prefers-reduced-motion`, which is what makes headless testing possible — see §9.)
 
 ---
 
@@ -86,29 +88,33 @@ A fixed-position HTML layer over the canvas. Five pieces:
 
 ### Canvas setup
 
-```
-camera   [0, 0.5, 76], fov 45
-dpr      [1, 1.75]        cap — high-DPI displays otherwise quadruple the pixel work
+```text
+camera   [0, 0.5, 76], fov 45, near 0.5, far from the tier
+dpr      tier-driven      high-DPI displays otherwise quadruple the pixel work
 shadows  "percentage"     PCFShadowMap; PCFSoftShadowMap is deprecated in this three version
-fog      #E3D9C6, 8 → 42  distant rooms emerge from haze instead of popping in
+fog      #E3D9C6, 8 → tier-driven; must stay just inside the far plane
 ```
 
-The container div is `bg-[#E3D9C6]`, matching the fog, so the scene dissolves into the page background.
+Everything marked tier-driven comes from `quality.ts` — see §8.
+
+The container div is `bg-[#E3D9C6]`, matching the fog, so the scene dissolves into the page background. The page root in `page.tsx` carries the same colour, because the canvas arrives in a lazy chunk and the page may be revealed before it.
 
 `ShowroomCanvas` is loaded via `next/dynamic` with `ssr: false`. Keep three.js out of the server bundle.
 
 ### The lighting budget
 
-Every shadow-casting light is a **full extra scene render pass per frame**. There are exactly two, and both are deliberate:
+Every shadow-casting light is a **full extra scene render pass per frame**, and every light at all — shadows or not — adds work to the fragment shader of every material. Keep the list short.
 
 | Light | Where | Shadows |
 | --- | --- | --- |
-| `directionalLight` `[6, 9, 6]` | global sun | yes, 2048², camera ±9 around the origin |
-| `spotLight` `[2.5, 7, 4]` | entrance key | yes, 1024² |
-| `spotLight` in `EntranceLight` | the grand entrance at Z 72 | yes, 1024², finite distance |
-| two `spotLight`s at Z −36 / −132 | leftovers aimed at the disabled rooms | no |
+| `directionalLight` `[6, 9, 6]` | global sun | tier-driven, camera ±9 around the origin |
+| `spotLight` `[2.5, 7, 4]` | entrance key | tier-driven |
+| `spotLight` in `EntranceLight` | the grand entrance at Z 72 | tier-driven, finite distance |
+| `spotLight` fill in `EntranceLight` | cool bounce from the opposite side | no |
 | three `pointLight`s in `StorySection` | warm practicals at Z 65 / 42 / 31 | no |
 | `ambientLight` 0.15 + `hemisphereLight` 0.4 | base fill | n/a |
+
+Two more spotlights used to sit at Z −36 and −132, aimed at the disabled exhibition. They lit nothing and were removed.
 
 **The directional light's shadow camera covers ±9 units around the origin — the story rooms are at Z 12 to 72, entirely outside it.** That is why story-room props fake their shadows with `GroundShadow` discs instead of casting real ones.
 
@@ -131,12 +137,11 @@ A `<primitive>` object cannot be attached to more than one mesh, but the `materi
 | `paintedWoodMaps()` | Lacquered hardwood — the doors |
 | `plasterMaps()` | Lime plaster — every wall, plus the planters |
 | `stoneSlabMaps()` | Large-format limestone slabs — the floor |
-| `paverMaps()` | Flagstone pavers |
 | `brassMaps()` | Brushed, lightly aged brass — door furniture |
 | `leafMaps()` | Leaf colour / alpha / normal / roughness |
 | `contactShadowMap()` | Radial falloff for the fake contact shadows |
 
-Each is memoised in a module-level cache and returns `null` when there is no DOM, so importing the module on the server is safe.
+Each is memoised in a module-level cache and returns `null` when there is no DOM, so importing the module on the server is safe. Resolutions run through `texSize()`, which scales them by the device tier — startup CPU scales with the square of these numbers.
 
 ### Rules that bit us, in order
 
@@ -187,7 +192,51 @@ What actually made things stop looking like untextured primitives, in rough orde
 
 ---
 
-## 8. Running and verifying
+## 8. Performance and the quality tiers
+
+The scene was authored on a desktop with a discrete GPU. On a mid-range phone the first version cost roughly **1,950 draw calls a frame** and generated ~20MB of procedural texture on the main thread before it could show anything. `quality.ts` now resolves a `low` / `mid` / `high` tier once at startup and every budget knob lives in that one file.
+
+Detection uses `navigator.deviceMemory` (Chromium only — absent on Safari), `hardwareConcurrency` and `(pointer: coarse)`. **Append `?q=low`, `?q=mid` or `?q=high` to force a tier** — that is how you check a real device against a budget it would not otherwise be assigned.
+
+| | low | mid | high |
+| --- | --- | --- | --- |
+| dpr cap | 1 | 1.25 | 1.75 |
+| shadows | off | 1024² | 2048² |
+| texture scale | ½ | ¾ | 1 |
+| foliage | 35% | 60% | 100% |
+| fog / far plane | 28 / 32 | 42 / 46 | 42 / 46 |
+| refraction | fake | fake | real |
+| draw calls | ~310 | ~575 | ~575 |
+
+### What actually cost the frames
+
+Measured, in order of payoff:
+
+1. **Every leaf was its own mesh.** 500+ draw calls for foliage. They are now `InstancedMesh` clouds with the three tints applied as per-instance colours against one white-based material — a whole bush is one call. Instanced meshes need `computeBoundingSphere()` after the matrices are written, or the cull test uses the single-leaf bounds and the cloud pops out of view.
+2. **No far plane.** Fog reached full opacity at 42 but the camera's far plane was the default 2000, so every room behind the haze was still being drawn. Nothing culls what the far plane does not exclude.
+3. **`transmission` on the vitrine glass and gemstones** makes three re-render the whole scene into an offscreen buffer every frame. Below `high` they fall back to plain transparency with a little extra emissive.
+4. **Two spotlights aimed at the disabled exhibition** at Z −36 and −132. They lit nothing, but every light adds work to every material's fragment shader.
+5. **`MAT.stonePaver` was dead** — nothing referenced it, yet `paverMaps()` still generated three 1024² textures at startup. Deleted.
+6. Doors carry ~32 meshes per leaf. Hinges collapse to a single cylinder below `high` (`doorDetail`).
+
+### Startup, and slow connections
+
+The payload is ~800KB compressed, most of it three.js in a lazily-loaded chunk. On slow 3G that alone is ~9s, so the startup experience matters more than the download:
+
+- The loading screen used to be a **fake timer** that ran to 100% in ~1.7s regardless. On a fast connection that was 1.7s of waiting for nothing; on a slow one it dismissed itself while three.js was still downloading and handed over an empty canvas.
+- It now creeps to 90% and waits for a real signal — `scene-ready.ts`, fired by `ReadySignal` a few frames after the canvas starts drawing (frame one is before textures upload and shaders compile).
+- Both the minimum (900ms) and the failsafe (7s) are measured from **navigation start**, not from mount. On a throttled phone the component does not hydrate for several seconds, so a budget counted from mount lands seconds late.
+- Past the failsafe the page is revealed regardless and the canvas fades in when it arrives. For that to look deliberate the **page root carries the fog colour** (`bg-[#E3D9C6]`) — the canvas paints the same colour but lives in the lazy chunk, so without it the copy sits on bare white.
+
+GSAP and ScrollTrigger were ~130KB of the *initial* bundle on every route, used only to give Lenis a ticker — nothing has ever registered a ScrollTrigger. `SmoothScroll` now uses a plain rAF loop. `@/lib/gsap` still exists if a real timeline is ever wanted.
+
+### Measuring it yourself
+
+Draw calls: wrap `drawElements`/`drawArrays` on both `WebGLRenderingContext` and `WebGL2RenderingContext` prototypes via `addInitScript`, then divide calls-per-second by a **single dedicated rAF loop's** FPS. Do not count frames by wrapping `requestAnimationFrame` globally — several independent rAF loops run on this page and the count comes out inflated, which deflates calls-per-frame by the same factor.
+
+---
+
+## 9. Running and verifying
 
 ```
 npm run dev      # http://localhost:3000 (in my system this can be 5000 also, i have also changed this sometimes in package.json like -p 5000)
@@ -230,7 +279,7 @@ chromium.launch({
 
 ---
 
-## 9. Disabled and dead code
+## 10. Disabled and dead code
 
 Do not assume editing these changes the site.
 
@@ -244,7 +293,7 @@ Do not assume editing these changes the site.
 
 ---
 
-## 10. Conventions
+## 11. Conventions
 
 - **GSAP**: import `gsap`, `ScrollTrigger`, `useGSAP` from `@/lib/gsap` (registers plugins once), never from `"gsap"`.
 - **Styling**: Tailwind v4, CSS-first. There is no `tailwind.config`. Theme tokens (`verdant-emerald`, `verdant-cream`, `verdant-gold`, `luxury-*`) and utilities (`glass-effect`, `glass-effect-gold`, `gold-gradient-text`, `gold-gradient-bg`) live in `src/app/globals.css` under `@theme`.

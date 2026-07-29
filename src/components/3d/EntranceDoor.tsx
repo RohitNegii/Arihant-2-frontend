@@ -3,6 +3,9 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { brassMaps, paintedWoodMaps } from "./procedural-textures";
+import { quality } from "./quality";
+
+const DETAIL = quality().doorDetail;
 
 export const DOOR_W = 1.78;
 export const DOOR_H = 4.0;
@@ -28,10 +31,6 @@ if (wood) {
 
 export const DOOR_PAINT = new THREE.MeshPhysicalMaterial({
   color: "#0A2A1E",
-  // Eggshell, not lacquer. The showroom sits inside a bright cream studio
-  // environment, so any real gloss lays a white sheen across the whole leaf —
-  // a blue test swatch rendered lavender. Note three *multiplies* `roughness`
-  // by the roughness map, so a grain map here would quietly halve this value.
   roughness: 0.85,
   metalness: 0,
   clearcoat: 0,
@@ -122,6 +121,17 @@ const FRAME_GEO = buildFrameGeometry();
 const PANEL_GEOS = PANELS.map((p) => buildPanelGeometry(PANEL_W, p.h));
 
 function Hinge({ y, side }: { y: number; side: 1 | -1 }) {
+  if (!DETAIL) {
+    return (
+      <mesh
+        position={[-side * (DOOR_W / 2 - 0.01), y, 0]}
+        material={BRASS}
+      >
+        <cylinderGeometry args={[0.034, 0.034, 0.34, 8]} />
+      </mesh>
+    );
+  }
+
   return (
     <group position={[-side * (DOOR_W / 2 - 0.01), y, 0]}>
       <mesh material={BRASS} castShadow>
@@ -196,25 +206,26 @@ export default function DoorLeaf({ side }: { side: 1 | -1 }) {
         <mesh material={BRASS} castShadow>
           <boxGeometry args={[DOOR_W - 2 * STILE - 0.02, 0.32, 0.02]} />
         </mesh>
-        {[0.11, -0.11].map((oy) =>
-          [-1, 1].map((sx) => (
-            <mesh
-              key={`${oy}${sx}`}
-              position={[sx * (PANEL_W / 2 - 0.08), oy, 0.012]}
-              material={BRASS}
-            >
-              <cylinderGeometry args={[0.012, 0.012, 0.01, 8]} />
-            </mesh>
-          ))
-        )}
+        {DETAIL &&
+          [0.11, -0.11].map((oy) =>
+            [-1, 1].map((sx) => (
+              <mesh
+                key={`${oy}${sx}`}
+                position={[sx * (PANEL_W / 2 - 0.08), oy, 0.012]}
+                material={BRASS}
+              >
+                <cylinderGeometry args={[0.012, 0.012, 0.01, 8]} />
+              </mesh>
+            ))
+          )}
       </group>
 
       <group position={[0, PANELS[0].cy, DOOR_D / 2 + 0.002]}>
-        <mesh material={BRASS} castShadow>
-          <torusGeometry args={[0.12, 0.028, 10, 28]} />
+        <mesh material={BRASS} castShadow={DETAIL}>
+          <torusGeometry args={[0.12, 0.028, DETAIL ? 10 : 6, DETAIL ? 28 : 14]} />
         </mesh>
         <mesh position={[0, 0, 0.02]} material={BRASS}>
-          <sphereGeometry args={[0.06, 16, 12]} />
+          <sphereGeometry args={[0.06, DETAIL ? 16 : 8, DETAIL ? 12 : 6]} />
         </mesh>
       </group>
     </group>
