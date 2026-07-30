@@ -82,7 +82,7 @@ export default function Craftsmanship() {
           
           <div className="w-full h-[1px] bg-verdant-emerald/5 my-4" />
           <span className="text-[10px] tracking-[0.2em] uppercase text-verdant-gold/70 font-light">
-            AURUM LABS // GENÈVE
+            GEETEJ VIRAASAT LABS
           </span>
         </motion.div>
         

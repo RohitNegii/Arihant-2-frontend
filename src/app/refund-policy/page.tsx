@@ -25,7 +25,7 @@ export default function RefundPolicyPage() {
               Once any purchase is completed, money will not be refunded under any circumstances.
             </p>
             <p className="text-xs text-verdant-emerald/70 leading-relaxed font-sans">
-              Every purchase of a VERDANT JEWELS creation represents a singular transaction involving high-purity precious metals, hand-selected diamonds, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
+              Every purchase of a GEETEJ VIRAASAT creation represents a singular transaction involving high-purity precious metals, hand-selected diamonds, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
             </p>
           </div>
           <p className="text-xs md:text-sm text-verdant-emerald/80 leading-relaxed font-sans">
@@ -117,7 +117,7 @@ export default function RefundPolicyPage() {
         <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-12 flex justify-center">
           <div className="glass-effect rounded-3xl p-6 md:p-8 max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-2">
             <span className="text-[9px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-3 h-3" /> VERDANT TRANSACTION POLICY
+              <ShieldCheck className="w-3 h-3" /> GEETEJ VIRAASAT TRANSACTION POLICY
             </span>
             <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl font-light tracking-wide text-verdant-emerald leading-tight">
               Refund & Return Policy

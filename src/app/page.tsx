@@ -239,7 +239,7 @@ export default function Home() {
     {
       title: "Entrance Hall",
       subtitle: "Jewelry Crafted Beyond Time",
-      desc: "Welcome to VERDANT JEWELS. Explore our virtual showroom to discover the organic geometry of high craftsmanship.",
+      desc: "Welcome to GEETEJ VIRAASAT. Explore our virtual showroom to discover the organic geometry of high craftsmanship.",
     },
     {
       title: "History Tunnel",
@@ -303,7 +303,7 @@ export default function Home() {
     },
     {
       title: "Create Your Forever Story",
-      subtitle: "VERDANT JEWELS",
+      subtitle: "GEETEJ VIRAASAT",
       desc: "Begin your bespoke design consultation with our Milan master craftsmen today.",
       cta: (
         <div className="pointer-events-auto mt-2">

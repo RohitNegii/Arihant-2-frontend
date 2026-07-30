@@ -20,17 +20,17 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: "VERDANT JEWELS | Immersive Luxury Jewelry Showroom",
-    template: "%s | VERDANT JEWELS",
+    default: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
+    template: "%s | GEETEJ VIRAASAT",
   },
   description:
     "Experience timeless craftsmanship with modern elegance. Walk through our immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
   openGraph: {
-    title: "VERDANT JEWELS | Immersive Luxury Jewelry Showroom",
+    title: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
     description:
       "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
     type: "website",
-    siteName: "VERDANT JEWELS",
+    siteName: "GEETEJ VIRAASAT",
   },
   robots: { index: true, follow: true },
 };

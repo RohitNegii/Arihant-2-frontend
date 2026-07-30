@@ -75,7 +75,7 @@ function OrderSuccessContent() {
           Order Placed Successfully
         </h1>
         <p className="text-xs text-verdant-emerald/60 max-w-md mx-auto mb-10 leading-relaxed font-sans">
-          Thank you for choosing AURUM. Your payment has been securely verified, and our master artisans have begun preparing your selection.
+          Thank you for choosing Geetej Viraasat. Your payment has been securely verified, and our master artisans have begun preparing your selection.
         </p>
 
         {order ? (

@@ -21,6 +21,45 @@ declare global {
   }
 }
 
+const INDIAN_STATES = [
+  "Andaman and Nicobar Islands",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Ladakh",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal"
+];
+
 function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,7 +110,7 @@ function CheckoutPageContent() {
   }, [isAuthenticated, isInitialized]);
 
   // Pricing calculations (replicated from backend for UI preview only)
-  const taxAmount = Math.round(cartTotal * 0.03); // 3% GST
+  const taxAmount = 0; // GST is already included in the product price
   const shippingAmount = cartTotal > 15000 ? 0 : 250;
   const grandTotal = cartTotal + taxAmount + shippingAmount;
 
@@ -278,14 +317,19 @@ function CheckoutPageContent() {
                   {/* State */}
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-[8px] tracking-widest uppercase font-bold text-verdant-emerald/75 mb-1.5">State *</label>
-                    <input
-                      type="text"
+                    <select
                       value={state}
                       onChange={(e) => setState(e.target.value)}
                       required
-                      placeholder="Maharashtra"
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300"
-                    />
+                      className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300 cursor-pointer"
+                    >
+                      <option value="" disabled className="text-verdant-emerald/40">Select State</option>
+                      {INDIAN_STATES.map((s) => (
+                        <option key={s} value={s} className="text-verdant-emerald">
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   {/* Postal Code */}
                   <div>
@@ -421,8 +465,8 @@ function CheckoutPageContent() {
                   <span className="font-semibold text-verdant-emerald">{shippingAmount > 0 ? `₹${shippingAmount}` : "FREE"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>GST Tax (3%)</span>
-                  <span className="font-semibold text-verdant-emerald">{`₹${taxAmount.toLocaleString("en-IN")}`}</span>
+                  <span>GST</span>
+                  <span className="font-semibold text-[#0F4C3A]/50">INCLUDED</span>
                 </div>
               </div>
 
