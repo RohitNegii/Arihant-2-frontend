@@ -86,8 +86,8 @@ export default function Navbar() {
             <div className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-verdant-emerald/10 to-verdant-gold/10 border border-verdant-emerald/15 group-hover:border-verdant-gold/40 transition-all duration-300">
               <Sparkles className="w-4 h-4 text-verdant-gold group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <span className="font-serif text-lg tracking-[0.2em] font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
-              V E R D A N T
+            <span className="font-serif text-lg tracking-[0.15em] font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
+              G E E T E J   V I R A A S A T
             </span>
           </Link>
 
@@ -346,7 +346,7 @@ export default function Navbar() {
                     className="absolute inset-0 w-full h-full object-cover brightness-[0.8]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-8 select-none">
-                    <h3 className="font-serif text-2xl text-verdant-gold font-light mb-2">AURUM LUXURY</h3>
+                    <h3 className="font-serif text-2xl text-verdant-gold font-light mb-2">GEETEJ VIRAASAT</h3>
                     <p className="text-[10px] uppercase tracking-widest text-white/70 leading-relaxed font-bold font-sans">
                       Enter the vault of handcrafted masterpieces and timeless designs.
                     </p>

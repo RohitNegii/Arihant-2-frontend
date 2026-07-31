@@ -1078,10 +1078,10 @@ function GrandEntrance({ z }: { z: number }) {
           <mesh material={MAT.emerald}>
             <boxGeometry args={[2.7, 0.9, 0.07]} />
           </mesh>
-          <TextPlane text="VERDANT" width={2.1} height={0.4} position={[0, 0.11, 0.04]} />
+          <TextPlane text="GEETEJ" width={2.1} height={0.4} position={[0, 0.11, 0.04]} />
           <TextPlane
-            text="JEWELS"
-            width={1.2}
+            text="VIRAASAT"
+            width={1.5}
             height={0.19}
             color="#9DBBA6"
             fontScale={0.6}
@@ -1271,7 +1271,7 @@ function TheBeginning({ z }: { z: number }) {
         <mesh position={[0, 0, 0.05]} material={MAT.emeraldDeep}>
           <boxGeometry args={[1.9, 1.16, 0.02]} />
         </mesh>
-        <TextPlane text="VERDANT" width={1.5} height={0.32} position={[0, 0.06, 0.07]} />
+        <TextPlane text="GEETEJ VIRAASAT" width={1.8} height={0.32} position={[0, 0.06, 0.07]} />
         <TextPlane
           text="EST. 2020"
           width={0.85}
@@ -1714,7 +1714,7 @@ function YoursForever({ z }: { z: number }) {
             <mesh position={[0, 0, 0.05]} material={MAT.emeraldDeep}>
               <boxGeometry args={[0.95, 0.44, 0.01]} />
             </mesh>
-            <TextPlane text="VERDANT" width={0.75} height={0.16} position={[0, 0.02, 0.06]} />
+            <TextPlane text="GEETEJ VIRAASAT" width={0.9} height={0.16} position={[0, 0.02, 0.06]} />
           </group>
         </group>
       </group>

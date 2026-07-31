@@ -17,7 +17,7 @@ export default function TermsOfUsePage() {
       content: (
         <>
           <p className="mb-4">
-            These terms of use represent a binding legal agreement between you and <strong>VERDANT JEWELS</strong>. By accessing our immersive showroom platform, browsing our catalog, or initiating an order, you confirm that you have read, understood, and agreed to be bound by all of these terms.
+            These terms of use represent a binding legal agreement between you and <strong>GEETEJ VIRAASAT</strong>. By accessing our immersive showroom platform, browsing our catalog, or initiating an order, you confirm that you have read, understood, and agreed to be bound by all of these terms.
           </p>
           <p>
             If you do not agree with all of these terms of use, then you are expressly prohibited from using our site and services, and you must discontinue use immediately.
@@ -37,7 +37,7 @@ export default function TermsOfUsePage() {
               <ShieldAlert className="w-3.5 h-3.5" /> Critical Purchase Notice
             </span>
             <p className="font-serif text-sm text-verdant-emerald font-semibold leading-relaxed mb-3">
-              Once any product is purchased from VERDANT JEWELS, money will not be refunded under any circumstances. All sales are absolute and final.
+              Once any product is purchased from GEETEJ VIRAASAT, money will not be refunded under any circumstances. All sales are absolute and final.
             </p>
             <p className="text-xs text-verdant-emerald/70 leading-relaxed font-sans">
               Due to the fluctuating index prices of gold, platinum, and diamonds, alongside the bespoke artisanal labor and craftsmanship hours dedicated to configuring each gem piece, we are unable to process cancellations, returns, or cash refunds.
@@ -119,7 +119,7 @@ export default function TermsOfUsePage() {
         <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-12 flex justify-center">
           <div className="glass-effect rounded-3xl p-6 md:p-8 max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-2">
             <span className="text-[9px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5">
-              <Scale className="w-3 h-3" /> VERDANT REGULATORY CHARTER
+              <Scale className="w-3 h-3" /> GEETEJ VIRAASAT REGULATORY CHARTER
             </span>
             <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl font-light tracking-wide text-verdant-emerald leading-tight">
               Terms of Use

@@ -63,8 +63,8 @@ export default function Footer() {
         >
           {/* Brand Info Column */}
           <motion.div variants={itemVariants} className="md:col-span-7 flex flex-col items-start gap-6">
-            <span className="font-serif text-xl tracking-[0.2em] font-light text-verdant-emerald">
-              V E R D A N T
+            <span className="font-serif text-xl tracking-[0.15em] font-light text-verdant-emerald">
+              G E E T E J   V I R A A S A T
             </span>
             <p className="text-verdant-emerald/60 text-sm md:text-[15px] font-normal leading-relaxed max-w-md tracking-wide text-left">
               Forging the boundary between organic botany and high-fashion aesthetics. Crafting timeless jewelry masterpieces since 2001.
@@ -158,7 +158,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-verdant-emerald/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <span className="text-xs tracking-[0.15em] text-verdant-emerald/50 font-medium uppercase">
-            &copy; {new Date().getFullYear()} VERDANT JEWELS Boutique Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} GEETEJ VIRAASAT Boutique Inc. All rights reserved.
           </span>
           <span className="text-xs tracking-[0.25em] text-verdant-gold font-semibold uppercase">
             Sown in Nature, Reaped in Elegance
