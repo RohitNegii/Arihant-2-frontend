@@ -16,7 +16,7 @@ import {
   SLAB_TILE_W,
   SLAB_TILE_D,
 } from "./procedural-textures";
-import { quality } from "./quality";
+import { isTouchDevice, quality } from "./quality";
 
 export const STORY_ROOM_Z = [72, 60, 48, 36, 24, 12] as const;
 
@@ -469,7 +469,6 @@ function Stems({
 }
 
 const FOLIAGE_STEM_GEO = new THREE.CylinderGeometry(0.008, 0.012, 1, 5);
-const BUSH_STEM_GEO = new THREE.CylinderGeometry(0.012, 0.022, 1, 5);
 
 function Foliage({
   position,
@@ -624,19 +623,25 @@ function RealisticBush({
   seed?: number;
   scale?: number;
 }) {
-  const { leaves, stems } = useMemo(() => {
+  const leaves = useMemo(() => {
     const r = rng(seed);
-    const outLeaves = [];
+    const out: LeafInstance[] = [];
     const n = Math.max(8, Math.round(count * quality().foliage));
+
+    const HEIGHT = radius * 1.35;
+    const envelope = (y: number) => {
+      const t = THREE.MathUtils.clamp(y / HEIGHT, 0, 1);
+      return radius * (0.62 + 0.38 * Math.sin(t * Math.PI)) * (1 - 0.45 * t * t);
+    };
 
     const numClusters = 4;
     const clusters = [];
     for (let c = 0; c < numClusters; c++) {
       clusters.push({
-        cx: (r() - 0.5) * radius * 0.7,
-        cy: (r() - 0.1) * radius * 0.8,
-        cz: (r() - 0.5) * radius * 0.7,
-        cr: radius * (0.45 + r() * 0.45)
+        cx: (r() - 0.5) * radius * 0.36,
+        cy: radius * (0.12 + r() * 0.62),
+        cz: (r() - 0.5) * radius * 0.36,
+        cr: radius * (0.34 + r() * 0.3),
       });
     }
 
@@ -647,40 +652,39 @@ function RealisticBush({
       const theta = r() * Math.PI * 2;
       const rr = cluster.cr * (0.3 + r() * 0.7);
 
-      const x = cluster.cx + Math.sin(phi) * Math.cos(theta) * rr;
+      let x = cluster.cx + Math.sin(phi) * Math.cos(theta) * rr;
       const y = cluster.cy + Math.cos(phi) * rr;
-      const z = cluster.cz + Math.sin(phi) * Math.sin(theta) * rr;
+      let z = cluster.cz + Math.sin(phi) * Math.sin(theta) * rr;
+
+      const h = Math.hypot(x, z);
+      const maxH = envelope(y);
+      if (h > maxH) {
+        const k = maxH / h;
+        x *= k;
+        z *= k;
+      }
 
       const dx = x - cluster.cx;
       const dy = y - cluster.cy + 0.15;
       const dz = z - cluster.cz;
 
-      const rot = [
-        Math.atan2(Math.sqrt(dx * dx + dz * dz), dy) + (r() - 0.5) * 0.8,
-        Math.atan2(dx, dz) + (r() - 0.5) * 0.8,
-        (r() - 0.5) * 1.5
-      ] as [number, number, number];
-
-      outLeaves.push({
-        p: [x, y, z] as [number, number, number],
-        rot,
+      out.push({
+        p: [x, y, z],
+        rot: [
+          Math.atan2(Math.sqrt(dx * dx + dz * dz), dy) + (r() - 0.5) * 0.8,
+          Math.atan2(dx, dz) + (r() - 0.5) * 0.8,
+          (r() - 0.5) * 1.5,
+        ],
         s: 0.7 + r() * 0.6,
         tint: Math.floor(r() * LEAF_TINTS.length),
       });
     }
 
-    const outStems = Array.from({ length: 5 }, () => ({
-      p: [(r() - 0.5) * 0.15, 0.2, (r() - 0.5) * 0.15] as [number, number, number],
-      rot: [(r() - 0.5) * 0.6, r() * Math.PI, (r() - 0.5) * 0.6] as [number, number, number],
-      len: 0.5 + r() * 0.5
-    }));
-
-    return { leaves: outLeaves, stems: outStems };
+    return out;
   }, [radius, count, seed]);
 
   return (
     <group position={position} scale={scale}>
-      <Stems stems={stems} geometry={BUSH_STEM_GEO} />
       <LeafCloud leaves={leaves} castShadow />
     </group>
   );
@@ -911,6 +915,10 @@ function EntranceLight() {
   );
 }
 
+const DOOR_SWING: readonly [number, number] = isTouchDevice()
+  ? [0.57, 1.02]
+  : [1.1, 1.95];
+
 function GrandEntrance({ z }: { z: number }) {
   const leftHinge = useRef<THREE.Group>(null);
   const rightHinge = useRef<THREE.Group>(null);
@@ -926,7 +934,7 @@ function GrandEntrance({ z }: { z: number }) {
   }, []);
 
   useFrame(() => {
-    const angle = THREE.MathUtils.lerp(1.1, 1.95, openTarget.current);
+    const angle = THREE.MathUtils.lerp(DOOR_SWING[0], DOOR_SWING[1], openTarget.current);
     if (leftHinge.current) {
       leftHinge.current.rotation.y = THREE.MathUtils.lerp(
         leftHinge.current.rotation.y,

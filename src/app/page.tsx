@@ -355,7 +355,7 @@ export default function Home() {
       <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
 
       <div
-        className={`fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-5 lg:left-8 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-sm ${
+        className={`fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(2.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-5 lg:left-8 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-sm ${
           atFinale ? "hidden" : ""
         }`}
       >

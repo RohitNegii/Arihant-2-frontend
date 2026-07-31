@@ -6,7 +6,7 @@ import { Sparkles, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 
 import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
-import { quality } from "./quality";
+import { isTouchDevice, quality } from "./quality";
 import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
 // story journey. Commented out while we build out the story rooms one by one;
@@ -26,6 +26,8 @@ import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 // } from "./RoomComponents";
 
 const Q = quality();
+const TOUCH = isTouchDevice();
+const MOBILE_PITCH = -0.085;
 
 function ReadySignal() {
   const frames = useRef(0);
@@ -45,6 +47,13 @@ function CameraController() {
     const targetZ = 76.0 - progress * 68;
 
     state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.05);
+
+    if (TOUCH) {
+      state.camera.position.x = 0;
+      state.camera.position.y = 0.5;
+      state.camera.rotation.set(MOBILE_PITCH, 0, 0);
+      return;
+    }
 
     const time = state.clock.getElapsedTime();
     state.camera.position.y = 0.5 + Math.sin(time * 0.8) * 0.04;

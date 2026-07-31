@@ -88,6 +88,17 @@ export function quality(): Quality {
   return cached;
 }
 
+let coarse: boolean | null = null;
+
+export function isTouchDevice(): boolean {
+  if (coarse === null) {
+    coarse =
+      typeof window !== "undefined" &&
+      (window.matchMedia?.("(pointer: coarse)").matches ?? false);
+  }
+  return coarse;
+}
+
 export function texSize(base: number): number {
   const scaled = base * quality().texture;
   return Math.max(128, 2 ** Math.round(Math.log2(scaled)));
