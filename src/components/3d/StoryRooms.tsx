@@ -1011,21 +1011,6 @@ function GrandEntrance({ z }: { z: number }) {
           <boxGeometry args={[4.0, 0.12, 0.7]} />
         </mesh>
 
-        {[
-          [1.3, 1.35],
-          [0.85, 0.9],
-        ].map(([inner, outer]) => (
-          <mesh
-            key={inner}
-            position={[0, -1.47, 1.8]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            material={MAT.gold}
-            receiveShadow
-          >
-            <ringGeometry args={[inner, outer, 64, 1, 0, Math.PI]} />
-          </mesh>
-        ))}
-
         <group ref={leftHinge} position={[-1.8, 0, 0.2]}>
           <DoorLeaf side={1} />
         </group>
@@ -1107,19 +1092,6 @@ function GrandEntrance({ z }: { z: number }) {
           <NecklaceBust position={[0, -0.12, 0]} scale={0.78} />
         </group>
 
-        {[
-          [0.95, 1.15],
-          [0.4, 0.5],
-        ].map(([inner, outer]) => (
-          <mesh
-            key={inner}
-            position={[0, -1.46, 4]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            material={MAT.goldSoft}
-          >
-            <ringGeometry args={[inner, outer, 40]} />
-          </mesh>
-        ))}
       </group>
     </group>
   );
