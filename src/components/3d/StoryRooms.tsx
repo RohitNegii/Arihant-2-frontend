@@ -85,6 +85,18 @@ export const MAT = {
     clearcoatRoughness: 0.45,
   }),
   emeraldDeep: new THREE.MeshStandardMaterial({ color: "#0A2B21", roughness: 0.65 }),
+  /**
+   * Gallery wall. The emerald surfaces were the only large planes in the app
+   * with no maps at all — flat colour reads as paper next to the plaster the
+   * stonework carries, which is most of why the collection room looked drawn
+   * rather than built.
+   */
+  emeraldWall: new THREE.MeshStandardMaterial({
+    color: "#14523E",
+    roughness: 0.78,
+    envMapIntensity: 0.5,
+    ...plasterSurface(4, 0.75),
+  }),
   velvet: new THREE.MeshPhysicalMaterial({
     color: "#0D4433",
     roughness: 0.95,
@@ -297,12 +309,39 @@ function TextPlane({
           .getPropertyValue("--font-secondary")
           .trim() || "serif";
       ctx.clearRect(0, 0, W, H);
-      ctx.font = `${Math.round(H * fontScale)}px ${serif}, serif`;
       (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing =
         letterSpacing;
       ctx.fillStyle = color;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+
+      // Shrink to fit. fontScale sets the size we *want*, but the glyphs plus
+      // their letter-spacing regularly run wider than the canvas and fillText
+      // simply clips — which is why the standee read GEETEJ VIRAASA.
+      //
+      // measureText does not include `letterSpacing` in every engine, so the
+      // gap has to be added by hand or the overrun is invisible to the check:
+      // GEETEJ VIRAASAT measures ~825px of glyphs, under the 1024 canvas, but
+      // draws ~1125px once 0.22em of tracking is added to all 15 characters.
+      // Both terms scale linearly with font size, so one pass lands exactly.
+      const inset = W * 0.94;
+      let size = Math.round(H * fontScale);
+      ctx.font = `${size}px ${serif}, serif`;
+
+      const em = /^([\d.]+)em$/.exec(letterSpacing);
+      const px = /^([\d.]+)px$/.exec(letterSpacing);
+      const tracking = em
+        ? parseFloat(em[1]) * size * text.length
+        : px
+          ? parseFloat(px[1]) * text.length
+          : 0;
+      const drawn = ctx.measureText(text).width + tracking;
+
+      if (drawn > inset) {
+        size = Math.max(8, Math.floor((size * inset) / drawn));
+        ctx.font = `${size}px ${serif}, serif`;
+      }
+
       ctx.fillText(text, W / 2, H / 2);
     };
 
@@ -1236,26 +1275,66 @@ function TheBeginning({ z }: { z: number }) {
         ))}
       </group>
 
-      <group position={[3.3, 0.4, -5.4]} rotation={[0, -0.5, 0]}>
-        <mesh material={MAT.emerald}>
-          <boxGeometry args={[2.1, 1.35, 0.09]} />
+      {/* Welcome standee. The board used to be a slab centred at y = 0.4 with
+          its bottom edge at -0.275 — 1.2 units clear of the floor, held up by
+          nothing. It is now an easel: a raked board on a frame that reaches the
+          ground, with a shadow under it. Everything is local to the foot, so
+          the group's y is the floor. */}
+      <group position={[3.15, -1.5, -5.3]} rotation={[0, -0.5, 0]}>
+        <GroundShadow position={[0.05, 0.03, 0.12]} radius={0.95} stretch={0.72} />
+
+        {/* Rear leg, raked back to meet the two front feet. */}
+        <mesh position={[0, 0.72, -0.34]} rotation={[0.26, 0, 0]} material={MAT.woodDark}>
+          <boxGeometry args={[0.09, 1.5, 0.07]} />
         </mesh>
-        <mesh position={[0, 0, 0.05]} material={MAT.emeraldDeep}>
-          <boxGeometry args={[1.9, 1.16, 0.02]} />
+        {[-0.66, 0.66].map((lx) => (
+          <mesh
+            key={lx}
+            position={[lx, 0.7, 0.1]}
+            rotation={[-0.12, 0, 0]}
+            material={MAT.woodDark}
+          >
+            <boxGeometry args={[0.085, 1.45, 0.075]} />
+          </mesh>
+        ))}
+        {/* Foot rail tying the front legs together. */}
+        <mesh position={[0, 0.22, 0.16]} material={MAT.woodDark}>
+          <boxGeometry args={[1.4, 0.07, 0.07]} />
         </mesh>
-        <TextPlane text="GEETEJ VIRAASAT" width={1.8} height={0.32} position={[0, 0.06, 0.07]} />
-        <TextPlane
-          text="EST. 2020"
-          width={0.85}
-          height={0.16}
-          color="#9DBBA6"
-          fontScale={0.62}
-          letterSpacing="0.4em"
-          position={[0, -0.26, 0.07]}
-        />
-        <mesh position={[0, 0.44, 0.07]} scale={[0.5, 1, 0.5]} material={MAT.gold}>
-          <sphereGeometry args={[0.13, 8, 6]} />
-        </mesh>
+
+        {/* The board, tipped back so it faces the approach rather than the sky. */}
+        <group position={[0, 1.42, 0.02]} rotation={[-0.12, 0, 0]}>
+          <mesh material={MAT.emerald}>
+            <boxGeometry args={[2.1, 1.35, 0.09]} />
+          </mesh>
+          <mesh position={[0, 0, 0.05]} material={MAT.emeraldDeep}>
+            <boxGeometry args={[1.9, 1.16, 0.02]} />
+          </mesh>
+          <TextPlane
+            text="GEETEJ VIRAASAT"
+            width={1.72}
+            height={0.3}
+            position={[0, 0.06, 0.07]}
+          />
+          <TextPlane
+            text="EST. 2020"
+            width={0.85}
+            height={0.16}
+            color="#9DBBA6"
+            fontScale={0.62}
+            letterSpacing="0.4em"
+            position={[0, -0.26, 0.07]}
+          />
+          <mesh position={[0, 0.44, 0.07]} scale={[0.5, 1, 0.5]} material={MAT.gold}>
+            <sphereGeometry args={[0.13, 8, 6]} />
+          </mesh>
+          {/* Brass caps where the board meets the frame. */}
+          {[-0.66, 0.66].map((cx) => (
+            <mesh key={cx} position={[cx, -0.6, 0.06]} material={MAT.gold}>
+              <boxGeometry args={[0.16, 0.1, 0.04]} />
+            </mesh>
+          ))}
+        </group>
       </group>
 
       {[1.5, -1.0, -3.5].map((pz) => (
@@ -1272,6 +1351,34 @@ function TheBeginning({ z }: { z: number }) {
   );
 }
 
+/**
+ * The bench's fine trim — gold beads, drawer pulls, loose stones. Six draw
+ * calls of pure ornament, dropped on the low tier along with the door detail
+ * it shares a flag with; the furniture reads without them.
+ */
+const BENCH_TRIM = QUALITY.doorDetail;
+
+/**
+ * The grid the bench is dressed against. Every prop on it used to carry its
+ * own hand-picked literals, so nothing lined up with anything and several
+ * pieces sat inside the furniture.
+ *
+ * Three depth bands, back to front: the ledge holds storage, the stand band
+ * holds anything tall enough to be seen over the work, and the work band is
+ * the front row the camera reads across. Three columns keep the left and
+ * right groups balanced either side of the mat.
+ */
+const BENCH = {
+  /** Top surface, and the ledge shelf on its brackets above it. */
+  topY: -0.2,
+  ledgeY: 0.06,
+  ledgeZ: -0.74,
+  standZ: -0.42,
+  workZ: 0.16,
+  leftX: -1.72,
+  rightX: 1.55,
+} as const;
+
 function TheCraft({ z }: { z: number }) {
   const lampGlowRef = useRef<THREE.Mesh>(null);
 
@@ -1281,82 +1388,237 @@ function TheCraft({ z }: { z: number }) {
     m.opacity = 0.75 + Math.sin(state.clock.getElapsedTime() * 2.3) * 0.06;
   });
 
-  const sketches = [
-    { x: -1.15, rz: 0.18, stone: false },
-    { x: 0.05, rz: -0.05, stone: true },
-    { x: 1.2, rz: -0.22, stone: false },
-  ];
-
   return (
     <group position={[0, 0, z]}>
       <group position={[0, 0, -5.2]}>
         <GroundShadow position={[0, -1.47, 0.2]} radius={2.4} />
-        <mesh position={[0, -0.28, 0]} material={MAT.woodDark}>
-          <boxGeometry args={[4.6, 0.16, 1.9]} />
-        </mesh>
-        <mesh position={[0, -0.36, 0.95]} material={MAT.goldSoft}>
-          <boxGeometry args={[4.6, 0.06, 0.06]} />
-        </mesh>
-        {[
-          [-2.1, 0.75],
-          [2.1, 0.75],
-          [-2.1, -0.75],
-          [2.1, -0.75],
-        ].map(([lx, lz]) => (
-          <mesh key={`${lx}:${lz}`} position={[lx, -0.95, lz]} material={MAT.woodDark}>
-            <boxGeometry args={[0.16, 1.2, 0.16]} />
-          </mesh>
-        ))}
 
-        {sketches.map((s) => (
-          <group key={s.x} position={[s.x, -0.13, 0.1]} rotation={[-1.15, 0, s.rz]}>
-            <mesh material={MAT.paper}>
-              <planeGeometry args={[1.05, 0.82]} />
+        {/* The bench used to be one dark slab on four posts, which read as a
+            silhouette against the dark panel behind it. It is now a walnut top
+            over a recessed apron: the top is the lighter wood, the apron and
+            legs the dark one, and a gold bead runs between them. That tonal
+            split is what gives the piece an edge to catch the light on.
+            Top surface sits at y = -0.20 — everything standing on it assumes
+            that height. */}
+        <mesh position={[0, -0.25, 0]} material={MAT.wood} receiveShadow>
+          <boxGeometry args={[4.6, 0.1, 1.9]} />
+        </mesh>
+        {BENCH_TRIM && (
+          <mesh position={[0, -0.309, 0]} material={MAT.gold}>
+            <boxGeometry args={[4.68, 0.018, 1.98]} />
+          </mesh>
+        )}
+        {/* Nosing, proud of the apron: casts the shadow line under the top. */}
+        <mesh position={[0, -0.355, 0]} material={MAT.woodDark}>
+          <boxGeometry args={[4.62, 0.075, 1.94]} />
+        </mesh>
+        <mesh position={[0, -0.52, 0]} material={MAT.woodDark}>
+          <boxGeometry args={[4.1, 0.27, 1.6]} />
+        </mesh>
+
+        {/* Drawers, standing proud of the apron so the seam reads. */}
+        {[-1.02, 1.02].map((dx) => (
+          <group key={dx} position={[dx, -0.52, 0.815]}>
+            <mesh material={MAT.wood}>
+              <boxGeometry args={[1.5, 0.2, 0.04]} />
             </mesh>
-            <mesh position={[0, 0.02, 0.004]} material={MAT.goldSoft}>
-              <torusGeometry args={[0.24, 0.006, 5, 28, Math.PI * 1.35]} />
-            </mesh>
-            {s.stone && (
-              <group position={[0, -0.06, 0.05]} rotation={[1.15, 0, 0]}>
-                <mesh rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
-                  <torusGeometry args={[0.1, 0.022, 10, 24]} />
-                </mesh>
-                <mesh position={[0, 0.05, 0]} material={MAT.gemGreen}>
-                  <octahedronGeometry args={[0.06, 0]} />
-                </mesh>
-              </group>
+            {BENCH_TRIM && (
+              <mesh position={[0, 0, 0.035]} material={MAT.gold}>
+                <boxGeometry args={[0.42, 0.026, 0.026]} />
+              </mesh>
             )}
           </group>
         ))}
 
-        {[0, 1, 2, 3].map((i) => (
-          <mesh
-            key={i}
-            position={[1.75 + i * 0.16, -0.17, -0.35 + i * 0.12]}
-            rotation={[Math.PI / 2, 0, 0.35 + i * 0.12]}
-            material={i % 2 === 0 ? MAT.goldSoft : MAT.woodDark}
-          >
-            <cylinderGeometry args={[0.022, 0.012, 0.72, 6]} />
+        {/* Tapered legs — square posts read as scaffolding at this distance. */}
+        {[
+          [-1.98, 0.72],
+          [1.98, 0.72],
+          [-1.98, -0.72],
+          [1.98, -0.72],
+        ].map(([lx, lz]) => (
+          <mesh key={`${lx}:${lz}`} position={[lx, -1.09, lz]} material={MAT.woodDark}>
+            <cylinderGeometry args={[0.05, 0.088, 0.92, 8]} />
           </mesh>
         ))}
+        {/* Stretchers. Without them the legs read as four separate sticks and
+            the bench looks like it is hovering. */}
+        {[-1.98, 1.98].map((sx) => (
+          <mesh key={sx} position={[sx, -1.3, 0]} material={MAT.woodDark}>
+            <boxGeometry args={[0.055, 0.055, 1.44]} />
+          </mesh>
+        ))}
+        <mesh position={[0, -1.3, 0]} material={MAT.woodDark}>
+          <boxGeometry args={[3.96, 0.055, 0.055]} />
+        </mesh>
 
-        <group position={[-1.9, -0.15, -0.3]} rotation={[-0.5, 0.4, 0]}>
+        {/* Tool ledge across the back of the top. The camera sits at y = 0.5
+            looking level — only 0.7 above this bench — so anything lying flat
+            on it is edge-on and invisible. The ledge lifts the props into the
+            eye line and gives them a lit surface to read against instead of
+            the dark panel two units behind. */}
+        {[-2.02, 2.02].map((bx) => (
+          <mesh key={bx} position={[bx, -0.09, -0.74]} material={MAT.woodDark}>
+            <boxGeometry args={[0.06, 0.22, 0.3]} />
+          </mesh>
+        ))}
+        <mesh position={[0, 0.04, -0.74]} material={MAT.wood}>
+          <boxGeometry args={[4.16, 0.04, 0.32]} />
+        </mesh>
+        {BENCH_TRIM && (
+          <mesh position={[0, 0.072, -0.588]} material={MAT.gold}>
+            <boxGeometry args={[4.16, 0.022, 0.022]} />
+          </mesh>
+        )}
+        {/* Ledge dressing. Two vessels adrift on a four-unit shelf read as
+            leftovers; spaced along it with a parts tray between them, the
+            ledge reads as where the bench keeps its things. Kept clear of
+            x < -1.0, which the drawing board stands in front of. */}
+        <mesh position={[0.62, 0.155, BENCH.ledgeZ]} material={MAT.goldSoft}>
+          <cylinderGeometry args={[0.11, 0.13, 0.19, 12]} />
+        </mesh>
+        {/* Brass, not woodDark: the ledge is silhouetted against the dark
+            panel behind it, so a dark tray on it disappears. */}
+        <mesh position={[0.05, 0.1, BENCH.ledgeZ]} material={MAT.goldSoft}>
+          <boxGeometry args={[0.42, 0.08, 0.24]} />
+        </mesh>
+        {BENCH_TRIM && (
+          <mesh position={[0.05, 0.145, BENCH.ledgeZ]} material={MAT.velvet}>
+            <boxGeometry args={[0.34, 0.012, 0.18]} />
+          </mesh>
+        )}
+        <mesh position={[1.2, 0.125, BENCH.ledgeZ]} material={MAT.marble}>
+          <cylinderGeometry args={[0.085, 0.095, 0.13, 12]} />
+        </mesh>
+
+        {/* Velvet working mat on a gold tray, on the bench's centre line: the
+            one saturated patch on an otherwise brown bench, and what the eye
+            lands on. It was off-centre at x = 0.22, which threw the whole
+            left/right balance out. */}
+        <mesh position={[0, -0.197, BENCH.workZ]} material={MAT.goldSoft}>
+          <boxGeometry args={[1.68, 0.01, 1.0]} />
+        </mesh>
+        <mesh position={[0, -0.186, BENCH.workZ]} material={MAT.velvet}>
+          <boxGeometry args={[1.56, 0.014, 0.88]} />
+        </mesh>
+
+        {/* A ring on its stand — the one thing on the bench that stands upright
+            in the eye line, so it is what the zone actually reads as jewellery
+            being made. */}
+        <mesh position={[-0.3, -0.049, BENCH.workZ - 0.06]} material={MAT.goldSoft}>
+          <cylinderGeometry args={[0.016, 0.032, 0.26, 8]} />
+        </mesh>
+        <mesh position={[-0.3, 0.03, BENCH.workZ - 0.06]} material={MAT.gold}>
+          <torusGeometry args={[0.085, 0.019, 8, 22]} />
+        </mesh>
+
+        {/* The piece being set. Lying straight on the mat it was a gold smudge
+            — at this camera height a flat ring is 3px of edge — so it sits on
+            a setting block, tipped up to show its face. */}
+        <group position={[0.28, -0.155, BENCH.workZ - 0.08]}>
+          <mesh material={MAT.woodDark}>
+            <boxGeometry args={[0.26, 0.062, 0.2]} />
+          </mesh>
+          <group position={[0, 0.075, 0.01]} rotation={[-0.95, 0, 0.12]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
+              <torusGeometry args={[0.11, 0.024, 10, 26]} />
+            </mesh>
+            <mesh position={[0, 0.055, 0]} material={MAT.gemGreen}>
+              <octahedronGeometry args={[0.06, 0]} />
+            </mesh>
+          </group>
+        </group>
+
+        {/* Loose stones, set out in a row along the mat's front instead of
+            dropped at two random offsets. */}
+        {BENCH_TRIM &&
+          [-0.26, 0, 0.26].map((gx) => (
+            <mesh
+              key={gx}
+              position={[gx, -0.161, BENCH.workZ + 0.3]}
+              material={MAT.gemGreen}
+            >
+              <octahedronGeometry args={[0.038, 0]} />
+            </mesh>
+          ))}
+
+        {/* Design propped on a drawing board rather than flat: a sheet lying on
+            the top is a white sliver from here. */}
+        <group position={[-1.3, 0.125, BENCH.standZ]} rotation={[-0.3, 0.2, 0]}>
+          <mesh material={MAT.woodDark}>
+            <boxGeometry args={[0.92, 0.68, 0.025]} />
+          </mesh>
+          <mesh position={[0, 0.02, 0.016]} material={MAT.paper}>
+            <planeGeometry args={[0.8, 0.58]} />
+          </mesh>
+          <mesh position={[0, 0.03, 0.022]} material={MAT.goldSoft}>
+            <torusGeometry args={[0.17, 0.005, 5, 24, Math.PI * 1.35]} />
+          </mesh>
+        </group>
+
+        {/* Stack of setting trays. This corner held two more loose sheets, and
+            for the same reason as the board they never read — swapped for
+            something with height. */}
+        <group position={[BENCH.leftX, 0, BENCH.workZ]} rotation={[0, 0.14, 0]}>
+          <mesh position={[0, -0.175, 0]} material={MAT.woodDark}>
+            <boxGeometry args={[0.64, 0.05, 0.44]} />
+          </mesh>
+          <mesh position={[0.02, -0.122, 0.01]} material={MAT.wood}>
+            <boxGeometry args={[0.6, 0.055, 0.4]} />
+          </mesh>
+          <mesh position={[0.02, -0.09, 0.01]} material={MAT.velvet}>
+            <boxGeometry args={[0.52, 0.014, 0.32]} />
+          </mesh>
+        </group>
+
+        {/* Tool roll. The gravers used to lie at four different angles from
+            x = 1.75 outward, which left the last one 0.29 past the edge of the
+            top with nothing under it. They now lie parallel and square to the
+            bench on a leather strip, wholly on the surface. */}
+        <group position={[BENCH.rightX, 0, BENCH.workZ + 0.1]}>
+          {/* Oxblood leather. In woodDark on a wood top the strip was the same
+              value as the bench and read as a stain rather than an object. */}
+          <mesh position={[0, -0.19, 0]} material={MAT.wax}>
+            <boxGeometry args={[1.04, 0.026, 0.5]} />
+          </mesh>
+          {[-0.31, -0.1, 0.11, 0.32].map((tx, i) => (
+            <mesh
+              key={tx}
+              position={[tx, -0.151, 0]}
+              rotation={[Math.PI / 2, 0, 0]}
+              material={i % 2 === 0 ? MAT.goldSoft : MAT.woodDark}
+            >
+              <cylinderGeometry args={[0.026, 0.013, 0.46, 6]} />
+            </mesh>
+          ))}
+        </group>
+
+        {/* Loupe on its stand. It used to be tipped back with a 0.3 handle
+            hanging off the bottom, which put the stem's end at y = -0.545 —
+            a third of a unit below the tabletop. Upright on a short stem it
+            both clears the surface and turns the lens to the camera. */}
+        <group position={[-2.05, 0.13, BENCH.standZ]} rotation={[0, 0.35, 0]}>
           <mesh material={MAT.gold}>
             <torusGeometry args={[0.17, 0.022, 8, 24]} />
           </mesh>
           <mesh material={MAT.glass}>
             <circleGeometry args={[0.16, 20]} />
           </mesh>
-          <mesh position={[0, -0.3, 0]} material={MAT.woodDark}>
-            <cylinderGeometry args={[0.025, 0.025, 0.3, 8]} />
+          <mesh position={[0, -0.25, 0]} material={MAT.woodDark}>
+            <cylinderGeometry args={[0.022, 0.032, 0.17, 8]} />
           </mesh>
         </group>
 
-        <mesh position={[-1.55, -0.05, -0.55]} material={MAT.marble}>
+        {/* On the ledge, not the top — down there it was a white blob at the
+            back of an unlit surface. */}
+        <mesh position={[-0.55, 0.21, BENCH.ledgeZ]} material={MAT.marble}>
           <cylinderGeometry args={[0.14, 0.16, 0.3, 14]} />
         </mesh>
 
-        <group position={[1.55, -0.2, -0.6]}>
+        {/* The base used to be half-sunk in the top; it now stands on it. Also
+            pulled forward of z = -0.58: at -0.6 the post rose straight through
+            the ledge shelf and its gold rail. */}
+        <group position={[1.62, -0.17, -0.28]}>
           <mesh material={MAT.goldSoft}>
             <cylinderGeometry args={[0.18, 0.2, 0.06, 16]} />
           </mesh>
@@ -1440,9 +1702,26 @@ function TheCollection({ z }: { z: number }) {
           <mesh
             position={[s * 3.0, 1.0, -3]}
             rotation={[0, (s * -Math.PI) / 2, 0]}
-            material={MAT.emerald}
+            material={MAT.emeraldWall}
           >
             <planeGeometry args={[11, 5.5]} />
+          </mesh>
+          {/* Skirting and a picture rail. A wall with nothing but a single
+              plane of colour has no scale to it; two horizontal breaks give
+              the eye something to measure the room against. */}
+          <mesh
+            position={[s * 2.96, -1.28, -3]}
+            rotation={[0, (s * -Math.PI) / 2, 0]}
+            material={MAT.emeraldDeep}
+          >
+            <boxGeometry args={[11, 0.44, 0.06]} />
+          </mesh>
+          <mesh
+            position={[s * 2.96, 2.05, -3]}
+            rotation={[0, (s * -Math.PI) / 2, 0]}
+            material={MAT.goldSoft}
+          >
+            <boxGeometry args={[11, 0.05, 0.05]} />
           </mesh>
           {nicheZ.map((nz) => (
             <DisplayNiche
@@ -1483,8 +1762,14 @@ function TheCollection({ z }: { z: number }) {
 
       <group position={[0, 0, -5]}>
         <GroundShadow position={[0, -1.47, 0]} radius={1.7} />
-        <mesh position={[0, -1.0, 0]} material={MAT.wood}>
+        {/* Marble, not the brown wood it was: a chocolate drum was the one
+            warm mass in a room of emerald, gold and stone, and it read as
+            furniture borrowed from another set. */}
+        <mesh position={[0, -1.0, 0]} material={MAT.marble}>
           <cylinderGeometry args={[1.45, 1.55, 1.0, 32]} />
+        </mesh>
+        <mesh position={[0, -1.46, 0]} material={MAT.emeraldDeep}>
+          <cylinderGeometry args={[1.62, 1.62, 0.09, 32]} />
         </mesh>
         <mesh position={[0, -0.48, 0]} material={MAT.velvet}>
           <cylinderGeometry args={[1.5, 1.5, 0.08, 32]} />
@@ -1514,8 +1799,18 @@ function TheCollection({ z }: { z: number }) {
             );
           })}
         </group>
-        <mesh position={[0, -0.42, 0]} scale={[1, 0.55, 1]} material={MAT.glass}>
-          <sphereGeometry args={[1.2, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        {/* Vitrine. This was a hemisphere squashed to 0.55 — a soap bubble over
+            the rings, and on the mid and low tiers, where transmission is off,
+            just a grey film across them. A straight glass cylinder with a
+            brass collar top and bottom reads as a case instead. */}
+        <mesh position={[0, 0.135, 0]} material={MAT.glass}>
+          <cylinderGeometry args={[1.2, 1.2, 1.15, 28, 1, true]} />
+        </mesh>
+        <mesh position={[0, 0.745, 0]} material={MAT.gold}>
+          <cylinderGeometry args={[1.24, 1.24, 0.07, 28]} />
+        </mesh>
+        <mesh position={[0, -0.4, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
+          <torusGeometry args={[1.21, 0.03, 6, 32]} />
         </mesh>
       </group>
     </group>
@@ -1532,10 +1827,15 @@ function MadeForMoments({ z }: { z: number }) {
 
   const bokeh = useMemo(() => {
     const r = rng(211);
-    return Array.from({ length: 22 }, () => ({
-      p: [(r() - 0.5) * 9, (r() - 0.4) * 4.5, 2 - r() * 9] as [number, number, number],
-      s: 0.1 + r() * 0.3,
-      o: 0.18 + r() * 0.3,
+    // Held behind the portrait and up in the air. These used to run from
+    // z = +2 back to -7 across the full width and down to floor level, with
+    // radii up to 0.4 — so the camera flew straight through them and they
+    // read as pale smears over the walls, the floor and the frame itself
+    // rather than as lights behind the scene. Twenty-two of them, too.
+    return Array.from({ length: 12 }, () => ({
+      p: [(r() - 0.5) * 8, 0.5 + r() * 2.5, -6.4 - r() * 2.8] as [number, number, number],
+      s: 0.08 + r() * 0.16,
+      o: 0.25 + r() * 0.3,
       phase: r() * Math.PI * 2,
     }));
   }, []);
@@ -1561,7 +1861,23 @@ function MadeForMoments({ z }: { z: number }) {
         </mesh>
       ))}
 
+      {/* Backing panel. The angled walls stop at x = ±1.95 while the portrait
+          is 2.85 wide, so a bright cream void showed either side of the frame —
+          the page background straight through the room. Widening the walls
+          cannot close it: they rake forward as they run inward, so any length
+          that reaches the centre also passes in front of the artwork and
+          swallows it. A flat panel behind the frame closes both voids and
+          leaves the gold edge proud. */}
+      <mesh position={[0.15, 0.9, -5.75]} material={MAT.emeraldDeep}>
+        <planeGeometry args={[5.4, 6.4]} />
+      </mesh>
+
       <group position={[0.15, 0.5, -5.5]}>
+        {/* Plinth. The frame's bottom edge is at y = -1.275 and the floor is
+            at -1.5, so it stood a fifth of a unit clear of the ground. */}
+        <mesh position={[0, -1.39, 0.02]} material={MAT.marble}>
+          <boxGeometry args={[3.1, 0.23, 0.52]} />
+        </mesh>
         <mesh position={[0, 0, -0.05]} material={MAT.gold}>
           <boxGeometry args={[2.85, 3.55, 0.08]} />
         </mesh>
@@ -1582,16 +1898,29 @@ function MadeForMoments({ z }: { z: number }) {
         />
       </group>
 
-      {[-2.1, -1.55, 2.0, 2.6].map((x, i) => (
-        <group key={x} position={[x, -1.2, -3.6 - (i % 2) * 0.9]}>
-          <mesh material={MAT.blossom}>
-            <cylinderGeometry args={[0.07, 0.08, 0.55 + (i % 3) * 0.15, 12]} />
-          </mesh>
-          <mesh position={[0, 0.36 + (i % 3) * 0.075, 0]} material={MAT.glow}>
-            <sphereGeometry args={[0.05, 8, 6]} />
-          </mesh>
-        </group>
-      ))}
+      {/* Candles. They stood at four unrelated x positions, all pinned to
+          y = -1.2 while their heights ran 0.55 to 0.85 — so the tall ones sank
+          through the floor at -1.5 and the short ones hovered above it. Now
+          two matched pairs flanking the portrait, each graded tall-then-short
+          and seated on the floor by its own height. */}
+      {[-1, 1].map((s) =>
+        [0, 1].map((i) => {
+          const h = 0.8 - i * 0.22;
+          return (
+            <group
+              key={`${s}:${i}`}
+              position={[s * (2.0 + i * 0.42), -1.5 + h / 2, -3.45 - i * 0.35]}
+            >
+              <mesh material={MAT.blossom}>
+                <cylinderGeometry args={[0.07, 0.08, h, 12]} />
+              </mesh>
+              <mesh position={[0, h / 2 + 0.06, 0]} material={MAT.glow}>
+                <sphereGeometry args={[0.05, 8, 6]} />
+              </mesh>
+            </group>
+          );
+        })
+      )}
 
       <group ref={bokehRef}>
         {bokeh.map((b, i) => (

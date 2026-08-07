@@ -3,20 +3,12 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { quality } from "./quality";
+import { ANATOMY, CUT_Y, TORSO_PROFILE } from "./mannequin-anatomy";
+import Jewellery, { setJewelleryOpacity } from "./Jewellery";
 
 const Q = quality();
 
-const ANATOMY = {
-  head: { center: [0, 1.42, 0] as const, radii: [0.36, 0.45, 0.39] as const },
-  nose: [0, 1.38, 0.385] as const,
-  ears: {
-    left: [-0.365, 1.4, 0.01] as const,
-    right: [0.365, 1.4, 0.01] as const,
-  },
-} as const;
-
-/** Where the torso is cut off, and the collar it stands on. */
-const CUT_Y = -0.28;
+/** The collar the cut torso stands on. */
 const COLLAR_H = 0.05;
 
 /**
@@ -25,19 +17,6 @@ const COLLAR_H = 0.05;
  * callers place this against whatever surface it stands on.
  */
 export const MANNEQUIN_BASE_Y = CUT_Y - COLLAR_H;
-
-const TORSO_PROFILE: ReadonlyArray<readonly [number, number]> = [
-  [0, CUT_Y],
-  [0.47, CUT_Y],
-  [0.57, -0.02],
-  [0.585, 0.16],
-  [0.52, 0.3],
-  [0.36, 0.42],
-  [0.2, 0.55],
-  [0.155, 0.68],
-  [0.14, 0.85],
-  [0.135, 1.05],
-];
 
 // Transparent from the start, never toggled. Flipping `transparent` at runtime
 // swaps the shader program, which three ignores unless you also set
@@ -69,6 +48,9 @@ const PEDESTAL = new THREE.MeshStandardMaterial({
 export function setMannequinOpacity(o: number) {
   LACQUER.opacity = o;
   PEDESTAL.opacity = o;
+  // The jewellery has to go with the figure, or gold is left hanging in the
+  // air over the fountain.
+  setJewelleryOpacity(o);
   return o > 0.01;
 }
 
@@ -119,6 +101,10 @@ export default function Mannequin() {
       <mesh position={[0, CUT_Y - COLLAR_H / 2, 0]} material={PEDESTAL} castShadow>
         <cylinderGeometry args={[0.5, 0.5, COLLAR_H, radial]} />
       </mesh>
+
+      {/* What the bust is there to show. Landmarks come from the shared
+          ANATOMY table, so the pieces track the figure's proportions. */}
+      <Jewellery />
     </group>
   );
 }
