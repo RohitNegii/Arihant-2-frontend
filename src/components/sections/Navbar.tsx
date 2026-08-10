@@ -70,13 +70,19 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top)] transition-all duration-300">
       <motion.nav
         aria-label="Main"
-        initial={prefersReducedMotion ? false : { y: -100, opacity: 0 }}
+        // `initial` must not depend on prefersReducedMotion: the hook reports
+        // false during SSR and true on a reduced-motion client, so the server
+        // sent opacity 0 / translateY(-100px) while the client wanted the
+        // settled values — a hydration mismatch for exactly the users least
+        // able to tolerate a repaint. The preference is honoured by collapsing
+        // the duration instead, which lands on the same frame.
+        initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.8, ease: "easeOut" }}
         className={`w-full transition-all duration-500 ${
           isScrolled
-            ? "py-3 bg-[#FAF7F2]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(15,76,58,0.04)]"
-            : "py-5 bg-[#FAF7F2]/20 backdrop-blur-md border-b border-verdant-gold/5"
+            ? "py-3 bg-[var(--color-background)]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(var(--color-primary-rgb),0.04)]"
+            : "py-5 bg-[var(--color-background)]/20 backdrop-blur-md border-b border-verdant-gold/5"
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
@@ -148,7 +154,7 @@ export default function Navbar() {
             {user && (
               <button
                 onClick={() => setCartOpen(true)}
-                className="hover-target relative w-10 h-10 rounded-full border border-verdant-emerald/10 bg-[#FAF7F2]/40 hover:bg-white flex items-center justify-center text-verdant-emerald hover:text-verdant-gold hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+                className="hover-target relative w-10 h-10 rounded-full border border-verdant-emerald/10 bg-[var(--color-background)]/40 hover:bg-white flex items-center justify-center text-verdant-emerald hover:text-verdant-gold hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
                 aria-label="Shopping Bag"
               >
                 <ShoppingBag className="w-4 h-4" />
@@ -156,7 +162,7 @@ export default function Navbar() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 bg-verdant-gold text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#FAF7F2]"
+                    className="absolute -top-1 -right-1 bg-verdant-gold text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--color-background)]"
                   >
                     {cartCount}
                   </motion.span>
@@ -198,7 +204,7 @@ export default function Navbar() {
               >
                 <ShoppingBag className="w-4 h-4" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-verdant-gold text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#FAF7F2]">
+                  <span className="absolute -top-1 -right-1 bg-verdant-gold text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--color-background)]">
                     {cartCount}
                   </span>
                 )}
@@ -241,7 +247,7 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
-              className="fixed inset-y-0 right-0 w-full max-w-xs z-50 bg-[#FAF7F2] shadow-2xl border-l border-verdant-emerald/10 flex flex-col p-8 select-none md:hidden text-left overflow-y-auto"
+              className="fixed inset-y-0 right-0 w-full max-w-xs z-50 bg-[var(--color-background)] shadow-2xl border-l border-verdant-emerald/10 flex flex-col p-8 select-none md:hidden text-left overflow-y-auto"
               data-lenis-prevent
             >
               {/* Drawer Header */}
@@ -334,7 +340,7 @@ export default function Navbar() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="w-full max-w-4xl rounded-3xl border border-verdant-emerald/10 bg-[#FAF7F2] shadow-[0_32px_80px_rgba(15,76,58,0.15)] relative overflow-hidden text-left text-verdant-emerald max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-4xl rounded-3xl border border-verdant-emerald/10 bg-[var(--color-background)] shadow-[0_32px_80px_rgba(var(--color-primary-rgb),0.15)] relative overflow-hidden text-left text-verdant-emerald max-h-[90vh] overflow-y-auto"
               data-lenis-prevent
             >
               <div className="grid grid-cols-1 md:grid-cols-12">

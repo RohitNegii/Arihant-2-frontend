@@ -5,15 +5,23 @@
   --font-primary: var(--font-sans);
   --font-secondary: var(--font-serif);
 
-  /* Colors */
-  --color-primary: #0F4C3A;
-  --color-primary-rgb: 15, 76, 58;
+  /*
+   * Colours are NOT defined here. `src/theme/palette.ts` is the single source
+   * of truth for both the 3D scene and these tokens, and the layout emits the
+   * active palette as a `:root` block ahead of this file — see paletteCss().
+   * The values below are only a fallback for the case where that block is
+   * missing; edit the palette module, not these.
+   */
+  --color-primary: #351E28;
+  --color-primary-rgb: 53, 30, 40;
   --color-secondary: #C8A96A;
   --color-secondary-rgb: 200, 169, 106;
-  --color-background: #FAF7F2;
-  --color-background-rgb: 250, 247, 242;
-  --color-accent: #5D7A68;
-  --color-accent-rgb: 93, 122, 104;
+  --color-background: #F7F2EE;
+  --color-background-rgb: 247, 242, 238;
+  --color-accent: #7A5D68;
+  --color-accent-rgb: 122, 93, 104;
+  --color-shell: #E7DCD2;
+  --color-shell-rgb: 231, 220, 210;
 
   --background: var(--color-background);
   --foreground: var(--color-primary);

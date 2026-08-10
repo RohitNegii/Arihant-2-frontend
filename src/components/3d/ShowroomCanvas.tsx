@@ -8,6 +8,7 @@ import * as THREE from "three";
 import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
 import { isTouchDevice, quality } from "./quality";
 import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
+import { palette } from "@/theme/palette";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
 // story journey. Commented out while we build out the story rooms one by one;
 // re-enable the mounts below and this import together to bring it back.
@@ -26,6 +27,7 @@ import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 // } from "./RoomComponents";
 
 const Q = quality();
+const P = palette();
 const TOUCH = isTouchDevice();
 const MOBILE_PITCH = -0.085;
 
@@ -74,7 +76,7 @@ export default function ShowroomCanvas() {
   useEffect(() => onSceneReady(() => setShown(true)), []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[#E3D9C6]">
+    <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[var(--color-shell)]">
       <Canvas
         style={{
           opacity: shown ? 1 : 0,
@@ -92,7 +94,7 @@ export default function ShowroomCanvas() {
         <CameraController />
         <ReadySignal />
 
-        <fog attach="fog" args={["#E3D9C6", 8, Q.fogFar]} />
+        <fog attach="fog" args={[P.shell, 8, Q.fogFar]} />
 
         <Suspense fallback={null}>
           <ambientLight intensity={0.15} />
@@ -166,13 +168,13 @@ export default function ShowroomCanvas() {
               scale={12}
               size={1.8}
               speed={0.25}
-              color="#C8A96A"
+              color={P.gold}
               opacity={0.35}
             />
           )}
 
           <Environment resolution={Q.envResolution} frames={1}>
-            <color attach="background" args={["#E9DFCB"]} />
+            <color attach="background" args={[P.shellDeep]} />
             <Lightformer
               form="rect"
               intensity={2.6}

@@ -5,8 +5,10 @@ import * as THREE from "three";
 import { quality } from "./quality";
 import { ANATOMY, CUT_Y, TORSO_PROFILE } from "./mannequin-anatomy";
 import Jewellery, { setJewelleryOpacity } from "./Jewellery";
+import { palette } from "@/theme/palette";
 
 const Q = quality();
+const P = palette();
 
 /** The collar the cut torso stands on. */
 const COLLAR_H = 0.05;
@@ -32,7 +34,7 @@ const LACQUER = new THREE.MeshPhysicalMaterial({
 });
 
 const PEDESTAL = new THREE.MeshStandardMaterial({
-  color: "#a8905e",
+  color: P.goldSoft,
   metalness: 1,
   roughness: 0.28,
   envMapIntensity: 1.2,

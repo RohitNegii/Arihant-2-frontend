@@ -5,8 +5,10 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { ANATOMY, torsoRadiusAt } from "./mannequin-anatomy";
 import { quality } from "./quality";
+import { palette } from "@/theme/palette";
 
 const Q = quality();
+const P = palette();
 
 /**
  * Transparent from the start, like the bust's lacquer. The figure fades as the
@@ -16,7 +18,7 @@ const Q = quality();
  * hitch mid-scroll.
  */
 const GOLD = new THREE.MeshStandardMaterial({
-  color: "#c9a35c",
+  color: P.gold,
   metalness: 1,
   roughness: 0.18,
   envMapIntensity: 1.5,
@@ -24,7 +26,7 @@ const GOLD = new THREE.MeshStandardMaterial({
 });
 
 const GEM = new THREE.MeshStandardMaterial({
-  color: "#0f5c43",
+  color: P.gem,
   metalness: 0.15,
   roughness: 0.12,
   envMapIntensity: 1.4,

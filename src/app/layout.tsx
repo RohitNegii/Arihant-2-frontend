@@ -5,6 +5,8 @@ import SmoothScroll from "@/components/SmoothScroll";
 import DevConsoleFilter from "@/components/DevConsoleFilter";
 import AuthInitializer from "@/components/AuthInitializer";
 import { Toaster } from "sonner";
+import { PALETTES, DEFAULT_THEME, paletteCss } from "@/theme/palette";
+import ThemeVars from "@/theme/ThemeVars";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#FAF7F2",
+  themeColor: PALETTES[DEFAULT_THEME].uiShell,
 };
 
 export default function RootLayout({
@@ -52,6 +54,11 @@ export default function RootLayout({
       className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans overflow-x-hidden`}
     >
       <body className="min-h-full flex flex-col bg-luxury-black text-white overflow-x-hidden">
+
+        <style href="palette" precedence="high">
+          {paletteCss()}
+        </style>
+        <ThemeVars />
         <DevConsoleFilter />
         <AuthInitializer />
         <Toaster position="top-right" richColors />

@@ -4,8 +4,10 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { brassMaps, paintedWoodMaps } from "./procedural-textures";
 import { quality } from "./quality";
+import { palette } from "@/theme/palette";
 
 const DETAIL = quality().doorDetail;
+const P = palette();
 
 export const DOOR_W = 1.78;
 export const DOOR_H = 4.0;
@@ -30,7 +32,7 @@ if (wood) {
 }
 
 export const DOOR_PAINT = new THREE.MeshPhysicalMaterial({
-  color: "#0A2A1E",
+  color: P.door,
   roughness: 0.85,
   metalness: 0,
   clearcoat: 0,
@@ -40,7 +42,7 @@ export const DOOR_PAINT = new THREE.MeshPhysicalMaterial({
 });
 
 export const DOOR_PAINT_PANEL = new THREE.MeshPhysicalMaterial({
-  color: "#082217",
+  color: P.doorPanel,
   roughness: 0.88,
   metalness: 0,
   clearcoat: 0,
@@ -50,7 +52,7 @@ export const DOOR_PAINT_PANEL = new THREE.MeshPhysicalMaterial({
 });
 
 export const BRASS = new THREE.MeshPhysicalMaterial({
-  color: "#C4A055",
+  color: P.gold,
   metalness: 1,
   roughness: 0.3,
   envMapIntensity: 1.5,

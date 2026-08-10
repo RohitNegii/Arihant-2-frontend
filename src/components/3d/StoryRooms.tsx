@@ -17,13 +17,15 @@ import {
   SLAB_TILE_D,
 } from "./procedural-textures";
 import { isTouchDevice, quality } from "./quality";
+import { palette } from "@/theme/palette";
 
 export const STORY_ROOM_Z = [72, 60, 48, 36, 24, 12] as const;
 
 export const GALLERY_FLOOR = [60, 300] as const;
 
-const GOLD = "#C8A96A";
-const EMERALD = "#0F4C3A";
+const P = palette();
+const GOLD = P.gold;
+const EMERALD = P.brand;
 
 const QUALITY = quality();
 const REFRACT = QUALITY.transmission;
@@ -74,7 +76,7 @@ export const MAT = {
     emissiveIntensity: 0.08,
   }),
   goldSoft: new THREE.MeshStandardMaterial({
-    color: "#B08F52",
+    color: P.goldSoft,
     metalness: 0.85,
     roughness: 0.42,
   }),
@@ -84,7 +86,7 @@ export const MAT = {
     clearcoat: 0.35,
     clearcoatRoughness: 0.45,
   }),
-  emeraldDeep: new THREE.MeshStandardMaterial({ color: "#0A2B21", roughness: 0.65 }),
+  emeraldDeep: new THREE.MeshStandardMaterial({ color: P.brandDeep, roughness: 0.65 }),
   /**
    * Gallery wall. The emerald surfaces were the only large planes in the app
    * with no maps at all — flat colour reads as paper next to the plaster the
@@ -92,30 +94,30 @@ export const MAT = {
    * rather than built.
    */
   emeraldWall: new THREE.MeshStandardMaterial({
-    color: "#14523E",
+    color: P.brandWall,
     roughness: 0.78,
     envMapIntensity: 0.5,
     ...plasterSurface(4, 0.75),
   }),
   velvet: new THREE.MeshPhysicalMaterial({
-    color: "#0D4433",
+    color: P.velvet,
     roughness: 0.95,
     sheen: 1,
-    sheenColor: new THREE.Color("#2F7A5C"),
+    sheenColor: new THREE.Color(P.velvetSheen),
   }),
   stone: new THREE.MeshStandardMaterial({
-    color: "#DCCFB6",
+    color: P.stone,
     roughness: 0.92,
     ...plasterSurface(2.5),
   }),
   stoneWarm: new THREE.MeshStandardMaterial({
-    color: "#C9B896",
+    color: P.stoneWarm,
     roughness: 0.98,
     envMapIntensity: 0.45,
     ...plasterSurface(3, 1.6),
   }),
   stoneHall: new THREE.MeshStandardMaterial({
-    color: "#BCA688",
+    color: P.stoneHall,
     roughness: 0.95,
     ...plasterSurface(3),
   }),
@@ -138,20 +140,20 @@ export const MAT = {
     ...stoneSlabSurface(4.0, 0.7),
   }),
   stoneShade: new THREE.MeshStandardMaterial({
-    color: "#6E5F49",
+    color: P.stoneShade,
     roughness: 1,
     envMapIntensity: 0.15,
   }),
   stoneVault: new THREE.MeshStandardMaterial({
-    color: "#A8936E",
+    color: P.stoneVault,
     roughness: 0.95,
     ...plasterSurface(3),
   }),
-  branch: new THREE.MeshStandardMaterial({ color: "#5A4A33", roughness: 0.9 }),
-  wood: new THREE.MeshStandardMaterial({ color: "#4A3222", roughness: 0.55 }),
-  woodDark: new THREE.MeshStandardMaterial({ color: "#2E2118", roughness: 0.68 }),
+  branch: new THREE.MeshStandardMaterial({ color: P.branch, roughness: 0.9 }),
+  wood: new THREE.MeshStandardMaterial({ color: P.wood, roughness: 0.55 }),
+  woodDark: new THREE.MeshStandardMaterial({ color: P.woodDark, roughness: 0.68 }),
   marble: new THREE.MeshPhysicalMaterial({
-    color: "#EFE8DD",
+    color: P.marble,
     roughness: 0.3,
     clearcoat: 0.15,
     clearcoatRoughness: 0.5,
@@ -165,7 +167,7 @@ export const MAT = {
     opacity: REFRACT ? 0.45 : 0.28,
   }),
   gemGreen: new THREE.MeshPhysicalMaterial({
-    color: "#15805C",
+    color: P.gem,
     transmission: REFRACT ? 0.92 : 0,
     transparent: !REFRACT,
     opacity: REFRACT ? 1 : 0.72,
@@ -173,11 +175,11 @@ export const MAT = {
     ior: 2.42,
     thickness: 0.35,
     flatShading: true,
-    emissive: new THREE.Color("#15805C"),
+    emissive: new THREE.Color(P.gem),
     emissiveIntensity: REFRACT ? 0.16 : 0.34,
   }),
   gemPearl: new THREE.MeshPhysicalMaterial({
-    color: "#F3E3C0",
+    color: P.gemPale,
     transmission: REFRACT ? 0.9 : 0,
     transparent: !REFRACT,
     opacity: REFRACT ? 1 : 0.75,
@@ -185,75 +187,75 @@ export const MAT = {
     ior: 2.2,
     thickness: 0.3,
     flatShading: true,
-    emissive: new THREE.Color("#B99A5E"),
+    emissive: new THREE.Color(P.gemPaleGlow),
     emissiveIntensity: REFRACT ? 0.14 : 0.3,
   }),
-  blossom: new THREE.MeshStandardMaterial({ color: "#F7F1E4", roughness: 0.6 }),
-  glow: new THREE.MeshBasicMaterial({ color: "#FFE6B8" }),
+  blossom: new THREE.MeshStandardMaterial({ color: P.blossom, roughness: 0.6 }),
+  glow: new THREE.MeshBasicMaterial({ color: P.glow }),
   glowSoft: new THREE.MeshBasicMaterial({
-    color: "#FFD79A",
+    color: P.glowSoft,
     transparent: true,
     opacity: 0.5,
     depthWrite: false,
   }),
   halo: new THREE.MeshBasicMaterial({
-    color: "#FFDFA8",
+    color: P.glowSoft,
     transparent: true,
     opacity: 0.1,
     depthWrite: false,
   }),
   lantern: new THREE.MeshPhysicalMaterial({
-    color: "#FFE9C4",
+    color: P.lantern,
     transmission: 0.85,
     roughness: 0.25,
     thickness: 0.2,
-    emissive: new THREE.Color("#FFCF8A"),
+    emissive: new THREE.Color(P.lanternGlow),
     emissiveIntensity: 0.9,
     transparent: true,
     opacity: 0.85,
   }),
   water: new THREE.MeshPhysicalMaterial({
-    color: "#8FC7B4",
+    color: P.water,
     roughness: 0.06,
     metalness: 0.1,
     transparent: true,
     opacity: 0.75,
   }),
   paper: new THREE.MeshStandardMaterial({
-    color: "#F4EEDF",
+    color: P.paper,
     roughness: 0.88,
     side: THREE.DoubleSide,
   }),
   silk: new THREE.MeshPhysicalMaterial({
-    color: "#F0E7D4",
+    color: P.silk,
     roughness: 0.55,
     sheen: 1,
-    sheenColor: new THREE.Color("#FFF3DC"),
+    sheenColor: new THREE.Color(P.lantern),
     side: THREE.DoubleSide,
   }),
   lampShade: new THREE.MeshStandardMaterial({
-    color: "#C9A567",
+    color: P.goldWarm,
     metalness: 0.75,
     roughness: 0.35,
     side: THREE.DoubleSide,
   }),
-  wax: new THREE.MeshStandardMaterial({ color: "#7B2C2C", roughness: 0.5 }),
+  wax: new THREE.MeshStandardMaterial({ color: P.leather, roughness: 0.5 }),
   planter: new THREE.MeshStandardMaterial({
-    color: "#CFC8BA",
+    color: P.planter,
     roughness: 0.95,
     metalness: 0.0,
     envMapIntensity: 0.4,
     ...plasterSurface(3.2, 0.8),
   }),
-  soil: new THREE.MeshStandardMaterial({ color: "#2A211A", roughness: 1 }),
+  soil: new THREE.MeshStandardMaterial({ color: P.soil, roughness: 1 }),
   vignette: new THREE.MeshBasicMaterial({
-    color: "#0A2B21",
+    color: P.brandDeep,
     transparent: true,
     opacity: 0.45,
     depthWrite: false,
   }),
   contact: new THREE.MeshBasicMaterial({
-    color: "#3D3020",
+    color: P.contactShadow,
     transparent: true,
     opacity: 0.5,
     depthWrite: false,
@@ -419,7 +421,7 @@ function makeLeafMaterial(color: string) {
   });
 }
 
-const LEAF_TINTS = ["#A8C495", "#7FA679", "#5C8460"].map((c) => new THREE.Color(c));
+const LEAF_TINTS = P.leaf.map((c) => new THREE.Color(c));
 const LEAF_MAT = makeLeafMaterial("#FFFFFF");
 
 export interface LeafInstance {
@@ -1107,7 +1109,7 @@ function GrandEntrance({ z }: { z: number }) {
             text="VIRAASAT"
             width={1.5}
             height={0.19}
-            color="#9DBBA6"
+            color={P.accent}
             fontScale={0.6}
             letterSpacing="0.5em"
             position={[0, -0.21, 0.04]}
@@ -1320,7 +1322,7 @@ function TheBeginning({ z }: { z: number }) {
             text="EST. 2020"
             width={0.85}
             height={0.16}
-            color="#9DBBA6"
+            color={P.accent}
             fontScale={0.62}
             letterSpacing="0.4em"
             position={[0, -0.26, 0.07]}
@@ -1631,7 +1633,7 @@ function TheCraft({ z }: { z: number }) {
             </mesh>
             <mesh ref={lampGlowRef} position={[0, -0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
               <circleGeometry args={[0.32, 20]} />
-              <meshBasicMaterial color="#FFE0A8" transparent opacity={0.8} />
+              <meshBasicMaterial color={P.glow} transparent opacity={0.8} />
             </mesh>
           </group>
         </group>
@@ -1927,7 +1929,7 @@ function MadeForMoments({ z }: { z: number }) {
           <mesh key={i} position={b.p}>
             <sphereGeometry args={[b.s, 10, 8]} />
             <meshBasicMaterial
-              color="#FFD79A"
+              color={P.glowSoft}
               transparent
               opacity={b.o}
               depthWrite={false}

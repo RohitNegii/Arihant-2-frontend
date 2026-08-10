@@ -90,7 +90,7 @@ export default function LoadingScreen() {
               </div>
               <div className="w-full h-[1px] bg-verdant-emerald/10 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-verdant-gold shadow-[0_0_8px_#C8A96A] transition-[width] duration-300"
+                  className="h-full bg-verdant-gold shadow-[0_0_8px_var(--color-secondary)] transition-[width] duration-300"
                   style={{ width: `${progress}%` }}
                   transition={{ ease: "easeInOut" }}
                 />

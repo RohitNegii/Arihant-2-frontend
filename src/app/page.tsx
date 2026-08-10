@@ -93,10 +93,10 @@ function CategoryFinale() {
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-20 flex justify-center px-4 pointer-events-none"
     >
-      <div className="glass-effect-gold pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[#FAF4E6]/90 to-[#F1E6CC]/80 shadow-[0_8px_40px_rgba(200,169,106,0.22)] p-6 sm:p-8 md:p-10 text-center">
+      <div className="glass-effect-gold pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[var(--color-background)]/90 to-[var(--color-background)]/70 shadow-[0_8px_40px_rgba(200,169,106,0.22)] p-6 sm:p-8 md:p-10 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-4">
           <Sparkles className="w-2.5 h-2.5 text-verdant-gold" />
-          <span className="text-[9px] tracking-[0.25em] uppercase text-[#5D7A68] font-semibold">
+          <span className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-accent)] font-semibold">
             The Collection
           </span>
         </div>
@@ -331,7 +331,7 @@ export default function Home() {
             <button className="gold-gradient-bg text-black px-8 py-3.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2 shadow-lg">
               Explore Collection <ArrowRight className="w-3.5 h-3.5" />
             </button>
-            <button className="glass-effect hover:bg-white/5 border border-verdant-emerald/20 text-[#5D7A68] px-8 py-3.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2">
+            <button className="glass-effect hover:bg-white/5 border border-verdant-emerald/20 text-[var(--color-accent)] px-8 py-3.5 rounded-full text-[10px] tracking-widest uppercase font-bold flex items-center justify-center gap-2">
               Book Appointment <Calendar className="w-3.5 h-3.5 text-verdant-gold" />
             </button>
           </div>
@@ -345,7 +345,7 @@ export default function Home() {
   const inStory = activeZone < STORY_ZONES;
 
   return (
-    <div className="relative min-h-[700vh] bg-[#E3D9C6] overflow-x-hidden select-none">
+    <div className="relative min-h-[700vh] bg-[var(--color-shell)] overflow-x-hidden select-none">
       <LoadingScreen />
       <MouseFollower />
       <Navbar />
@@ -366,7 +366,7 @@ export default function Home() {
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, x: 30, filter: "blur(8px)" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="glass-effect-gold p-5 sm:p-8 md:p-10 rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[#FAF4E6]/85 to-[#F1E6CC]/75 shadow-[0_8px_40px_rgba(200,169,106,0.18)] text-left"
+            className="glass-effect-gold p-5 sm:p-8 md:p-10 rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[var(--color-background)]/85 to-[var(--color-background)]/70 shadow-[0_8px_40px_rgba(200,169,106,0.18)] text-left"
           >
             {currentZone.chapter ? (
               <div className="flex items-center gap-3 mb-3">
@@ -378,7 +378,7 @@ export default function Home() {
             ) : (
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-4">
                 <span className="w-1.5 h-1.5 rounded-full bg-verdant-gold animate-pulse" />
-                <span className="text-[9px] tracking-[0.25em] uppercase text-[#5D7A68] font-semibold">
+                <span className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-accent)] font-semibold">
                   {currentZone.title}
                 </span>
               </div>
@@ -499,10 +499,10 @@ export default function Home() {
 
       <div className="fixed left-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-8 md:left-8 z-10 flex items-center gap-3 md:gap-4 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/70">
         <span className="hidden sm:inline">Exhibition Progress</span>
-        <div className="w-20 md:w-32 h-px bg-[#5D7A68]/10 rounded-full overflow-hidden">
+        <div className="w-20 md:w-32 h-px bg-[var(--color-accent)]/10 rounded-full overflow-hidden">
           <div
             ref={progressBarRef}
-            className="h-full bg-verdant-gold shadow-[0_0_8px_#C8A96A]"
+            className="h-full bg-verdant-gold shadow-[0_0_8px_var(--color-secondary)]"
             style={{ width: "0%" }}
           />
         </div>
