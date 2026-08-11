@@ -24,6 +24,13 @@ export interface Palette {
   gold: string;
   goldSoft: string;
   goldWarm: string;
+  /**
+   * Lettering on dark signage. Brighter than `gold` on purpose: sign text is
+   * drawn unlit, and the boards it sits on are read from across a room, by
+   * which point fog has blended most of the way to `shell` — the board cannot
+   * get darker than the fog, so legibility has to come from the letters.
+   */
+  signText: string;
 
   /** Architecture: plaster and cut stone, light to dark. */
   stone: string;
@@ -97,6 +104,7 @@ const verdant: Palette = {
   gold: "#C8A96A",
   goldSoft: "#B08F52",
   goldWarm: "#C9A567",
+  signText: "#F2DCA4",
 
   stone: "#DCCFB6",
   stoneWarm: "#C9B896",
@@ -160,6 +168,7 @@ const cassis: Palette = {
   gold: "#C8A96A",
   goldSoft: "#A98B55",
   goldWarm: "#C09A5E",
+  signText: "#F6DFA8",
 
   stone: "#DCCCC1",
   stoneWarm: "#C9B3A5",

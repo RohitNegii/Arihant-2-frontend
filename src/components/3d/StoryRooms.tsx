@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTexture } from "@react-three/drei";
+import { WALL_PICTURES } from "@/content/gallery";
 import { JEWELRY_IMAGES } from "@/content/jewelry";
 import { LuxuryRing } from "./RoomComponents";
 import DoorLeaf from "./EntranceDoor";
@@ -284,6 +285,8 @@ function TextPlane({
   color = GOLD,
   fontScale = 0.52,
   letterSpacing = "0.22em",
+  /** Real weight, not a synthesised one — layout.tsx loads Cormorant 300–700. */
+  weight = "400",
   position,
   rotation,
 }: {
@@ -293,6 +296,7 @@ function TextPlane({
   color?: string;
   fontScale?: number;
   letterSpacing?: string;
+  weight?: string;
   position?: [number, number, number];
   rotation?: [number, number, number];
 }) {
@@ -328,7 +332,7 @@ function TextPlane({
       // Both terms scale linearly with font size, so one pass lands exactly.
       const inset = W * 0.94;
       let size = Math.round(H * fontScale);
-      ctx.font = `${size}px ${serif}, serif`;
+      ctx.font = `${weight} ${size}px ${serif}, serif`;
 
       const em = /^([\d.]+)em$/.exec(letterSpacing);
       const px = /^([\d.]+)px$/.exec(letterSpacing);
@@ -341,7 +345,7 @@ function TextPlane({
 
       if (drawn > inset) {
         size = Math.max(8, Math.floor((size * inset) / drawn));
-        ctx.font = `${size}px ${serif}, serif`;
+        ctx.font = `${weight} ${size}px ${serif}, serif`;
       }
 
       ctx.fillText(text, W / 2, H / 2);
@@ -356,7 +360,7 @@ function TextPlane({
       tex.needsUpdate = true;
     });
     return tex;
-  }, [text, width, height, color, fontScale, letterSpacing]);
+  }, [text, width, height, color, fontScale, letterSpacing, weight]);
 
   useEffect(() => () => texture.dispose(), [texture]);
 
@@ -429,12 +433,23 @@ export interface LeafInstance {
   rot: [number, number, number];
   s: number;
   tint: number;
+  /**
+   * Optional orientation, used in preference to `rot`. Aiming a leaf along a
+   * branch is a "rotate this axis onto that one" problem, which is a
+   * quaternion; expressing it as an Euler triple means picking apart the
+   * rotation order by hand for no gain.
+   */
+  q?: THREE.Quaternion;
 }
 
 interface StemInstance {
   p: [number, number, number];
   rot: [number, number, number];
   len: number;
+  /** As above — a twig segment points wherever the branch is going. */
+  q?: THREE.Quaternion;
+  /** Cross-section multiplier, so a branch can taper along its length. */
+  w?: number;
 }
 
 const _m = new THREE.Matrix4();
@@ -457,8 +472,12 @@ function LeafCloud({
     if (!mesh) return;
     for (let i = 0; i < leaves.length; i++) {
       const leaf = leaves[i];
-      _e.set(leaf.rot[0], leaf.rot[1], leaf.rot[2]);
-      _q.setFromEuler(_e);
+      if (leaf.q) {
+        _q.copy(leaf.q);
+      } else {
+        _e.set(leaf.rot[0], leaf.rot[1], leaf.rot[2]);
+        _q.setFromEuler(_e);
+      }
       _v.set(leaf.p[0], leaf.p[1], leaf.p[2]);
       _s.setScalar(leaf.s);
       mesh.setMatrixAt(i, _m.compose(_v, _q, _s));
@@ -495,10 +514,14 @@ function Stems({
     if (!mesh) return;
     for (let i = 0; i < stems.length; i++) {
       const stem = stems[i];
-      _e.set(stem.rot[0], stem.rot[1], stem.rot[2]);
-      _q.setFromEuler(_e);
+      if (stem.q) {
+        _q.copy(stem.q);
+      } else {
+        _e.set(stem.rot[0], stem.rot[1], stem.rot[2]);
+        _q.setFromEuler(_e);
+      }
       _v.set(stem.p[0], stem.p[1], stem.p[2]);
-      _s.set(1, stem.len, 1);
+      _s.set(stem.w ?? 1, stem.len, stem.w ?? 1);
       mesh.setMatrixAt(i, _m.compose(_v, _q, _s));
     }
     mesh.instanceMatrix.needsUpdate = true;
@@ -651,6 +674,21 @@ function Vine({
   );
 }
 
+const BUSH_TWIG_GEO = new THREE.CylinderGeometry(0.004, 0.009, 1, 5);
+const UP = new THREE.Vector3(0, 1, 0);
+const LEAF_LEN = 0.25; // LEAF_GEO is a 0.15 x 0.25 plane, pivoted at its centre
+
+/**
+ * A potted bush, grown outwards along visible branches.
+ *
+ * It used to be a cloud: leaves scattered into four overlapping spheres. That
+ * reads fine where the canopy is dense, but any leaf that lands on its own at
+ * the edge has nothing holding it up, and at these foliage counts several
+ * always do — the "floating leaves" beside the entrance urns. Here every leaf
+ * is pinned to a branch, offset by half its own length so its stalk meets the
+ * twig, which makes an outlying leaf read as the end of a bough instead of a
+ * sprite hanging in mid-air.
+ */
 function RealisticBush({
   position,
   radius = 0.55,
@@ -664,68 +702,138 @@ function RealisticBush({
   seed?: number;
   scale?: number;
 }) {
-  const leaves = useMemo(() => {
+  const { leaves, twigs } = useMemo(() => {
     const r = rng(seed);
-    const out: LeafInstance[] = [];
-    const n = Math.max(8, Math.round(count * quality().foliage));
-
+    const foliage = quality().foliage;
+    const n = Math.max(8, Math.round(count * foliage));
+    const branchCount = Math.max(4, Math.round(6 * foliage));
     const HEIGHT = radius * 1.35;
-    const envelope = (y: number) => {
-      const t = THREE.MathUtils.clamp(y / HEIGHT, 0, 1);
-      return radius * (0.62 + 0.38 * Math.sin(t * Math.PI)) * (1 - 0.45 * t * t);
+
+    // Each branch is a quadratic curve: up out of the soil, then bending
+    // outward, so the canopy spreads without the stem leaving the pot.
+    const branches = Array.from({ length: branchCount }, (_, i) => {
+      const ang = ((i + 0.5) / branchCount) * Math.PI * 2 + (r() - 0.5) * 0.5;
+      const hFrac = 0.55 + r() * 0.45;
+      const top = HEIGHT * hFrac;
+      // Low branches stay tucked in; only the tall ones reach out past the rim.
+      const reach = radius * (0.2 + 0.52 * hFrac) * (0.75 + r() * 0.35);
+      const dirX = Math.sin(ang);
+      const dirZ = Math.cos(ang);
+
+      const a = new THREE.Vector3(dirX * radius * 0.12, -0.04, dirZ * radius * 0.12);
+      const c = new THREE.Vector3(dirX * reach, top, dirZ * reach);
+      // Control point above the midpoint and pulled inward: the branch leaves
+      // the soil steeply and only opens out near the tip.
+      const b = new THREE.Vector3()
+        .addVectors(a, c)
+        .multiplyScalar(0.5)
+        .setY(top * 0.72)
+        .addScaledVector(new THREE.Vector3(dirX, 0, dirZ), -reach * 0.3);
+      return { a, b, c };
+    });
+
+    const at = (br: (typeof branches)[number], t: number, out: THREE.Vector3) => {
+      const u = 1 - t;
+      return out.set(
+        u * u * br.a.x + 2 * u * t * br.b.x + t * t * br.c.x,
+        u * u * br.a.y + 2 * u * t * br.b.y + t * t * br.c.y,
+        u * u * br.a.z + 2 * u * t * br.b.z + t * t * br.c.z
+      );
     };
 
-    const numClusters = 4;
-    const clusters = [];
-    for (let c = 0; c < numClusters; c++) {
-      clusters.push({
-        cx: (r() - 0.5) * radius * 0.36,
-        cy: radius * (0.12 + r() * 0.62),
-        cz: (r() - 0.5) * radius * 0.36,
-        cr: radius * (0.34 + r() * 0.3),
-      });
+    // Twigs: three straight segments per branch approximate the curve well
+    // enough at this scale, and the whole set is one instanced draw call. They
+    // stop short of the tip so no bare stick pokes out of the canopy.
+    const SEG = 3;
+    const TWIG_END = 0.88;
+    const twigList: StemInstance[] = [];
+    const p0 = new THREE.Vector3();
+    const p1 = new THREE.Vector3();
+    const mid = new THREE.Vector3();
+    const dir = new THREE.Vector3();
+    for (const br of branches) {
+      for (let s = 0; s < SEG; s++) {
+        at(br, (s / SEG) * TWIG_END, p0);
+        at(br, ((s + 1) / SEG) * TWIG_END, p1);
+        mid.addVectors(p0, p1).multiplyScalar(0.5);
+        dir.subVectors(p1, p0);
+        const len = dir.length();
+        dir.divideScalar(len);
+        twigList.push({
+          p: [mid.x, mid.y, mid.z],
+          rot: [0, 0, 0],
+          q: new THREE.Quaternion().setFromUnitVectors(UP, dir),
+          len,
+          w: 1 - 0.4 * (s / SEG),
+        });
+      }
     }
 
+    // Leaves, dealt round-robin so no branch ends up bare.
+    const pos = new THREE.Vector3();
+    const ahead = new THREE.Vector3();
+    const tan = new THREE.Vector3();
+    const side = new THREE.Vector3();
+    const out = new THREE.Vector3();
+    const grow = new THREE.Vector3();
+    const roll = new THREE.Quaternion();
+    const leafList: LeafInstance[] = [];
+
     for (let i = 0; i < n; i++) {
-      const cluster = clusters[Math.floor(r() * numClusters)];
+      const br = branches[i % branchCount];
+      // Nothing below t=0.22 — under that the branch is inside the pot — and
+      // the square root biases the rest toward the tip, where a shrub actually
+      // carries its leaves. The first pass round the branches is pinned to the
+      // very end so each one finishes in a rosette rather than a bare point.
+      // The low tier is what sets the floor here: at foliage 0.35 there are
+      // only about eleven leaves per branch, so starting them any higher
+      // leaves a stand of bare stems showing above the rim.
+      const t = i < branchCount ? 0.97 : 0.22 + Math.sqrt(r()) * 0.78;
+      at(br, t, pos);
+      at(br, Math.min(1, t + 0.05), ahead);
+      tan.subVectors(ahead, pos).normalize();
+      if (tan.lengthSq() < 1e-6) tan.copy(UP);
 
-      const phi = Math.acos(1 - r());
-      const theta = r() * Math.PI * 2;
-      const rr = cluster.cr * (0.3 + r() * 0.7);
+      side.crossVectors(tan, UP).normalize();
+      if (side.lengthSq() < 1e-6) side.set(1, 0, 0);
+      out.crossVectors(side, tan).normalize();
 
-      let x = cluster.cx + Math.sin(phi) * Math.cos(theta) * rr;
-      const y = cluster.cy + Math.cos(phi) * rr;
-      let z = cluster.cz + Math.sin(phi) * Math.sin(theta) * rr;
+      const spin = r() * Math.PI * 2;
+      grow
+        .copy(side)
+        .multiplyScalar(Math.cos(spin))
+        .addScaledVector(out, Math.sin(spin))
+        .multiplyScalar(0.9)
+        .addScaledVector(tan, 0.4)
+        .addScaledVector(UP, -0.15) // a little droop
+        .normalize();
 
-      const h = Math.hypot(x, z);
-      const maxH = envelope(y);
-      if (h > maxH) {
-        const k = maxH / h;
-        x *= k;
-        z *= k;
-      }
+      const s = 0.72 + r() * 0.5;
+      const stalk = LEAF_LEN * s * 0.44;
 
-      const dx = x - cluster.cx;
-      const dy = y - cluster.cy + 0.15;
-      const dz = z - cluster.cz;
+      const q = new THREE.Quaternion().setFromUnitVectors(UP, grow);
+      roll.setFromAxisAngle(grow, r() * Math.PI * 2);
+      q.premultiply(roll);
 
-      out.push({
-        p: [x, y, z],
-        rot: [
-          Math.atan2(Math.sqrt(dx * dx + dz * dz), dy) + (r() - 0.5) * 0.8,
-          Math.atan2(dx, dz) + (r() - 0.5) * 0.8,
-          (r() - 0.5) * 1.5,
+      leafList.push({
+        p: [
+          pos.x + grow.x * stalk,
+          pos.y + grow.y * stalk,
+          pos.z + grow.z * stalk,
         ],
-        s: 0.7 + r() * 0.6,
+        rot: [0, 0, 0],
+        q,
+        s,
         tint: Math.floor(r() * LEAF_TINTS.length),
       });
     }
 
-    return out;
+    return { leaves: leafList, twigs: twigList };
   }, [radius, count, seed]);
 
   return (
     <group position={position} scale={scale}>
+      <Stems stems={twigs} geometry={BUSH_TWIG_GEO} />
       <LeafCloud leaves={leaves} castShadow />
     </group>
   );
@@ -1101,18 +1209,39 @@ function GrandEntrance({ z }: { z: number }) {
               <cylinderGeometry args={[0.012, 0.012, 1.5, 6]} />
             </mesh>
           ))}
-          <mesh material={MAT.emerald}>
+          {/* The house sign, read from the doorway eighteen units back through
+              fog — so every bit of contrast it starts with matters.
+
+              It was MAT.emerald: a clearcoat lacquer, which put a specular
+              hotspot dead centre behind the lettering and lifted the ground to
+              nearly the luminance of the gold on it. Matte and dark instead.
+              The second line was P.accent, a muted mauve on plum, which was
+              the least legible thing in the scene; it is gold like the first,
+              held back by size rather than by colour. */}
+          <mesh position={[0, 0, -0.01]} material={MAT.gold}>
+            <boxGeometry args={[2.78, 0.98, 0.05]} />
+          </mesh>
+          <mesh material={MAT.emeraldDeep}>
             <boxGeometry args={[2.7, 0.9, 0.07]} />
           </mesh>
-          <TextPlane text="GEETEJ" width={2.1} height={0.4} position={[0, 0.11, 0.04]} />
+          <TextPlane
+            text="GEETEJ"
+            width={2.24}
+            height={0.44}
+            fontScale={0.62}
+            color={P.signText}
+            weight="700"
+            position={[0, 0.13, 0.045]}
+          />
           <TextPlane
             text="VIRAASAT"
-            width={1.5}
-            height={0.19}
-            color={P.accent}
-            fontScale={0.6}
+            width={1.62}
+            height={0.22}
+            fontScale={0.66}
             letterSpacing="0.5em"
-            position={[0, -0.21, 0.04]}
+            color={P.signText}
+            weight="600"
+            position={[0, -0.22, 0.045]}
           />
         </group>
 
@@ -1312,17 +1441,23 @@ function TheBeginning({ z }: { z: number }) {
           <mesh position={[0, 0, 0.05]} material={MAT.emeraldDeep}>
             <boxGeometry args={[1.9, 1.16, 0.02]} />
           </mesh>
+          {/* Same lettering treatment as the hanging sign in the hall — it is
+              the same mark, and one of the two washing out while the other
+              held would read as a mistake. EST. 2020 was P.accent, the mauve
+              that made the hall sign's second line unreadable. */}
           <TextPlane
             text="GEETEJ VIRAASAT"
             width={1.72}
             height={0.3}
+            color={P.signText}
+            weight="700"
             position={[0, 0.06, 0.07]}
           />
           <TextPlane
             text="EST. 2020"
             width={0.85}
             height={0.16}
-            color={P.accent}
+            color={GOLD}
             fontScale={0.62}
             letterSpacing="0.4em"
             position={[0, -0.26, 0.07]}
@@ -1370,6 +1505,37 @@ const BENCH_TRIM = QUALITY.doorDetail;
  * the front row the camera reads across. Three columns keep the left and
  * right groups balanced either side of the mat.
  */
+/**
+ * A lidded brass canister, pivoted at its base so it can just be dropped on a
+ * shelf height. One lathe shared by all three sizes on the tool ledge: they
+ * were three unrelated silhouettes before — a cone, a box and a stub — which
+ * is what made the shelf read as leftovers rather than a set.
+ */
+const CANISTER_GEO = (() => {
+  const pts: THREE.Vector2[] = [];
+  const at = (x: number, y: number) => pts.push(new THREE.Vector2(x, y));
+  // Doubled at the corners: the lathe averages normals along the profile, so a
+  // single point at a hard edge rounds it off. Same trick as Urn.
+  const corner = (x: number, y: number) => {
+    at(x, y);
+    at(x, y);
+  };
+
+  at(0, 0);
+  corner(0.1, 0);
+  corner(0.105, 0.022);
+  corner(0.105, 0.162);
+  corner(0.116, 0.176);
+  corner(0.116, 0.206);
+  at(0.092, 0.228);
+  at(0.048, 0.248);
+  corner(0.026, 0.262);
+  corner(0.026, 0.286);
+  corner(0.05, 0.296);
+  at(0, 0.31);
+  return new THREE.LatheGeometry(pts, 16);
+})();
+
 const BENCH = {
   /** Top surface, and the ledge shelf on its brackets above it. */
   topY: -0.2,
@@ -1472,13 +1638,24 @@ function TheCraft({ z }: { z: number }) {
             <boxGeometry args={[4.16, 0.022, 0.022]} />
           </mesh>
         )}
-        {/* Ledge dressing. Two vessels adrift on a four-unit shelf read as
-            leftovers; spaced along it with a parts tray between them, the
-            ledge reads as where the bench keeps its things. Kept clear of
-            x < -1.0, which the drawing board stands in front of. */}
-        <mesh position={[0.62, 0.155, BENCH.ledgeZ]} material={MAT.goldSoft}>
-          <cylinderGeometry args={[0.11, 0.13, 0.19, 12]} />
-        </mesh>
+        {/* Ledge dressing. Kept clear of x < -1.0, which the drawing board
+            stands in front of. The three vessels are one canister at three
+            scales, stepping down as they run outward — a graded set reads as
+            equipment that belongs together, where three different silhouettes
+            read as things left lying about. */}
+        {[
+          [0.66, 1],
+          [1.05, 0.82],
+          [1.4, 0.66],
+        ].map(([cx, cs]) => (
+          <mesh
+            key={cx}
+            position={[cx, BENCH.ledgeY, BENCH.ledgeZ]}
+            scale={cs}
+            geometry={CANISTER_GEO}
+            material={MAT.goldSoft}
+          />
+        ))}
         {/* Brass, not woodDark: the ledge is silhouetted against the dark
             panel behind it, so a dark tray on it disappears. */}
         <mesh position={[0.05, 0.1, BENCH.ledgeZ]} material={MAT.goldSoft}>
@@ -1489,9 +1666,6 @@ function TheCraft({ z }: { z: number }) {
             <boxGeometry args={[0.34, 0.012, 0.18]} />
           </mesh>
         )}
-        <mesh position={[1.2, 0.125, BENCH.ledgeZ]} material={MAT.marble}>
-          <cylinderGeometry args={[0.085, 0.095, 0.13, 12]} />
-        </mesh>
 
         {/* Velvet working mat on a gold tray, on the bench's centre line: the
             one saturated patch on an otherwise brown bench, and what the eye
@@ -1599,46 +1773,108 @@ function TheCraft({ z }: { z: number }) {
             hanging off the bottom, which put the stem's end at y = -0.545 —
             a third of a unit below the tabletop. Upright on a short stem it
             both clears the surface and turns the lens to the camera. */}
-        <group position={[-2.05, 0.13, BENCH.standZ]} rotation={[0, 0.35, 0]}>
+        {/* ...but it still stood on a 0.17 stub that met the top at a point,
+            so the lens looked balanced rather than mounted. It now has the
+            weighted foot and full-length column a bench magnifier has, and it
+            has moved inboard from x = -2.05, where the ring overhung the
+            corner of the bench. */}
+        <group position={[-1.98, 0.1, BENCH.standZ]} rotation={[0, 0.35, 0]}>
           <mesh material={MAT.gold}>
             <torusGeometry args={[0.17, 0.022, 8, 24]} />
           </mesh>
           <mesh material={MAT.glass}>
             <circleGeometry args={[0.16, 20]} />
           </mesh>
-          <mesh position={[0, -0.25, 0]} material={MAT.woodDark}>
-            <cylinderGeometry args={[0.022, 0.032, 0.17, 8]} />
+          {/* Column and foot down to the bench top at y = -0.20, which is
+              local -0.30: the foot's underside sits exactly there. */}
+          <mesh position={[0, -0.2, 0]} material={MAT.goldSoft}>
+            <cylinderGeometry args={[0.017, 0.021, 0.13, 8]} />
+          </mesh>
+          <mesh position={[0, -0.2775, 0]} material={MAT.woodDark}>
+            <cylinderGeometry args={[0.13, 0.15, 0.045, 14]} />
           </mesh>
         </group>
 
         {/* On the ledge, not the top — down there it was a white blob at the
-            back of an unlit surface. */}
-        <mesh position={[-0.55, 0.21, BENCH.ledgeZ]} material={MAT.marble}>
-          <cylinderGeometry args={[0.14, 0.16, 0.3, 14]} />
+            back of an unlit surface. Squat and flared rather than the tall
+            0.3 drum it was: at that height, pale and alone on a shelf beside
+            a lamp, it read as a second lampshade. */}
+        <mesh position={[-0.55, 0.145, BENCH.ledgeZ]} material={MAT.marble}>
+          <cylinderGeometry args={[0.16, 0.115, 0.17, 16]} />
         </mesh>
+        {BENCH_TRIM && (
+          <mesh
+            position={[-0.55, 0.229, BENCH.ledgeZ]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            material={MAT.goldSoft}
+          >
+            <torusGeometry args={[0.152, 0.012, 6, 18]} />
+          </mesh>
+        )}
 
-        {/* The base used to be half-sunk in the top; it now stands on it. Also
-            pulled forward of z = -0.58: at -0.6 the post rose straight through
-            the ledge shelf and its gold rail. */}
+        {/* Bench lamp. The base used to be half-sunk in the top; it now stands
+            on it, and it is pulled forward of z = -0.58, where the post rose
+            straight through the ledge shelf and its gold rail.
+
+            The head was the broken part: the shade sat 0.28 to the left of the
+            post with nothing joining the two, so it read as a scoop hanging in
+            mid-air — and being an open-ended cone with a double-sided material,
+            you looked straight down its hollow interior. It is now jointed:
+            post, knuckle, an arm out over the work, and the shade hung from the
+            arm's end with its narrow end capped and the glow sunk inside the
+            mouth rather than protruding from it. */}
         <group position={[1.62, -0.17, -0.28]}>
           <mesh material={MAT.goldSoft}>
-            <cylinderGeometry args={[0.18, 0.2, 0.06, 16]} />
+            <cylinderGeometry args={[0.19, 0.22, 0.05, 20]} />
           </mesh>
-          <mesh position={[0, 0.55, 0]} material={MAT.goldSoft}>
-            <cylinderGeometry args={[0.022, 0.022, 1.1, 8]} />
+          <mesh position={[0, 0.055, 0]} material={MAT.goldSoft}>
+            <cylinderGeometry args={[0.09, 0.15, 0.06, 16]} />
           </mesh>
-          <group position={[-0.28, 1.08, 0.05]} rotation={[0.35, 0, 0.5]}>
+          <mesh position={[0, 0.53, 0]} material={MAT.goldSoft}>
+            <cylinderGeometry args={[0.02, 0.028, 0.9, 10]} />
+          </mesh>
+          {/* Knuckle where the arm swings off the post. */}
+          <mesh position={[0, 0.98, 0]} material={MAT.gold}>
+            <sphereGeometry args={[0.045, 10, 8]} />
+          </mesh>
+          {/* Arm, reaching in over the mat. Spans x = -0.5 → 0, so it starts
+              at the knuckle and there is no gap to read as a break. */}
+          <mesh
+            position={[-0.25, 0.98, 0.04]}
+            rotation={[0, 0, Math.PI / 2]}
+            material={MAT.goldSoft}
+          >
+            <cylinderGeometry args={[0.018, 0.018, 0.5, 8]} />
+          </mesh>
+          <mesh position={[-0.5, 0.965, 0.04]} material={MAT.gold}>
+            <sphereGeometry args={[0.038, 10, 8]} />
+          </mesh>
+
+          <group position={[-0.5, 0.85, 0.04]} rotation={[0.2, 0, 0.1]}>
             <mesh material={MAT.lampShade}>
-              <cylinderGeometry args={[0.34, 0.16, 0.26, 20, 1, true]} />
+              <cylinderGeometry args={[0.13, 0.3, 0.24, 20, 1, true]} />
             </mesh>
-            <mesh ref={lampGlowRef} position={[0, -0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <circleGeometry args={[0.32, 20]} />
+            <mesh
+              position={[0, 0.12, 0]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              material={MAT.lampShade}
+            >
+              <circleGeometry args={[0.13, 20]} />
+            </mesh>
+            <mesh ref={lampGlowRef} position={[0, -0.095, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[0.25, 20]} />
               <meshBasicMaterial color={P.glow} transparent opacity={0.8} />
             </mesh>
           </group>
         </group>
       </group>
 
+      {/* The panel behind the bench. Its rail used to carry six bare pegs
+          hanging straight down, which read as a gold comb rather than a
+          display — nothing was on it. The pegs are now the necklaces
+          themselves: a half-torus is the only shape that reads as a chain
+          hanging over a bar at this distance, and the drop at the bottom of
+          each gives it a reason to hang. */}
       <group position={[0, 0.7, -7.2]}>
         <mesh material={MAT.woodDark}>
           <planeGeometry args={[5, 3]} />
@@ -1646,23 +1882,94 @@ function TheCraft({ z }: { z: number }) {
         <mesh position={[0, 0.55, 0.04]} material={MAT.goldSoft}>
           <boxGeometry args={[3.2, 0.07, 0.07]} />
         </mesh>
-        {[-1.3, -0.75, -0.2, 0.35, 0.9, 1.45].map((tx, i) => (
-          <mesh key={tx} position={[tx, 0.25, 0.06]} material={MAT.goldSoft}>
-            <cylinderGeometry args={[0.018, 0.014, 0.5 + (i % 3) * 0.12, 6]} />
-          </mesh>
-        ))}
+        {[-1.24, -0.62, 0, 0.62, 1.24].map((tx, i) => {
+          // Graded lengths, longest in the middle, so the row hangs as a
+          // curve instead of a picket fence.
+          const drop = 0.3 + (2 - Math.abs(i - 2)) * 0.075;
+          return (
+            <group key={tx} position={[tx, 0.52, 0.1]}>
+              {/* Squashed on x: a true half-circle at this drop would be
+                  wider than the 0.62 gap and the chains would interlace. */}
+              <mesh
+                rotation={[0, 0, Math.PI]}
+                scale={[0.52, 1, 1]}
+                material={MAT.gold}
+              >
+                <torusGeometry args={[drop, 0.014, 6, 22, Math.PI]} />
+              </mesh>
+              {BENCH_TRIM && (
+                <mesh position={[0, -drop, 0]} material={MAT.gemGreen}>
+                  <octahedronGeometry args={[0.055, 0]} />
+                </mesh>
+              )}
+            </group>
+          );
+        })}
       </group>
     </group>
   );
 }
 
+/** The mount a niche picture is matted on, and the largest it may print. */
+const PICTURE_MOUNT: [number, number] = [0.88, 1.12];
+const PICTURE_MAX: [number, number] = [0.72, 0.96];
+
+/**
+ * Width the wall photographs are redrawn to before they reach the GPU.
+ *
+ * The source files are 1080x1350 product shots. A niche is 0.72 units wide,
+ * seen from two-and-a-half units off the centre line at a raking angle, so it
+ * never prints much past 300px — six full-size photos would be about 47MB of
+ * texture memory to show maybe 2MB of it. That is invisible on a desktop GPU
+ * and very much not on a phone, which is where the low tier matters.
+ */
+const PICTURE_TEX_W = { low: 192, mid: 320, high: 512 }[QUALITY.tier];
+
+function downscalePicture(tex: THREE.Texture): THREE.Texture {
+  const img = tex.image as (CanvasImageSource & { width: number; height: number }) | undefined;
+  if (typeof document === "undefined" || !img?.width || img.width <= PICTURE_TEX_W) {
+    return tex;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = PICTURE_TEX_W;
+  canvas.height = Math.max(1, Math.round((img.height * PICTURE_TEX_W) / img.width));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return tex;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  // A new texture rather than a resized one: useTexture caches by URL, and
+  // these files are shared with the product cards and the zone 05 portrait.
+  const small = new THREE.CanvasTexture(canvas);
+  small.colorSpace = THREE.SRGBColorSpace;
+  small.anisotropy = 8;
+  return small;
+}
+
+/**
+ * Fit a picture inside the mount without distorting it. Textures arrive with
+ * their pixel dimensions attached, so the aspect is known at first render and
+ * a landscape photo dropped into `WALL_PICTURES` letterboxes rather than
+ * stretching to the portrait frame.
+ */
+function fitPicture(tex: THREE.Texture): [number, number] {
+  const img = tex.image as { width?: number; height?: number } | undefined;
+  const aspect = img?.width && img?.height ? img.width / img.height : 0.8;
+  const [maxW, maxH] = PICTURE_MAX;
+  const w = Math.min(maxW, maxH * aspect);
+  return [w, w / aspect];
+}
+
 function DisplayNiche({
   position,
   rotation,
+  picture,
 }: {
   position: [number, number, number];
   rotation: [number, number, number];
+  picture: THREE.Texture;
 }) {
+  const [pw, ph] = fitPicture(picture);
+
   return (
     <group position={position} rotation={rotation}>
       <mesh position={[0, 0, -0.14]} material={MAT.emeraldDeep}>
@@ -1682,13 +1989,52 @@ function DisplayNiche({
       <mesh position={[0, -0.72, -0.02]} material={MAT.marble}>
         <boxGeometry args={[1.0, 0.07, 0.28]} />
       </mesh>
-      <NecklaceBust position={[0, -0.35, -0.02]} scale={0.62} />
+
+      {/* The framed photograph. Every niche used to hold the same green bust,
+          six of them down the room; the wall is where the actual pieces are
+          shown now. Frame, then a pale mount, then the print — the mount is
+          what stops a dark photo from dissolving into the recess behind it. */}
+      {/* z = 0.025, not inside the recess: the dark box behind is solid, and
+          its front face is at z = 0.01 — anything below that is buried. */}
+      <group position={[0, 0.02, 0.025]}>
+        <mesh material={MAT.gold}>
+          <boxGeometry args={[PICTURE_MOUNT[0] + 0.06, PICTURE_MOUNT[1] + 0.06, 0.03]} />
+        </mesh>
+        <mesh position={[0, 0, 0.019]} material={MAT.paper}>
+          <planeGeometry args={PICTURE_MOUNT} />
+        </mesh>
+        <mesh position={[0, 0, 0.023]}>
+          <planeGeometry args={[pw, ph]} />
+          <meshBasicMaterial map={picture} toneMapped={false} />
+        </mesh>
+      </group>
     </group>
   );
 }
 
 function TheCollection({ z }: { z: number }) {
   const carouselRef = useRef<THREE.Group>(null);
+
+  // Loaded once for the whole room rather than per niche, and inside
+  // ShowroomCanvas' Suspense boundary, so the room appears with its pictures
+  // already on the walls. A shorter WALL_PICTURES repeats from the start.
+  const loaded = useTexture(WALL_PICTURES, (tex) => {
+    for (const t of Array.isArray(tex) ? tex : [tex]) {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 8;
+    }
+  });
+  const pictures = useMemo(() => loaded.map(downscalePicture), [loaded]);
+  useEffect(
+    () => () => {
+      // Only the copies — the originals belong to useTexture's cache.
+      for (const tex of pictures) {
+        if (tex instanceof THREE.CanvasTexture) tex.dispose();
+      }
+    },
+    [pictures]
+  );
+  const pictureAt = (i: number) => pictures[i % pictures.length];
 
   useFrame((state) => {
     if (!carouselRef.current) return;
@@ -1725,11 +2071,14 @@ function TheCollection({ z }: { z: number }) {
           >
             <boxGeometry args={[11, 0.05, 0.05]} />
           </mesh>
-          {nicheZ.map((nz) => (
+          {nicheZ.map((nz, i) => (
             <DisplayNiche
               key={nz}
               position={[s * 2.92, 0.35, nz]}
               rotation={[0, (s * -Math.PI) / 2, 0]}
+              // Left wall takes the first three, right wall the next three,
+              // matching the order WALL_PICTURES documents.
+              picture={pictureAt(s < 0 ? i : nicheZ.length + i)}
             />
           ))}
         </group>
@@ -2017,7 +2366,14 @@ function YoursForever({ z }: { z: number }) {
             <mesh position={[0, 0, 0.05]} material={MAT.emeraldDeep}>
               <boxGeometry args={[0.95, 0.44, 0.01]} />
             </mesh>
-            <TextPlane text="GEETEJ VIRAASAT" width={0.9} height={0.16} position={[0, 0.02, 0.06]} />
+            <TextPlane
+              text="GEETEJ VIRAASAT"
+              width={0.9}
+              height={0.16}
+              color={P.signText}
+              weight="700"
+              position={[0, 0.02, 0.06]}
+            />
           </group>
         </group>
       </group>
