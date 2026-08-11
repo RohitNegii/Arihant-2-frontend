@@ -472,10 +472,16 @@ export default function Home() {
                 className="relative"
               >
                 <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-verdant-gold/40 shadow-[0_20px_60px_rgba(200,169,106,0.28)]">
+                  {/* The floating product card is on screen from the first
+                      frame, and Next measures it as the Largest Contentful
+                      Paint — so it must not be lazy. `priority` marks it
+                      eager and high fetch-priority; without it the browser
+                      defers the one image the LCP is actually waiting on. */}
                   <Image
                     src={currentZone.image.src}
                     alt={currentZone.image.alt}
                     fill
+                    priority
                     sizes="(min-width: 1280px) 18rem, 14rem"
                     className="object-cover"
                   />

@@ -3,8 +3,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useTexture } from "@react-three/drei";
-import { WALL_PICTURES } from "@/content/gallery";
+import { Sparkles, useTexture } from "@react-three/drei";
+import {
+  BENCH_REFERENCE,
+  FINALE_PICTURES,
+  PLINTH_PICTURES,
+  WALL_PICTURES,
+} from "@/content/gallery";
 import { JEWELRY_IMAGES } from "@/content/jewelry";
 import { LuxuryRing } from "./RoomComponents";
 import DoorLeaf from "./EntranceDoor";
@@ -14,6 +19,8 @@ import {
   plasterMaps,
   contactShadowMap,
   stoneSlabMaps,
+  lightPoolMap,
+  rugMaps,
   SLAB_TILE_W,
   SLAB_TILE_D,
 } from "./procedural-textures";
@@ -261,6 +268,42 @@ export const MAT = {
     opacity: 0.5,
     depthWrite: false,
     alphaMap: contactShadowMap(),
+  }),
+  /**
+   * Light thrown by a lamp onto whatever is under it. Additive and unlit, so
+   * it adds to the surface beneath rather than replacing it, and `depthWrite`
+   * off so the quad never occludes the props standing in it.
+   *
+   * This is a cheat, and the right one: an actual light here would cost every
+   * material in the room a second lighting term, and a shadow-casting one a
+   * whole extra scene pass, to light a patch of table a metre across.
+   */
+  lightPool: new THREE.MeshBasicMaterial({
+    color: P.glow,
+    map: lightPoolMap(),
+    transparent: true,
+    opacity: 0.62,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+  }),
+  /**
+   * The workshop's back wall. Flat colour reads as paper next to the plaster
+   * the stonework carries — the same reason the gallery walls got maps — and
+   * this is the largest single surface in the zone.
+   */
+  craftWall: new THREE.MeshStandardMaterial({
+    color: P.woodDark,
+    roughness: 0.86,
+    envMapIntensity: 0.4,
+    ...plasterSurface(3, 0.55),
+  }),
+  rug: new THREE.MeshStandardMaterial({
+    color: "#FFFFFF", // the weave is in the map; tinting would mute the border
+    roughness: 0.92,
+    metalness: 0,
+    envMapIntensity: 0.35,
+    ...(rugMaps() ?? {}),
   }),
 };
 
@@ -1550,6 +1593,14 @@ const BENCH = {
 function TheCraft({ z }: { z: number }) {
   const lampGlowRef = useRef<THREE.Mesh>(null);
 
+  // Already fetched for zone 05's portrait, so this is a cache hit rather
+  // than a second request.
+  const reference = useTexture(BENCH_REFERENCE, (tex) => {
+    const t = Array.isArray(tex) ? tex[0] : tex;
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+  });
+
   useFrame((state) => {
     if (!lampGlowRef.current) return;
     const m = lampGlowRef.current.material as THREE.MeshBasicMaterial;
@@ -1558,6 +1609,59 @@ function TheCraft({ z }: { z: number }) {
 
   return (
     <group position={[0, 0, z]}>
+      {/* Rug. The bench stood on bare slabs with a shadow disc under it and
+          nothing else in the bottom third of the frame — furniture floating
+          in a void. A rug is the cheapest thing in interior photography that
+          says "a room", and it is one quad. Under the bench's contact shadow
+          at y = -1.47 so the bench still reads as standing on it. */}
+      <mesh
+        position={[0, -1.485, -4.9]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        material={MAT.rug}
+        receiveShadow
+      >
+        <planeGeometry args={[6.6, 3.7]} />
+      </mesh>
+
+      {/* The jeweller's stool, pushed back from the bench with the work apron
+          folded over it. A zone called The Craft had no craftsman anywhere in
+          it — nothing said a person works here, only that tools exist. It also
+          buys the frame a foreground: bench and wall sat at two depths, and
+          everything nearer the camera than the bench was empty floor.
+
+          Kept off the centre line so it never stands in front of the mat. */}
+      <group position={[-1.42, 0, -4.05]} rotation={[0, 0.42, 0]}>
+        <GroundShadow position={[0, -1.47, 0.02]} radius={0.62} stretch={0.85} />
+        <mesh position={[0, -0.74, 0]} material={MAT.wood} castShadow>
+          <cylinderGeometry args={[0.3, 0.28, 0.07, 18]} />
+        </mesh>
+        {[0, 1, 2].map((i) => {
+          const a = (i / 3) * Math.PI * 2 + 0.5;
+          return (
+            <mesh
+              key={i}
+              position={[Math.cos(a) * 0.2, -1.12, Math.sin(a) * 0.2]}
+              rotation={[Math.cos(a) * 0.12, 0, -Math.sin(a) * 0.12]}
+              material={MAT.woodDark}
+            >
+              <cylinderGeometry args={[0.028, 0.042, 0.73, 7]} />
+            </mesh>
+          );
+        })}
+        {/* Stretcher ring — three separate legs read as sticks otherwise, the
+            same reason the bench has them. */}
+        <mesh position={[0, -1.24, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.woodDark}>
+          <torusGeometry args={[0.19, 0.014, 5, 14]} />
+        </mesh>
+        {/* Apron, folded over the seat and hanging down one side. */}
+        <mesh position={[0.03, -0.68, 0.02]} rotation={[0, 0, 0.06]} material={MAT.wax}>
+          <cylinderGeometry args={[0.27, 0.25, 0.05, 16]} />
+        </mesh>
+        <mesh position={[0.2, -0.83, 0.04]} rotation={[0.05, 0, 0.22]} material={MAT.wax}>
+          <boxGeometry args={[0.26, 0.3, 0.04]} />
+        </mesh>
+      </group>
+
       <group position={[0, 0, -5.2]}>
         <GroundShadow position={[0, -1.47, 0.2]} radius={2.4} />
 
@@ -1727,9 +1831,26 @@ function TheCraft({ z }: { z: number }) {
           <mesh position={[0, 0.02, 0.016]} material={MAT.paper}>
             <planeGeometry args={[0.8, 0.58]} />
           </mesh>
-          <mesh position={[0, 0.03, 0.022]} material={MAT.goldSoft}>
-            <torusGeometry args={[0.17, 0.005, 5, 24, Math.PI * 1.35]} />
+          <mesh position={[-0.11, 0.03, 0.022]} material={MAT.goldSoft}>
+            <torusGeometry args={[0.15, 0.005, 5, 24, Math.PI * 1.35]} />
           </mesh>
+          {/* The piece being worked from, pinned beside the drawing. The sheet
+              was blank white — the brightest thing on the bench and the only
+              one saying nothing — in a zone whose whole subject is jewellery
+              being made. Tipped a few degrees so it reads as pinned up rather
+              than printed on. */}
+          <group position={[0.26, -0.01, 0.024]} rotation={[0, 0, -0.07]}>
+            <mesh material={MAT.paper}>
+              <planeGeometry args={[0.27, 0.335]} />
+            </mesh>
+            <mesh position={[0, -0.012, 0.002]}>
+              <planeGeometry args={[0.235, 0.28]} />
+              <meshBasicMaterial map={reference} toneMapped={false} />
+            </mesh>
+            <mesh position={[0, 0.148, 0.006]} material={MAT.gold}>
+              <sphereGeometry args={[0.013, 6, 5]} />
+            </mesh>
+          </group>
         </group>
 
         {/* Stack of setting trays. This corner held two more loose sheets, and
@@ -1850,6 +1971,19 @@ function TheCraft({ z }: { z: number }) {
             <sphereGeometry args={[0.038, 10, 8]} />
           </mesh>
 
+          {/* What the lamp actually throws. The shade hangs at local
+              (-0.5, 0.85), so the pool is centred under it on the bench top
+              at y = -0.20 — local -0.03 — lifted three thousandths clear to
+              stay off the surface it is lighting. */}
+          <mesh
+            position={[-0.5, -0.027, 0.04]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            material={MAT.lightPool}
+            renderOrder={2}
+          >
+            <planeGeometry args={[1.75, 1.75]} />
+          </mesh>
+
           <group position={[-0.5, 0.85, 0.04]} rotation={[0.2, 0, 0.1]}>
             <mesh material={MAT.lampShade}>
               <cylinderGeometry args={[0.13, 0.3, 0.24, 20, 1, true]} />
@@ -1866,6 +2000,32 @@ function TheCraft({ z }: { z: number }) {
               <meshBasicMaterial color={P.glow} transparent opacity={0.8} />
             </mesh>
           </group>
+
+          {/* Halo at the shade's mouth. The pool on the bench is the honest
+              half of the effect but it is laid on a surface the camera sees
+              almost edge-on, so it compresses to a band; this is what
+              actually reads as "the lamp is on".
+
+              No billboarding needed: the camera flies straight down -Z and
+              never turns, so a quad in the XY plane always faces it. */}
+          <mesh position={[-0.5, 0.74, 0.12]} material={MAT.lightPool} renderOrder={3}>
+            <planeGeometry args={[1.15, 1.15]} />
+          </mesh>
+
+          {/* Dust in the light. Drei's Sparkles is a GPU-animated point
+              cloud — one draw call and no per-frame work on our side — and
+              it is already gated by the tier that turns it off on low. */}
+          {QUALITY.sparkles > 0 && (
+            <Sparkles
+              count={14}
+              position={[-0.5, 0.42, 0.06]}
+              scale={[1.1, 0.9, 0.7]}
+              size={1.6}
+              speed={0.25}
+              opacity={0.5}
+              color={P.glow}
+            />
+          )}
         </group>
       </group>
 
@@ -1876,9 +2036,43 @@ function TheCraft({ z }: { z: number }) {
           hanging over a bar at this distance, and the drop at the bottom of
           each gives it a reason to hang. */}
       <group position={[0, 0.7, -7.2]}>
-        <mesh material={MAT.woodDark}>
-          <planeGeometry args={[5, 3]} />
+        {/* The wall was 5 x 3, topped out at y = 2.2, and the next room's
+            ceiling and its two downlights showed straight over it — a lit dark
+            box hanging above the workshop. It now runs to y = 3.25, which is
+            above that sightline for the whole of the zone's approach, and it
+            carries plaster maps so the largest surface in the room is not one
+            flat rectangle of colour. */}
+        <mesh position={[0, 0.175, 0]} material={MAT.craftWall}>
+          <planeGeometry args={[5.8, 4.75]} />
         </mesh>
+        {/* Cornice. Without it the wall stops at a cut edge; with it the wall
+            stops because the room does. */}
+        <mesh position={[0, 2.62, 0.08]} material={MAT.woodDark}>
+          <boxGeometry args={[6.0, 0.2, 0.22]} />
+        </mesh>
+        <mesh position={[0, 2.5, 0.12]} material={MAT.goldSoft}>
+          <boxGeometry args={[5.9, 0.035, 0.035]} />
+        </mesh>
+        {/* Side returns. Without them you see the cream void past both edges
+            of the wall and it reads as a flat propped up in the open; with
+            them the bench sits in an alcove. Short, and well off the centre
+            line, so nothing is added to what blocks the way forward. */}
+        {[-1, 1].map((s) => (
+          <group key={s}>
+            <mesh
+              position={[s * 2.88, 0.175, 0.85]}
+              rotation={[0, (s * -Math.PI) / 2, 0]}
+              material={MAT.craftWall}
+            >
+              <planeGeometry args={[1.7, 4.75]} />
+            </mesh>
+            {/* The cornice has to turn the corner with them, or their top
+                edges cut straight against the sky and they read as flaps. */}
+            <mesh position={[s * 2.95, 2.62, 0.62]} material={MAT.woodDark}>
+              <boxGeometry args={[0.22, 0.2, 1.25]} />
+            </mesh>
+          </group>
+        ))}
         <mesh position={[0, 0.55, 0.04]} material={MAT.goldSoft}>
           <boxGeometry args={[3.2, 0.07, 0.07]} />
         </mesh>
@@ -1959,6 +2153,85 @@ function fitPicture(tex: THREE.Texture): [number, number] {
   return [w, w / aspect];
 }
 
+/** The frieze around the plinth: band height and drum radii, in world units. */
+const PLINTH_BAND = {
+  y: -0.97,
+  height: 0.7,
+  /** The drum is tapered, so the band has to be too or it will cut into it. */
+  radiusTop: 1.468,
+  radiusBottom: 1.538,
+} as const;
+
+/**
+ * Bakes the plinth frieze — every picture, every frame — into a single band
+ * texture.
+ *
+ * The obvious build is a mesh per picture standing off the drum: that is one
+ * draw call and one material each, for a frieze the camera only ever sees the
+ * front third of. Drawn into one texture instead, the whole thing is a single
+ * cylinder however many pictures the config lists, and the gaps between the
+ * frames are left transparent so the marble shows through them.
+ */
+function buildPlinthBand(pictures: THREE.Texture[]): THREE.CanvasTexture | null {
+  if (typeof document === "undefined" || pictures.length === 0) return null;
+
+  const circumference = Math.PI * (PLINTH_BAND.radiusTop + PLINTH_BAND.radiusBottom);
+  const H = Math.max(96, Math.round(224 * quality().texture));
+  const W = Math.round((H * circumference) / PLINTH_BAND.height);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  const n = pictures.length;
+  const cell = W / n;
+  const frameH = H * 0.86;
+  const frameW = Math.min(cell * 0.72, frameH * 0.8);
+  const border = Math.max(2, Math.round(H * 0.035));
+
+  for (let i = 0; i < n; i++) {
+    const img = pictures[i].image as
+      | (CanvasImageSource & { width: number; height: number })
+      | undefined;
+    if (!img?.width) continue;
+
+    const cx = (i + 0.5) * cell;
+    const fx = cx - frameW / 2;
+    const fy = (H - frameH) / 2;
+
+    ctx.fillStyle = P.gold;
+    ctx.fillRect(fx, fy, frameW, frameH);
+    ctx.fillStyle = P.brandDeep;
+    ctx.fillRect(fx + border, fy + border, frameW - border * 2, frameH - border * 2);
+
+    // Cover-fit: crop the source rather than squash it, so a landscape shot
+    // dropped into PLINTH_PICTURES centre-crops instead of distorting.
+    const iw = frameW - border * 2;
+    const ih = frameH - border * 2;
+    const scale = Math.max(iw / img.width, ih / img.height);
+    const sw = iw / scale;
+    const sh = ih / scale;
+    ctx.drawImage(
+      img,
+      (img.width - sw) / 2,
+      (img.height - sh) / 2,
+      sw,
+      sh,
+      fx + border,
+      fy + border,
+      iw,
+      ih
+    );
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+
 function DisplayNiche({
   position,
   rotation,
@@ -2035,6 +2308,12 @@ function TheCollection({ z }: { z: number }) {
     [pictures]
   );
   const pictureAt = (i: number) => pictures[i % pictures.length];
+
+  // Same loader, so any file already listed in WALL_PICTURES is a cache hit —
+  // no second fetch and no second decode.
+  const plinthSources = useTexture(PLINTH_PICTURES);
+  const plinthBand = useMemo(() => buildPlinthBand(plinthSources), [plinthSources]);
+  useEffect(() => () => plinthBand?.dispose(), [plinthBand]);
 
   useFrame((state) => {
     if (!carouselRef.current) return;
@@ -2122,6 +2401,30 @@ function TheCollection({ z }: { z: number }) {
         <mesh position={[0, -1.46, 0]} material={MAT.emeraldDeep}>
           <cylinderGeometry args={[1.62, 1.62, 0.09, 32]} />
         </mesh>
+
+        {/* The frieze — one cylinder wearing the whole baked band. Unlit, like
+            the niche pictures, so the photographs stay readable in a recess
+            the key light never reaches. */}
+        {plinthBand && (
+          <mesh position={[0, PLINTH_BAND.y, 0]}>
+            <cylinderGeometry
+              args={[
+                PLINTH_BAND.radiusTop,
+                PLINTH_BAND.radiusBottom,
+                PLINTH_BAND.height,
+                48,
+                1,
+                true,
+              ]}
+            />
+            <meshBasicMaterial
+              map={plinthBand}
+              transparent
+              alphaTest={0.02}
+              toneMapped={false}
+            />
+          </mesh>
+        )}
         <mesh position={[0, -0.48, 0]} material={MAT.velvet}>
           <cylinderGeometry args={[1.5, 1.5, 0.08, 32]} />
         </mesh>
@@ -2169,34 +2472,9 @@ function TheCollection({ z }: { z: number }) {
 }
 
 function MadeForMoments({ z }: { z: number }) {
-  const bokehRef = useRef<THREE.Group>(null);
-
   const portrait = useTexture(JEWELRY_IMAGES.emeraldGoddess.src, (tex) => {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 8;
-  });
-
-  const bokeh = useMemo(() => {
-    const r = rng(211);
-    // Held behind the portrait and up in the air. These used to run from
-    // z = +2 back to -7 across the full width and down to floor level, with
-    // radii up to 0.4 — so the camera flew straight through them and they
-    // read as pale smears over the walls, the floor and the frame itself
-    // rather than as lights behind the scene. Twenty-two of them, too.
-    return Array.from({ length: 12 }, () => ({
-      p: [(r() - 0.5) * 8, 0.5 + r() * 2.5, -6.4 - r() * 2.8] as [number, number, number],
-      s: 0.08 + r() * 0.16,
-      o: 0.25 + r() * 0.3,
-      phase: r() * Math.PI * 2,
-    }));
-  }, []);
-
-  useFrame((state) => {
-    if (!bokehRef.current) return;
-    const t = state.clock.getElapsedTime();
-    bokehRef.current.children.forEach((child, i) => {
-      child.position.y = bokeh[i].p[1] + Math.sin(t * 0.35 + bokeh[i].phase) * 0.18;
-    });
   });
 
   return (
@@ -2273,19 +2551,13 @@ function MadeForMoments({ z }: { z: number }) {
         })
       )}
 
-      <group ref={bokehRef}>
-        {bokeh.map((b, i) => (
-          <mesh key={i} position={b.p}>
-            <sphereGeometry args={[b.s, 10, 8]} />
-            <meshBasicMaterial
-              color={P.glowSoft}
-              transparent
-              opacity={b.o}
-              depthWrite={false}
-            />
-          </mesh>
-        ))}
-      </group>
+      {/* The bokeh lived here — twelve pale spheres drifting between z = -6.4
+          and -9.2. Removed rather than moved again: this room ends at z = 24
+          and the finale begins at 12, so the camera flies straight through the
+          cloud on its way there, and a 0.24-radius sphere half a unit from the
+          lens is not a bokeh, it is a bubble across the finale's backdrop.
+          There is no distance at which they read as depth-of-field in a scene
+          the camera travels through. */}
     </group>
   );
 }
@@ -2293,6 +2565,22 @@ function MadeForMoments({ z }: { z: number }) {
 function YoursForever({ z }: { z: number }) {
   const lidRef = useRef<THREE.Group>(null);
   const lidOpen = useRef(0);
+
+  // Both files are already on the page — one is zone 05's own portrait, the
+  // other hangs in the gallery — so the loader serves these from cache.
+  const finaleSources = useTexture(FINALE_PICTURES);
+  const finale = useMemo(
+    () => finaleSources.map(downscalePicture),
+    [finaleSources]
+  );
+  useEffect(
+    () => () => {
+      for (const tex of finale) {
+        if (tex instanceof THREE.CanvasTexture) tex.dispose();
+      }
+    },
+    [finale]
+  );
 
   useEffect(() => {
     const onScroll = () => {
@@ -2314,15 +2602,28 @@ function YoursForever({ z }: { z: number }) {
 
   return (
     <group position={[0, 0, z - 1.8]}>
-      {[-1, 1].map((s) => (
-        <mesh
-          key={s}
-          position={[s * 4.0, 0.6, -3.4]}
-          rotation={[0, s * -0.5, 0]}
-          material={MAT.emeraldDeep}
-        >
-          <planeGeometry args={[4.5, 6]} />
-        </mesh>
+      {/* The two panels were four and a half by six units of flat dark nothing,
+          angled in at the sides of the last thing anyone sees. They are the
+          largest surfaces in the closing scene, so they carry the closing
+          images — a diptych the camera walks between. */}
+      {[-1, 1].map((s, i) => (
+        <group key={s} position={[s * 4.0, 0.6, -3.4]} rotation={[0, s * -0.5, 0]}>
+          <mesh material={MAT.emeraldDeep}>
+            <planeGeometry args={[4.5, 6]} />
+          </mesh>
+          <group position={[0, 0.3, 0.03]}>
+            <mesh material={MAT.gold}>
+              <planeGeometry args={[2.78, 3.44]} />
+            </mesh>
+            <mesh position={[0, 0, 0.01]} material={MAT.paper}>
+              <planeGeometry args={[2.62, 3.28]} />
+            </mesh>
+            <mesh position={[0, 0.06, 0.02]}>
+              <planeGeometry args={[2.36, 2.95]} />
+              <meshBasicMaterial map={finale[i]} toneMapped={false} />
+            </mesh>
+          </group>
+        </group>
       ))}
 
       <mesh
@@ -2343,8 +2644,41 @@ function YoursForever({ z }: { z: number }) {
         </mesh>
       ))}
 
-      <group position={[0, -1.1, -3.6]}>
-        <GroundShadow position={[0, -0.33, 0.15]} radius={0.95} />
+      {/* Pedestal. The whole tableau used to lie on the floor at y = -1.1,
+          which the camera — level, at y = 0.5 — reads almost edge-on: the
+          closing shot of the whole journey was a flat-lay seen from the side,
+          with the middle of the frame empty above it. The box now stands on a
+          column at eye level between the two pictures, and the cloth, gift and
+          letter stay down on the silk as the setting around its foot. */}
+      <group position={[0, 0, -3.6]}>
+        <GroundShadow position={[0, -1.46, 0.12]} radius={1.05} stretch={0.9} />
+        <mesh position={[0, -1.43, 0]} material={MAT.marble}>
+          <cylinderGeometry args={[0.58, 0.68, 0.14, 28]} />
+        </mesh>
+        <mesh position={[0, -1.03, 0]} material={MAT.marble}>
+          <cylinderGeometry args={[0.4, 0.5, 0.66, 28]} />
+        </mesh>
+        <mesh position={[0, -0.64, 0]} material={MAT.marble}>
+          <cylinderGeometry args={[0.64, 0.5, 0.12, 28]} />
+        </mesh>
+        <mesh
+          position={[0, -0.585, 0]}
+          rotation={[Math.PI / 2, 0, 0]}
+          material={MAT.gold}
+        >
+          <torusGeometry args={[0.625, 0.016, 6, 30]} />
+        </mesh>
+      </group>
+
+      {/* Halo behind the box — the same additive quad the workbench lamp uses.
+          Nothing in this room was lit; the box is the last object of the
+          journey and had no more emphasis than the floor it sat on. */}
+      <mesh position={[0, -0.32, -3.95]} material={MAT.lightPool} renderOrder={2}>
+        <planeGeometry args={[3.1, 3.1]} />
+      </mesh>
+
+      <group position={[0, -0.37, -3.6]}>
+        <GroundShadow position={[0, -0.205, 0.1]} radius={0.6} />
         <mesh material={MAT.velvet}>
           <boxGeometry args={[1.15, 0.42, 0.92]} />
         </mesh>

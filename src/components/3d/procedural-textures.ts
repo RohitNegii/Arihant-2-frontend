@@ -232,6 +232,127 @@ export function contactShadowMap(): THREE.Texture | null {
   return contactCache;
 }
 
+let poolCache: THREE.Texture | null | undefined;
+
+/**
+ * The pool of light a lamp throws on the surface below it — a soft radial
+ * falloff, used additively.
+ *
+ * 128px on every tier, and deliberately not run through `texSize`: a smooth
+ * gradient is the one texture where resolution buys nothing, because there is
+ * no detail in it to lose. Built once and shared by every lamp.
+ */
+export function lightPoolMap(): THREE.Texture | null {
+  if (poolCache !== undefined) return poolCache;
+  if (!hasDOM) return (poolCache = null);
+
+  const S = 128;
+  const canvas = makeCanvas(S);
+  const ctx = canvas.getContext("2d")!;
+  const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  // Hotter core than a contact shadow's falloff, and gone well before the
+  // edge — a hard rim on an additive quad reads as a decal, not as light.
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.22, "rgba(255,255,255,0.72)");
+  g.addColorStop(0.55, "rgba(255,255,255,0.24)");
+  g.addColorStop(0.82, "rgba(255,255,255,0.05)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  poolCache = tex;
+  return poolCache;
+}
+
+let rugCache: (SurfaceMaps & { map: THREE.Texture }) | null | undefined;
+
+/**
+ * A bordered wool rug: field, guard stripes, and a lattice of diamonds, with
+ * fbm mottling for pile and wear.
+ *
+ * Drawn once at 512 (tier-scaled) and clamped rather than tiled — this is one
+ * rug, not a repeating floor, so a seam would show. The whole rug is a single
+ * quad wearing this map.
+ */
+export function rugMaps(): (SurfaceMaps & { map: THREE.Texture }) | null {
+  if (rugCache !== undefined) return rugCache;
+  if (!hasDOM) return (rugCache = null);
+
+  const S = texSize(512);
+  const canvas = makeCanvas(S);
+  const ctx = canvas.getContext("2d")!;
+  const rn = noise2D(4177);
+
+  const FIELD = "#5E2733";
+  const GUARD = "#3A1620";
+  const MOTIF = "#C8A96A";
+
+  ctx.fillStyle = GUARD;
+  ctx.fillRect(0, 0, S, S);
+  ctx.fillStyle = FIELD;
+  ctx.fillRect(S * 0.07, S * 0.07, S * 0.86, S * 0.86);
+
+  // Guard stripes either side of the border.
+  ctx.strokeStyle = MOTIF;
+  ctx.lineWidth = Math.max(1, S * 0.006);
+  ctx.strokeRect(S * 0.045, S * 0.045, S * 0.91, S * 0.91);
+  ctx.strokeRect(S * 0.085, S * 0.085, S * 0.83, S * 0.83);
+
+  // Lattice of diamonds across the field.
+  ctx.globalAlpha = 0.5;
+  const step = S * 0.115;
+  for (let y = S * 0.12; y < S * 0.88; y += step) {
+    for (let x = S * 0.12; x < S * 0.88; x += step) {
+      const r = step * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(x, y - r);
+      ctx.lineTo(x + r, y);
+      ctx.lineTo(x, y + r);
+      ctx.lineTo(x - r, y);
+      ctx.closePath();
+      ctx.lineWidth = Math.max(1, S * 0.0035);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Pile and wear: multiply a low-frequency field over the whole thing.
+  const img = ctx.getImageData(0, 0, S, S);
+  const heights = new Float32Array(S * S);
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const i = y * S + x;
+      const pile = fbm(rn, (x / S) * 26, (y / S) * 26, 3);
+      heights[i] = pile;
+      const k = 0.78 + pile * 0.42;
+      const j = i * 4;
+      img.data[j] = Math.min(255, img.data[j] * k);
+      img.data[j + 1] = Math.min(255, img.data[j + 1] * k);
+      img.data[j + 2] = Math.min(255, img.data[j + 2] * k);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  const clamp = (tex: THREE.Texture) => {
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    return tex;
+  };
+
+  rugCache = {
+    map: clamp(finish(canvas, true, 1)),
+    normalMap: clamp(finish(normalFromHeight(heights, S, 0.7), false, 1)),
+    roughnessMap: clamp(
+      finish(grayFromHeight(heights, S, 0.72, 0.18), false, 1)
+    ),
+  };
+  return rugCache;
+}
+
 export const SLAB_TILE_W = 4.05;
 export const SLAB_TILE_D = 3.6;
 
