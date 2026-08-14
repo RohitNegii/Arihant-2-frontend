@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { Sparkles, useTexture } from "@react-three/drei";
 import {
+  ATELIER_FILM,
   BENCH_REFERENCE,
+  BRAND_CREST,
   FINALE_PICTURES,
   PLINTH_PICTURES,
   WALL_PICTURES,
@@ -212,15 +214,27 @@ export const MAT = {
     opacity: 0.1,
     depthWrite: false,
   }),
+  /**
+   * The hanging lanterns. Their transmission was the one in this table not
+   * gated on the tier, and it was expensive out of all proportion to two boxes
+   * a quarter of a unit across: a single transmissive object anywhere in the
+   * frame makes three re-render the entire scene into an offscreen buffer at
+   * full canvas resolution, every frame. Measured on a phone at the entrance,
+   * that pass was 198 of the 459 draw calls in the frame — 43% of the work, for
+   * a refraction nobody can see through a box that is mostly its own glow.
+   *
+   * Off, the glow has to come from somewhere else, so the emissive goes up the
+   * way the glass material's does.
+   */
   lantern: new THREE.MeshPhysicalMaterial({
     color: P.lantern,
-    transmission: 0.85,
+    transmission: REFRACT ? 0.85 : 0,
     roughness: 0.25,
     thickness: 0.2,
     emissive: new THREE.Color(P.lanternGlow),
-    emissiveIntensity: 0.9,
+    emissiveIntensity: REFRACT ? 0.9 : 1.25,
     transparent: true,
-    opacity: 0.85,
+    opacity: REFRACT ? 0.85 : 0.92,
   }),
   water: new THREE.MeshPhysicalMaterial({
     color: P.water,
@@ -304,6 +318,31 @@ export const MAT = {
     metalness: 0,
     envMapIntensity: 0.35,
     ...(rugMaps() ?? {}),
+  }),
+  /**
+   * Garland flowers and scattered petals. White for the same reason the rug is:
+   * the colour is written per instance, and a tinted material would multiply
+   * every one of them by itself.
+   */
+  bloom: new THREE.MeshStandardMaterial({
+    color: "#FFFFFF",
+    roughness: 0.62,
+    envMapIntensity: 0.5,
+  }),
+  /**
+   * The garland's flowers, on their own material rather than the petals'.
+   *
+   * Shared and half-matte they came out as a string of popcorn: at this size
+   * nothing about a flower reads except how it catches light, and the pale
+   * golds it was tinted with had nothing to catch. Proper metal, and the deep
+   * end of the golds, is what makes it marigold instead of styrofoam. The
+   * petals keep the matte material — a sequin is not a petal.
+   */
+  garland: new THREE.MeshStandardMaterial({
+    color: "#FFFFFF",
+    metalness: 0.9,
+    roughness: 0.34,
+    envMapIntensity: 1.2,
   }),
 };
 
@@ -1111,6 +1150,69 @@ const DOOR_SWING: readonly [number, number] = isTouchDevice()
   ? [0.57, 1.02]
   : [1.1, 1.95];
 
+
+/**
+ * The crest medallion: the house mark on a dark roundel with a gold rim.
+ *
+ * The mark is ivory and gold — the two palest things in the palette — so it
+ * needs the dark ground under it for the same reason the entrance lettering
+ * needs its plate. `markY` lifts the artwork inside the roundel, for the sign,
+ * where the plate overlaps the disc's foot and would otherwise cut the lotus
+ * off the bottom of the crest.
+ *
+ * Used twice: crowning the sign in the entrance, and crowning the portrait in
+ * Made for Moments. The texture is fetched once — useTexture caches by URL.
+ */
+const CREST = { radius: 0.55, y: 0.82, markY: 0.05 } as const;
+
+function CrestMedallion({
+  radius = CREST.radius,
+  markY = 0,
+}: {
+  radius?: number;
+  markY?: number;
+}) {
+  // Ships with its alpha already cut — see BRAND_CREST. It used to be keyed in
+  // the browser, on the main thread, at every page load, for a result that
+  // never changed; scripts/optimize-media.mjs does it once instead.
+  const crest = useTexture(BRAND_CREST, (tex) => {
+    const t = Array.isArray(tex) ? tex[0] : tex;
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+  });
+
+  const size = useMemo<[number, number]>(() => {
+    const img = crest?.image as { width?: number; height?: number } | undefined;
+    const aspect = img?.width && img?.height ? img.width / img.height : 1;
+    // Fits the mark inside the roundel whichever way round it is, with a margin
+    // so the gold rim is never crowded.
+    const box = radius * 1.55;
+    return aspect >= 1 ? [box, box / aspect] : [box * aspect, box];
+  }, [crest, radius]);
+
+  return (
+    <group>
+      {/* A disc, not a plane: the medallion has an edge that catches the light,
+          and the cylinder is lathed round Y so it is tipped on end to face the
+          camera. */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} material={MAT.emeraldDeep}>
+        <cylinderGeometry args={[radius, radius, 0.06, 40]} />
+      </mesh>
+      <mesh position={[0, 0, 0.03]} material={MAT.gold}>
+        <torusGeometry args={[radius, radius * 0.04, 8, 44]} />
+      </mesh>
+      {/* Tinted with the sign's own lettering colour. The artwork is ivory with
+          gold linework, which against the dark roundel read as a pale silver
+          mark sitting over gold type; multiplied by signText it is the same
+          warm metal as the name below it. */}
+      <mesh position={[0, markY, 0.048]}>
+        <planeGeometry args={size} />
+        <meshBasicMaterial map={crest} color={P.signText} transparent toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
 function GrandEntrance({ z }: { z: number }) {
   const leftHinge = useRef<THREE.Group>(null);
   const rightHinge = useRef<THREE.Group>(null);
@@ -1286,6 +1388,28 @@ function GrandEntrance({ z }: { z: number }) {
             weight="600"
             position={[0, -0.22, 0.045]}
           />
+
+          {/* The house crest, crowning the sign.
+
+              Hung on the same two rods rather than floated over the plate: a
+              cross bar behind it runs out to both of them, so the medallion,
+              the bar and the plate read as one thing that was hung, which is
+              also why it overlaps the plate's top edge instead of clearing it.
+
+              The mark is ivory and gold — the two palest things in the scene —
+              and the vault behind the sign is cream, so it needs the dark
+              roundel under it for the same reason the lettering needs the dark
+              plate. Rim in gold to match the plate's edge, and the halo the
+              rest of the hall's lit objects carry. */}
+          <group position={[0, CREST.y, 0]}>
+            <mesh position={[0, 0, -0.06]} material={MAT.gold}>
+              <boxGeometry args={[2.2, 0.03, 0.03]} />
+            </mesh>
+            <mesh position={[0, 0, -0.04]} material={MAT.lightPool} renderOrder={2}>
+              <planeGeometry args={[2.0, 2.0]} />
+            </mesh>
+            <CrestMedallion markY={CREST.markY} />
+          </group>
         </group>
 
         <group position={[1.15, 0, -2.5]}>
@@ -1579,6 +1703,99 @@ const CANISTER_GEO = (() => {
   return new THREE.LatheGeometry(pts, 16);
 })();
 
+/**
+ * A wall plane with arched openings cut through it.
+ *
+ * A room that ends in a wall filling the frame is a dead end: nothing in the
+ * shot says the journey continues, which is exactly why the entrance reads as
+ * an invitation — you see the hall, the sign and the fountain through the open
+ * doors — and why the workshop and the portrait room did not.
+ *
+ * The obvious build for a wall with a doorway is three planes (two jambs and a
+ * lintel), which is three meshes and cannot arch. Triangulating a shape with a
+ * hole gives the whole wall back as one geometry, so it stays the single mesh
+ * and single draw call it already was, and the head can be a real arch.
+ *
+ * Coordinates are plane-local, the same convention as `planeGeometry`: (0, 0)
+ * is the centre of the wall. Each opening is a rectangle with a semicircular
+ * head, so it springs at `top - width / 2`. Keep openings strictly inside the
+ * outline — a hole touching an edge has nothing left to triangulate.
+ */
+function archedWallGeometry(
+  width: number,
+  height: number,
+  openings: { x: number; bottom: number; top: number; width: number }[]
+) {
+  const hw = width / 2;
+  const hh = height / 2;
+
+  const shape = new THREE.Shape();
+  shape.moveTo(-hw, -hh);
+  shape.lineTo(hw, -hh);
+  shape.lineTo(hw, hh);
+  shape.lineTo(-hw, hh);
+  shape.closePath();
+
+  for (const o of openings) {
+    const r = o.width / 2;
+    const spring = o.top - r;
+    // Wound the other way round from the outline — up the left jamb, over the
+    // head, down the right — which is what the triangulator wants of a hole.
+    const hole = new THREE.Path();
+    hole.moveTo(o.x - r, o.bottom);
+    hole.lineTo(o.x - r, spring);
+    hole.absarc(o.x, spring, r, Math.PI, 0, true);
+    hole.lineTo(o.x + r, o.bottom);
+    hole.closePath();
+    shape.holes.push(hole);
+  }
+
+  const geo = new THREE.ShapeGeometry(shape, 16);
+
+  // ShapeGeometry copies the shape's own x/y straight into the uv attribute, so
+  // a tiling map would repeat once per world unit — the plaster on the workshop
+  // wall would turn to noise. Normalised, the maps land exactly where they did
+  // when the wall was a planeGeometry.
+  const pos = geo.attributes.position;
+  const uv = geo.attributes.uv;
+  for (let i = 0; i < uv.count; i++) {
+    uv.setXY(i, (pos.getX(i) + hw) / width, (pos.getY(i) + hh) / height);
+  }
+  uv.needsUpdate = true;
+  return geo;
+}
+
+/**
+ * The workshop's back wall and the doorway through it, in the wall group's own
+ * space (the group sits at y = 0.7, so local y + 0.7 is world y).
+ *
+ * The wall keeps its top edge at world y = 3.25 — high enough to hide the next
+ * room's ceiling for the whole approach — and now runs 0.2 further down, to
+ * world -1.7. That skirt is below the floor at -1.5 and never seen; it is there
+ * so the doorway can reach the floor without its hole touching the outline.
+ */
+const CRAFT_WALL = {
+  width: 5.8,
+  height: 4.95,
+  /** Local y of the plane's centre: puts the top edge at world y = 3.25. */
+  y: 0.075,
+  /** Half-width of the opening, and world y of the floor, springline and head. */
+  half: 1.0,
+  floorY: -1.5,
+  springY: 0.9,
+  headY: 1.9,
+} as const;
+
+const CRAFT_WALL_GEO = archedWallGeometry(CRAFT_WALL.width, CRAFT_WALL.height, [
+  {
+    x: 0,
+    // Plane-space: world y minus the plane's own centre (0.7 + CRAFT_WALL.y).
+    bottom: CRAFT_WALL.floorY - 0.775,
+    top: CRAFT_WALL.headY - 0.775,
+    width: CRAFT_WALL.half * 2,
+  },
+]);
+
 const BENCH = {
   /** Top surface, and the ledge shelf on its brackets above it. */
   topY: -0.2,
@@ -1600,6 +1817,21 @@ function TheCraft({ z }: { z: number }) {
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 8;
   });
+
+  /**
+   * The board is sized from the photograph rather than the other way round.
+   *
+   * Cropping it to fit a board of some fixed shape is the obvious alternative
+   * and it is not available: this texture is the same object the finale and
+   * Made for Moments hang on their walls — useTexture caches by URL — so
+   * touching its repeat or offset would crop it in all three places at once.
+   */
+  const board = useMemo<[number, number]>(() => {
+    const img = reference.image as { width?: number; height?: number } | undefined;
+    const aspect = img?.width && img?.height ? img.width / img.height : 0.8;
+    const height = 0.62;
+    return [height * aspect, height];
+  }, [reference]);
 
   useFrame((state) => {
     if (!lampGlowRef.current) return;
@@ -1822,35 +2054,36 @@ function TheCraft({ z }: { z: number }) {
             </mesh>
           ))}
 
-        {/* Design propped on a drawing board rather than flat: a sheet lying on
-            the top is a white sliver from here. */}
+        {/* The reference photograph, propped on the board rather than lying
+            flat — a sheet on the bench top is a white sliver from here.
+
+            The board used to hold two things: a gold arc standing for a
+            drawn design, and this photograph pinned small beside it. Neither
+            won. The arc was five segments of a torus seen from three metres
+            away, which is not a sketch, it is a broken ring; and the picture
+            of the actual piece — the one thing on a bench in a zone about
+            making jewellery that shows what is being made — was the size of a
+            postage stamp next to it.
+
+            The photograph has the board to itself now, and the board is cut
+            to the photograph's own proportions, so nothing is cropped and
+            nothing is stretched whatever file `BENCH_REFERENCE` points at. */}
         <group position={[-1.3, 0.125, BENCH.standZ]} rotation={[-0.3, 0.2, 0]}>
           <mesh material={MAT.woodDark}>
-            <boxGeometry args={[0.92, 0.68, 0.025]} />
+            <boxGeometry args={[board[0] + 0.09, board[1] + 0.09, 0.025]} />
           </mesh>
-          <mesh position={[0, 0.02, 0.016]} material={MAT.paper}>
-            <planeGeometry args={[0.8, 0.58]} />
+          {/* Paper behind the print, showing as a mat around it. */}
+          <mesh position={[0, 0, 0.016]} material={MAT.paper}>
+            <planeGeometry args={[board[0] + 0.045, board[1] + 0.045]} />
           </mesh>
-          <mesh position={[-0.11, 0.03, 0.022]} material={MAT.goldSoft}>
-            <torusGeometry args={[0.15, 0.005, 5, 24, Math.PI * 1.35]} />
+          <mesh position={[0, 0, 0.022]}>
+            <planeGeometry args={board} />
+            <meshBasicMaterial map={reference} toneMapped={false} />
           </mesh>
-          {/* The piece being worked from, pinned beside the drawing. The sheet
-              was blank white — the brightest thing on the bench and the only
-              one saying nothing — in a zone whose whole subject is jewellery
-              being made. Tipped a few degrees so it reads as pinned up rather
-              than printed on. */}
-          <group position={[0.26, -0.01, 0.024]} rotation={[0, 0, -0.07]}>
-            <mesh material={MAT.paper}>
-              <planeGeometry args={[0.27, 0.335]} />
-            </mesh>
-            <mesh position={[0, -0.012, 0.002]}>
-              <planeGeometry args={[0.235, 0.28]} />
-              <meshBasicMaterial map={reference} toneMapped={false} />
-            </mesh>
-            <mesh position={[0, 0.148, 0.006]} material={MAT.gold}>
-              <sphereGeometry args={[0.013, 6, 5]} />
-            </mesh>
-          </group>
+          {/* The pin it hangs from. */}
+          <mesh position={[0, board[1] / 2 + 0.028, 0.026]} material={MAT.gold}>
+            <sphereGeometry args={[0.013, 6, 5]} />
+          </mesh>
         </group>
 
         {/* Stack of setting trays. This corner held two more loose sheets, and
@@ -2041,10 +2274,16 @@ function TheCraft({ z }: { z: number }) {
             box hanging above the workshop. It now runs to y = 3.25, which is
             above that sightline for the whole of the zone's approach, and it
             carries plaster maps so the largest surface in the room is not one
-            flat rectangle of colour. */}
-        <mesh position={[0, 0.175, 0]} material={MAT.craftWall}>
-          <planeGeometry args={[5.8, 4.75]} />
-        </mesh>
+            flat rectangle of colour.
+
+            It also has a doorway through it now. Solid, it filled the frame and
+            the zone read as a dead end — the entrance tells you to keep going
+            by showing you the hall through the open doors, and this told you
+            nothing. Through the arch you see the collection room's floor, its
+            vitrine and its sign, ten units back. The camera flies at y = 0.5 on
+            the centre line, so it goes through the doorway rather than through
+            the wall. */}
+        <mesh position={[0, CRAFT_WALL.y, 0]} geometry={CRAFT_WALL_GEO} material={MAT.craftWall} />
         {/* Cornice. Without it the wall stops at a cut edge; with it the wall
             stops because the room does. */}
         <mesh position={[0, 2.62, 0.08]} material={MAT.woodDark}>
@@ -2060,11 +2299,11 @@ function TheCraft({ z }: { z: number }) {
         {[-1, 1].map((s) => (
           <group key={s}>
             <mesh
-              position={[s * 2.88, 0.175, 0.85]}
+              position={[s * 2.88, CRAFT_WALL.y, 0.85]}
               rotation={[0, (s * -Math.PI) / 2, 0]}
               material={MAT.craftWall}
             >
-              <planeGeometry args={[1.7, 4.75]} />
+              <planeGeometry args={[1.7, CRAFT_WALL.height]} />
             </mesh>
             {/* The cornice has to turn the corner with them, or their top
                 edges cut straight against the sky and they read as flaps. */}
@@ -2073,32 +2312,69 @@ function TheCraft({ z }: { z: number }) {
             </mesh>
           </group>
         ))}
-        <mesh position={[0, 0.55, 0.04]} material={MAT.goldSoft}>
-          <boxGeometry args={[3.2, 0.07, 0.07]} />
+        {/* The doorway's own frame. Cut into a dark wall and left bare, the
+            opening reads as damage; jambs in the lighter walnut and a gold bead
+            running up them and over the head make it architecture. The bead
+            picks up the same trick as the entrance arch. */}
+        {[-1, 1].map((s) => (
+          <group key={s} position={[s * (CRAFT_WALL.half + 0.06), 0, 0]}>
+            <mesh position={[0, -1.0, 0.06]} material={MAT.wood}>
+              <boxGeometry args={[0.13, 2.4, 0.2]} />
+            </mesh>
+            <mesh position={[0, -1.0, 0.17]} material={MAT.goldSoft}>
+              <boxGeometry args={[0.032, 2.4, 0.032]} />
+            </mesh>
+          </group>
+        ))}
+        <mesh position={[0, 0.2, 0.17]} material={MAT.goldSoft}>
+          <torusGeometry args={[CRAFT_WALL.half + 0.06, 0.026, 6, 26, Math.PI]} />
         </mesh>
-        {[-1.24, -0.62, 0, 0.62, 1.24].map((tx, i) => {
-          // Graded lengths, longest in the middle, so the row hangs as a
-          // curve instead of a picket fence.
-          const drop = 0.3 + (2 - Math.abs(i - 2)) * 0.075;
-          return (
-            <group key={tx} position={[tx, 0.52, 0.1]}>
-              {/* Squashed on x: a true half-circle at this drop would be
-                  wider than the 0.62 gap and the chains would interlace. */}
-              <mesh
-                rotation={[0, 0, Math.PI]}
-                scale={[0.52, 1, 1]}
-                material={MAT.gold}
-              >
-                <torusGeometry args={[drop, 0.014, 6, 22, Math.PI]} />
-              </mesh>
-              {BENCH_TRIM && (
-                <mesh position={[0, -drop, 0]} material={MAT.gemGreen}>
-                  <octahedronGeometry args={[0.055, 0]} />
+        <mesh position={[0, -2.19, 0]} material={MAT.threshold}>
+          <boxGeometry args={[2.16, 0.06, 0.5]} />
+        </mesh>
+        {/* Light from the room beyond, sitting in the threshold. The floor of
+            the passage is hidden behind the bench from every camera position in
+            the zone, so a pool laid on it would never be seen — this is the
+            same additive quad the bench lamp uses, stood upright instead.
+
+            It is kept low and small deliberately: filling the opening with it
+            washed out the very thing the opening is there to show. */}
+        <mesh position={[0, -1.45, -0.12]} material={MAT.lightPool} renderOrder={2}>
+          <planeGeometry args={[1.7, 1.0]} />
+        </mesh>
+
+        {/* The necklaces hung on one rail across the middle of the wall, which
+            is now the doorway. Two rails, one on each pier, with the longer
+            chain of each pair nearest the opening so the pair reads as graded
+            rather than as a pair of matching hooks. */}
+        {[-1, 1].map((s) => (
+          <group key={s} position={[s * 1.95, 0, 0]}>
+            <mesh position={[0, 0.55, 0.04]} material={MAT.goldSoft}>
+              <boxGeometry args={[1.5, 0.07, 0.07]} />
+            </mesh>
+            {[
+              { x: -s * 0.44, drop: 0.46 },
+              { x: s * 0.44, drop: 0.34 },
+            ].map(({ x, drop }) => (
+              <group key={x} position={[x, 0.52, 0.1]}>
+                {/* Squashed on x: a true half-circle at this drop would be
+                    wider than the gap and the chains would interlace. */}
+                <mesh
+                  rotation={[0, 0, Math.PI]}
+                  scale={[0.7, 1, 1]}
+                  material={MAT.gold}
+                >
+                  <torusGeometry args={[drop, 0.014, 6, 22, Math.PI]} />
                 </mesh>
-              )}
-            </group>
-          );
-        })}
+                {BENCH_TRIM && (
+                  <mesh position={[0, -drop, 0]} material={MAT.gemGreen}>
+                    <octahedronGeometry args={[0.055, 0]} />
+                  </mesh>
+                )}
+              </group>
+            ))}
+          </group>
+        ))}
       </group>
     </group>
   );
@@ -2471,24 +2747,441 @@ function TheCollection({ z }: { z: number }) {
   );
 }
 
+/**
+ * The portrait room's backing panel, and the two archways cut through it.
+ *
+ * The panel is there to close the cream voids either side of the portrait (see
+ * the mesh below), and it did that by making the whole frame one dark surface —
+ * wall edge to wall edge, floor to ceiling, with no hint that anything follows.
+ * The two strips of panel either side of the 2.85-wide frame happen to be the
+ * same width, so a tall archway in each is symmetrical about the portrait and
+ * takes nothing from it. What shows through is the finale, framed — not the
+ * page background the panel was put here to hide.
+ */
+const MOMENTS_PANEL = {
+  // Wider than the 5.4 it was. The portrait stands a quarter-unit in front of
+  // the panel, so at 5.4 it covered the inner half of each archway from the
+  // camera's line and they read as slivers. The extra width pushes them out
+  // past its edge; what it adds outboard stays hidden behind the angled walls,
+  // which cover everything past their own inner edge from here.
+  width: 6.0,
+  // Taller than the ceiling is high, or the strip between the two is a slot
+  // onto the lit room behind — which arrives as a hard white bar across the
+  // top of the wall, directly above the house mark.
+  height: 6.9,
+  /**
+   * World position of the panel's centre.
+   *
+   * On the axis, not the 0.15 it drifted to: the camera flies down x = 0 and
+   * this room is a formal one — a centrepiece with a pair of arches and a pair
+   * of pictures either side of it. Fifteen hundredths is not enough to see as
+   * a decision and is exactly enough to make the two arches sit at different
+   * distances from the eye.
+   */
+  x: 0,
+  y: 1.15,
+  z: -5.75,
+  /** Each archway's offset from that centre, and its half-width. Far enough out
+   *  that its inner jamb clears the portrait's edge by a comfortable margin,
+   *  and still 0.2 inside the panel's own edge. */
+  offset: 2.3,
+  half: 0.475,
+  floorY: -1.5,
+  /**
+   * The openings run much taller than they did. At head height 1.6 the two
+   * pictures hung on the side walls stood in front of almost all of them —
+   * they are nearer the camera, so they cover more angle than they occupy —
+   * and the room went back to reading as the end of the road. Nothing can be
+   * moved sideways to fix that: outboard of here is off the edge of a phone,
+   * inboard is the portrait. So the arches went up instead, and what shows
+   * above the pictures is a tall slice of the finale.
+   */
+  springY: 1.975,
+  headY: 2.45,
+} as const;
+
+const MOMENTS_PANEL_GEO = archedWallGeometry(
+  MOMENTS_PANEL.width,
+  MOMENTS_PANEL.height,
+  [-1, 1].map((s) => ({
+    x: s * MOMENTS_PANEL.offset,
+    // Plane-space. The sill runs 0.2 below the floor, where the floor hides it,
+    // so the opening reaches the ground without touching the panel's edge.
+    bottom: MOMENTS_PANEL.floorY - 0.2 - MOMENTS_PANEL.y,
+    top: MOMENTS_PANEL.headY - MOMENTS_PANEL.y,
+    width: MOMENTS_PANEL.half * 2,
+  }))
+);
+
+/**
+ * Whether this device gets the film at all.
+ *
+ * The file is 17MB for four and a half seconds — it has not been re-encoded
+ * (see the header of scripts/optimize-media.mjs for the command that will fix
+ * that), so until it is, it may only go to a machine that has plainly said it
+ * can take it: a desktop on the high tier, not asking for reduced motion, and
+ * not asking to save data. Everyone else gets the still, which is what the
+ * frame showed before and is no worse for it.
+ */
+function filmAllowed() {
+  if (QUALITY.tier !== "high" || isTouchDevice()) return false;
+  if (typeof window === "undefined") return false;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  const link = (navigator as Navigator & { connection?: { saveData?: boolean } })
+    .connection;
+  return !link?.saveData;
+}
+
+/**
+ * The ring turning, as a texture — the one moving image in the show.
+ *
+ * Nothing is fetched at boot: the element is not created until the journey is
+ * within a zone of the room, and it is torn down again on the way out, so a
+ * visitor who never scrolls that far never pays for it.
+ */
+function useAtelierFilm() {
+  const [near, setNear] = useState(false);
+  const [film, setFilm] = useState<THREE.VideoTexture | null>(null);
+
+  useEffect(() => {
+    if (!filmAllowed()) return;
+    const onScroll = () => {
+      const p = pageProgress();
+      setNear(p > 0.58 && p < 0.95);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!near) return;
+    const el = document.createElement("video");
+    el.src = ATELIER_FILM;
+    el.muted = true;
+    el.loop = true;
+    el.playsInline = true;
+    el.preload = "auto";
+
+    const tex = new THREE.VideoTexture(el);
+    tex.colorSpace = THREE.SRGBColorSpace;
+
+    // Cover-fit, exactly as the plinth band crops its photographs: the film is
+    // 9:16 and the frame is 4:5, so it is matched on width and trimmed top and
+    // bottom rather than squashed.
+    const onMeta = () => {
+      const shot = el.videoWidth / el.videoHeight;
+      const frame = MOMENTS_FRAME[0] / MOMENTS_FRAME[1];
+      if (shot > frame) {
+        tex.repeat.set(frame / shot, 1);
+        tex.offset.set((1 - frame / shot) / 2, 0);
+      } else {
+        tex.repeat.set(1, shot / frame);
+        tex.offset.set(0, (1 - shot / frame) / 2);
+      }
+      setFilm(tex);
+    };
+    el.addEventListener("loadedmetadata", onMeta, { once: true });
+    // Muted and inline, so autoplay is allowed; if a browser refuses anyway the
+    // still is already on the frame and stays there.
+    void el.play().catch(() => {});
+
+    return () => {
+      el.removeEventListener("loadedmetadata", onMeta);
+      el.pause();
+      el.removeAttribute("src");
+      el.load();
+      tex.dispose();
+      setFilm(null);
+    };
+  }, [near]);
+
+  return film;
+}
+
+/** The artwork inside the gold frame — the still and the film share it. */
+const MOMENTS_FRAME: [number, number] = [2.62, 3.3];
+
+/**
+ * The two pictures on the side walls. Both sources are 2:3, so this is 2:3 and
+ * neither is cropped; at 1.7 wide they read as a pair either side of a 2.85
+ * centrepiece rather than competing with it.
+ */
+const MOMENTS_WING: [number, number] = [1.7, 2.55];
+
+/**
+ * One low sphere, scaled per instance into a garland flower or a fallen petal.
+ * Seven segments is enough for something never seen larger than a thumbnail,
+ * and it is the same geometry for both so they cost one buffer between them.
+ */
+const BLOOM_GEO = new THREE.SphereGeometry(1, 7, 5);
+
+type Speck = {
+  p: [number, number, number];
+  rot?: [number, number, number];
+  /** Uniform, or per-axis where the shape matters — a petal is a flat sphere. */
+  s: number | [number, number, number];
+  tint: number;
+};
+
+/**
+ * A cloud of small painted things in one draw call — the garland's flowers and
+ * the petals on the floor both go through here.
+ *
+ * Same instancing rules as `LeafCloud`: colours per instance, and the bounding
+ * sphere recomputed after the matrices are written, or the cull test uses the
+ * single-flower bounds and the whole garland pops out of view at once.
+ */
+function SpeckCloud({
+  specks,
+  tints,
+  material = MAT.bloom,
+}: {
+  specks: Speck[];
+  tints: THREE.Color[];
+  material?: THREE.Material;
+}) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    for (let i = 0; i < specks.length; i++) {
+      const speck = specks[i];
+      _e.set(speck.rot?.[0] ?? 0, speck.rot?.[1] ?? 0, speck.rot?.[2] ?? 0);
+      _q.setFromEuler(_e);
+      _v.set(speck.p[0], speck.p[1], speck.p[2]);
+      if (typeof speck.s === "number") _s.setScalar(speck.s);
+      else _s.set(speck.s[0], speck.s[1], speck.s[2]);
+      mesh.setMatrixAt(i, _m.compose(_v, _q, _s));
+      mesh.setColorAt(i, tints[speck.tint]);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [specks, tints]);
+
+  if (specks.length === 0) return null;
+  return <instancedMesh ref={ref} args={[BLOOM_GEO, material, specks.length]} />;
+}
+
+/**
+ * Marigold in gold. The three tints are the house's own metals rather than a
+ * literal orange, so the garland travels with the palette instead of fighting
+ * whichever one is loaded.
+ *
+ * They are the *deep* three on purpose. Built from `signText` and `glowSoft`
+ * the flowers came out ivory — the scene renders about two and a half times
+ * brighter than its colours, and anything that starts pale finishes white, so
+ * the garland read as a string of pearls.
+ */
+const GARLAND_TINTS = [P.gold, P.goldSoft, P.goldWarm].map((c) => new THREE.Color(c));
+const PETAL_TINTS = [P.blossom, P.silk, P.gold].map((c) => new THREE.Color(c));
+
+/**
+ * The garland hung on the portrait: a swag across the top of the frame and a
+ * tail down each side, in the frame group's own coordinates.
+ *
+ * The swag is a parabola rather than a straight line — a hung garland dips, and
+ * a level one reads as a painted band. It sits at z +0.08, in front of the
+ * picture plane, and dips just far enough to cross the frame's top border so it
+ * looks hung *on* the frame instead of floating above it.
+ */
+const MOMENTS_GARLAND: Speck[] = (() => {
+  const specks: Speck[] = [];
+  const random = rng(2718);
+  const endX = 1.56;
+  const endY = 1.94;
+  const dipY = 1.6;
+
+  const swag = 58;
+  for (let i = 0; i < swag; i++) {
+    const t = (i / (swag - 1)) * 2 - 1; // -1 .. 1
+    specks.push({
+      p: [t * endX, dipY + (endY - dipY) * t * t, 0.08 + random() * 0.02],
+      s: 0.052 + random() * 0.022,
+      tint: i % 3,
+    });
+  }
+
+  // Tails: the ends carrying on down the outside of the frame, thinning as
+  // they fall, the way a strung garland does.
+  const tail = 12;
+  for (const side of [-1, 1]) {
+    for (let i = 1; i <= tail; i++) {
+      const t = i / tail;
+      specks.push({
+        p: [side * (endX + t * 0.05), endY - t * 0.78, 0.08 + random() * 0.02],
+        s: (0.043 + random() * 0.014) * (1 - t * 0.35),
+        tint: (i + 1) % 3,
+      });
+    }
+  }
+  return specks;
+})();
+
+/**
+ * Petals on the floor, thickest at the foot of the plinth and thinning as they
+ * scatter outward — the room's whole subject is an occasion, and an occasion
+ * leaves something behind. Flattened spheres: at this size the silhouette is
+ * all that reads, and a flat one reads as a petal where a round one reads as a
+ * bead that got away from the garland.
+ */
+const MOMENTS_PETALS: Speck[] = (() => {
+  const specks: Speck[] = [];
+  const random = rng(31415);
+  const count = Math.round(52 * QUALITY.foliage + 14);
+  for (let i = 0; i < count; i++) {
+    // Biased towards the plinth: two draws averaged pull the scatter in.
+    const spread = (random() + random()) / 2;
+    const x = (spread - 0.5) * 6.4;
+    const z = -5.1 + ((random() + random()) / 2 - 0.5) * 6.2;
+    specks.push({
+      p: [x, -1.47, z],
+      rot: [random() * 0.5 - 0.25, random() * Math.PI, random() * 0.4 - 0.2],
+      s: [0.07 + random() * 0.05, 0.016, 0.05 + random() * 0.035],
+      tint: random() > 0.82 ? 2 : random() > 0.5 ? 1 : 0,
+    });
+  }
+  return specks;
+})();
+
 function MadeForMoments({ z }: { z: number }) {
   const portrait = useTexture(JEWELRY_IMAGES.emeraldGoddess.src, (tex) => {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 8;
   });
+  // The pair on the side walls. Loaded together so the room never appears with
+  // one wall dressed and the other bare.
+  const wings = useTexture(
+    [JEWELRY_IMAGES.elephantRing.src, JEWELRY_IMAGES.ringInGlass.src],
+    (tex) => {
+      for (const t of Array.isArray(tex) ? tex : [tex]) {
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = 8;
+      }
+    }
+  );
+  const film = useAtelierFilm();
 
   return (
     <group position={[0, 0, z]}>
+      {/* The side walls. They were two five-by-six-and-a-half planes of flat
+          colour holding most of the frame, which is why the room read as
+          cardboard flats rather than a room: no surface, no edges, no light on
+          them anywhere.
+
+          Three things fix that and none of them costs a draw call the room
+          could not afford. Plaster maps, so the largest surfaces in the zone
+          have a grain. A skirting, a picture rail and a cornice, which is what
+          gives a wall its scale — the eye has nothing to measure a bare plane
+          against. And a sconce washing each one, which is the whole difference
+          between a dark wall and a photographed dark wall. */}
       {[-1, 1].map((s) => (
-        <mesh
-          key={s}
-          position={[s * 4.2, 0.8, -4.2]}
-          rotation={[0, s * -0.45, 0]}
-          material={MAT.emeraldDeep}
-        >
-          <planeGeometry args={[5, 6.5]} />
-        </mesh>
+        <group key={s} position={[s * 4.2, 0.8, -4.2]} rotation={[0, s * -0.45, 0]}>
+          <mesh material={MAT.emeraldWall}>
+            <planeGeometry args={[5, 6.5]} />
+          </mesh>
+          {/* Skirting: the wall's foot, at the floor line (local -2.3). */}
+          <mesh position={[0, -2.08, 0.05]} material={MAT.emeraldDeep}>
+            <boxGeometry args={[5, 0.44, 0.1]} />
+          </mesh>
+          <mesh position={[0, -1.85, 0.07]} material={MAT.goldSoft}>
+            <boxGeometry args={[5, 0.03, 0.03]} />
+          </mesh>
+          {/* Picture rail, at the height the portrait's own frame sits. */}
+          <mesh position={[0, 0.62, 0.06]} material={MAT.goldSoft}>
+            <boxGeometry args={[5, 0.04, 0.04]} />
+          </mesh>
+          {/* Cornice, flush with the top edge — without it the wall stops at a
+              cut, and that cut is against the sky at the top of the frame. */}
+          <mesh position={[0, 3.09, 0.09]} material={MAT.emeraldDeep}>
+            <boxGeometry args={[5, 0.32, 0.18]} />
+          </mesh>
+          <mesh position={[0, 2.9, 0.12]} material={MAT.goldSoft}>
+            <boxGeometry args={[5, 0.035, 0.035]} />
+          </mesh>
+
+          {/* Everything on the wall hangs off one inboard station rather than
+              the wall's centre: the copy card covers the outer half of the left
+              wall for the whole zone, and the picture the room is being given
+              should not spend that time behind it. Inboard is -x on the right
+              wall and +x on the left, which is what the -s does. */}
+          <group position={[-s * 1.15, 0, 0]}>
+            {/* The sconce, and the light it throws — now a picture light, since
+                what is under it is a picture. The pool is the additive quad the
+                whole app lights with; a real light here would cost every
+                material in the scene a fragment, for one wall. */}
+            <group position={[0, 0.95, 0.1]}>
+              <mesh position={[0, -0.16, 0.02]} material={MAT.goldSoft}>
+                <cylinderGeometry args={[0.02, 0.05, 0.3, 8]} />
+              </mesh>
+              <mesh position={[0, 0.02, 0.04]} material={MAT.glow}>
+                <sphereGeometry args={[0.075, 10, 8]} />
+              </mesh>
+              <mesh position={[0, 0.02, 0.05]} material={MAT.lightPool} renderOrder={2}>
+                <planeGeometry args={[2.6, 3.4]} />
+              </mesh>
+            </group>
+
+            {/* Hung from the picture rail on two wires, the way a gallery hangs
+                a frame — the rail was already there and had nothing on it, which
+                is the one thing a picture rail cannot be. */}
+            {[-1, 1].map((w) => (
+              <mesh
+                key={w}
+                position={[w * 0.62, 0.06, 0.06]}
+                material={MAT.goldSoft}
+              >
+                <boxGeometry args={[0.012, 1.12, 0.012]} />
+              </mesh>
+            ))}
+            <group position={[0, -0.86, 0.08]}>
+              <mesh material={MAT.gold}>
+                <boxGeometry args={[MOMENTS_WING[0] + 0.16, MOMENTS_WING[1] + 0.16, 0.06]} />
+              </mesh>
+              <mesh position={[0, 0, 0.04]}>
+                <planeGeometry args={MOMENTS_WING} />
+                <meshBasicMaterial
+                  // The bright one to the left of the portrait and the dark one
+                  // to its right, not the other way round: the left wall is the
+                  // one the copy card sits against, and a near-black picture
+                  // behind a pale card is a hole in the frame.
+                  map={wings[s < 0 ? 0 : 1]}
+                  toneMapped={false}
+                />
+              </mesh>
+            </group>
+          </group>
+        </group>
       ))}
+
+      {/* The ceiling.
+
+          The two side walls topped out at y = 4.05 with nothing above them, so
+          from the doorway of the zone their cornices cut two hard diagonals
+          against the empty sky and the room read as a pair of flats propped up
+          rather than somewhere with a roof on it. That got worse, not better,
+          on a phone: the taller frame a portrait viewport gets is filled from
+          the top, and the top was where the nothing was.
+
+          It is wider than the room on purpose — the walls rake out to x = 6.45
+          and a ceiling that stopped at the walls would leave their far corners
+          showing over it — and it runs far enough forward to still be overhead
+          at the start of the zone, which is the only place the sky was ever
+          visible from. */}
+      <mesh
+        position={[0, 4.3, -1.6]}
+        rotation={[Math.PI / 2, 0, 0]}
+        material={MAT.emeraldDeep}
+      >
+        <planeGeometry args={[12.4, 9.2]} />
+      </mesh>
+      {/* A gold line where the ceiling meets the air, so its leading edge reads
+          as a beam rather than as the place the geometry stops. */}
+      <mesh position={[0, 4.28, 3.0]} material={MAT.goldSoft}>
+        <boxGeometry args={[12.4, 0.06, 0.06]} />
+      </mesh>
 
       {/* Backing panel. The angled walls stop at x = ±1.95 while the portrait
           is 2.85 wide, so a bright cream void showed either side of the frame —
@@ -2497,22 +3190,113 @@ function MadeForMoments({ z }: { z: number }) {
           that reaches the centre also passes in front of the artwork and
           swallows it. A flat panel behind the frame closes both voids and
           leaves the gold edge proud. */}
-      <mesh position={[0.15, 0.9, -5.75]} material={MAT.emeraldDeep}>
-        <planeGeometry args={[5.4, 6.4]} />
+      <mesh
+        position={[MOMENTS_PANEL.x, MOMENTS_PANEL.y, MOMENTS_PANEL.z]}
+        geometry={MOMENTS_PANEL_GEO}
+        material={MAT.emeraldWall}
+      />
+
+      {/* A runner up to the plinth. The floor held the bottom third of the
+          frame and had nothing in it but slabs — and a room whose subject is a
+          single picture wants a line pointing at it. Velvet rather than the
+          workshop's rug: that map has its border woven in, and stretched to a
+          runner's proportions the border stretches with it. The gold is a
+          slightly larger quad showing underneath, which is one draw call for an
+          edge on all four sides. */}
+      <mesh
+        position={[0, -1.492, -3.1]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        material={MAT.goldSoft}
+      >
+        <planeGeometry args={[2.48, 6.12]} />
+      </mesh>
+      <mesh
+        position={[0, -1.488, -3.1]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        // Not the display velvet, which carries a sheen that catches right
+        // across a plane this large at this raking an angle — and not the
+        // oxblood leather either, which is where this started: the scene renders
+        // about two and a half times its albedo, so a #6B2436 runner arrived on
+        // screen as hot pink and took the eye clean off the portrait it is meant
+        // to be pointing at. The panelling's own dark plum is the one tone in
+        // the room that stays dark after that lift.
+        material={MAT.emeraldDeep}
+      >
+        <planeGeometry args={[2.4, 6.04]} />
       </mesh>
 
-      <group position={[0.15, 0.5, -5.5]}>
-        {/* Plinth. The frame's bottom edge is at y = -1.275 and the floor is
-            at -1.5, so it stood a fifth of a unit clear of the ground. */}
-        <mesh position={[0, -1.39, 0.02]} material={MAT.marble}>
-          <boxGeometry args={[3.1, 0.23, 0.52]} />
+      {/* What the occasion left behind. */}
+      <SpeckCloud specks={MOMENTS_PETALS} tints={PETAL_TINTS} />
+
+      {/* Motes in the air over the runner. One GPU-animated point cloud, and
+          already off on the tier that cannot afford it. */}
+      {QUALITY.sparkles > 0 && (
+        <Sparkles
+          count={22}
+          position={[0, 0.1, -3.8]}
+          scale={[6.4, 3.2, 4.4]}
+          size={2.4}
+          speed={0.16}
+          opacity={0.45}
+          color={P.glow}
+        />
+      )}
+
+      {/* The archways. Gold beads round them, and the light of the room beyond
+          falling through onto this floor — a lit opening reads as a room, an
+          unlit one reads as a hole cut in a flat. The candle pairs already
+          stand in front of them and end up silhouetted, which is free depth. */}
+      {[-1, 1].map((s) => (
+        <group
+          key={s}
+          position={[MOMENTS_PANEL.x + s * MOMENTS_PANEL.offset, 0, MOMENTS_PANEL.z + 0.03]}
+        >
+          {[-1, 1].map((j) => (
+            <mesh
+              key={j}
+              // Floor to springline, however tall the opening is set.
+              position={[
+                j * (MOMENTS_PANEL.half + 0.03),
+                (MOMENTS_PANEL.floorY + MOMENTS_PANEL.springY) / 2,
+                0,
+              ]}
+              material={MAT.goldSoft}
+            >
+              <boxGeometry
+                args={[0.03, MOMENTS_PANEL.springY - MOMENTS_PANEL.floorY, 0.03]}
+              />
+            </mesh>
+          ))}
+          <mesh position={[0, MOMENTS_PANEL.springY, 0]} material={MAT.goldSoft}>
+            <torusGeometry args={[MOMENTS_PANEL.half + 0.03, 0.024, 6, 20, Math.PI]} />
+          </mesh>
+          <mesh
+            position={[0, -1.48, 0.8]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            material={MAT.lightPool}
+            renderOrder={2}
+          >
+            <planeGeometry args={[1.5, 2.1]} />
+          </mesh>
+        </group>
+      ))}
+
+      <group position={[0, 0.5, -5.5]}>
+        {/* The plinth the frame stands on. It was set half a unit too high and
+            half a unit too far forward, so instead of carrying the picture it
+            crossed it: a white bar over the bottom of the artwork, with the
+            MADE FOR MOMENTS caption behind it, invisible for as long as the
+            room has existed. It now runs from the floor at world -1.5 to the
+            frame's bottom edge at -1.275 and stops there. */}
+        <mesh position={[0, -1.8875, 0.02]} material={MAT.marble}>
+          <boxGeometry args={[3.1, 0.225, 0.52]} />
         </mesh>
         <mesh position={[0, 0, -0.05]} material={MAT.gold}>
           <boxGeometry args={[2.85, 3.55, 0.08]} />
         </mesh>
         <mesh>
-          <planeGeometry args={[2.62, 3.3]} />
-          <meshBasicMaterial map={portrait} toneMapped={false} />
+          <planeGeometry args={MOMENTS_FRAME} />
+          <meshBasicMaterial map={film ?? portrait} toneMapped={false} />
         </mesh>
         <mesh position={[0, -1.4, 0.02]} material={MAT.vignette}>
           <planeGeometry args={[2.62, 0.9]} />
@@ -2525,6 +3309,58 @@ function MadeForMoments({ z }: { z: number }) {
           letterSpacing="0.35em"
           position={[0, -1.45, 0.04]}
         />
+
+        {/* The garland. A gold-framed portrait in a room called Made for
+            Moments was, until now, a picture on a wall — this is the one thing
+            in the zone that says an occasion is happening rather than being
+            described. It hangs on the frame's own coordinates, so it travels
+            with the picture if that ever moves. */}
+        <SpeckCloud
+          specks={MOMENTS_GARLAND}
+          tints={GARLAND_TINTS}
+          material={MAT.garland}
+        />
+
+        {/* The house mark over the centrepiece, built as the entrance sign is
+            built — plate with the medallion crowning it — at two thirds the
+            size, because this one is read from inside the room rather than from
+            eighteen units back through fog.
+
+            It sits above the garland with the panel's own plaster behind it, in
+            the only part of this wall that was doing nothing. */}
+        <group position={[0, 2.62, -0.22]}>
+          <mesh position={[0, 0, -0.02]} material={MAT.gold}>
+            <boxGeometry args={[1.94, 0.66, 0.04]} />
+          </mesh>
+          <mesh material={MAT.emeraldDeep}>
+            <boxGeometry args={[1.86, 0.58, 0.06]} />
+          </mesh>
+          <TextPlane
+            text="GEETEJ"
+            width={1.5}
+            height={0.3}
+            fontScale={0.62}
+            color={P.signText}
+            weight="700"
+            position={[0, 0.09, 0.04]}
+          />
+          <TextPlane
+            text="VIRAASAT"
+            width={1.08}
+            height={0.15}
+            fontScale={0.66}
+            letterSpacing="0.5em"
+            color={P.signText}
+            weight="600"
+            position={[0, -0.14, 0.04]}
+          />
+          <group position={[0, 0.53, 0.02]}>
+            <mesh position={[0, 0, -0.04]} material={MAT.lightPool} renderOrder={2}>
+              <planeGeometry args={[1.5, 1.5]} />
+            </mesh>
+            <CrestMedallion radius={0.36} markY={0.03} />
+          </group>
+        </group>
       </group>
 
       {/* Candles. They stood at four unrelated x positions, all pinned to
@@ -2538,13 +3374,36 @@ function MadeForMoments({ z }: { z: number }) {
           return (
             <group
               key={`${s}:${i}`}
-              position={[s * (2.0 + i * 0.42), -1.5 + h / 2, -3.45 - i * 0.35]}
+              // Seated on a stand rather than on the floor: a taper standing
+              // straight on stone reads as a bollard, which is what these were.
+              position={[s * (2.0 + i * 0.42), -1.5, -3.45 - i * 0.35]}
             >
-              <mesh material={MAT.blossom}>
-                <cylinderGeometry args={[0.07, 0.08, h, 12]} />
+              <GroundShadow position={[0, 0.03, 0.02]} radius={0.2} stretch={0.9} />
+              <mesh position={[0, 0.03, 0]} material={MAT.goldSoft}>
+                <cylinderGeometry args={[0.13, 0.16, 0.06, 14]} />
               </mesh>
-              <mesh position={[0, h / 2 + 0.06, 0]} material={MAT.glow}>
-                <sphereGeometry args={[0.05, 8, 6]} />
+              <mesh position={[0, 0.13, 0]} material={MAT.goldSoft}>
+                <cylinderGeometry args={[0.045, 0.06, 0.16, 10]} />
+              </mesh>
+              {/* The cup the wax stands in, so the taper has somewhere to end. */}
+              <mesh position={[0, 0.23, 0]} material={MAT.gold}>
+                <cylinderGeometry args={[0.085, 0.06, 0.05, 12]} />
+              </mesh>
+              <mesh position={[0, 0.26 + h / 2, 0]} material={MAT.blossom}>
+                <cylinderGeometry args={[0.055, 0.062, h, 12]} />
+              </mesh>
+              {/* Flame, and the light it puts on the air around it. A cone
+                  tapered to a point reads as a flame at any size; the sphere
+                  these had read as a pearl on a stick. */}
+              <mesh position={[0, 0.3 + h + 0.03, 0]} material={MAT.glow}>
+                <coneGeometry args={[0.028, 0.11, 8]} />
+              </mesh>
+              <mesh
+                position={[0, 0.3 + h + 0.02, 0.01]}
+                material={MAT.lightPool}
+                renderOrder={2}
+              >
+                <planeGeometry args={[0.62, 0.62]} />
               </mesh>
             </group>
           );

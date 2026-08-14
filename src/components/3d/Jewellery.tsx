@@ -1,10 +1,12 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
-import { ANATOMY, torsoRadiusAt } from "./mannequin-anatomy";
+import { ANATOMY } from "./mannequin-anatomy";
 import { quality } from "./quality";
+import { MUSE_NECKLACE } from "@/content/gallery";
 import { palette } from "@/theme/palette";
 
 const Q = quality();
@@ -33,10 +35,27 @@ const GEM = new THREE.MeshStandardMaterial({
   transparent: true,
 });
 
-/** Fades every piece. Both materials are module-level, so this is global. */
+/**
+ * The photographed necklace. Unlit, like every other photograph in the show —
+ * it arrives with the light it was shot under already in it, and lighting it
+ * again would light it twice.
+ *
+ * `depthWrite: false` rather than an `alphaTest`: the piece has to fade with
+ * the bust, and a cutout that is discarded below a threshold does not fade, it
+ * disappears in one frame when the opacity crosses it.
+ */
+const NECKLACE = new THREE.MeshBasicMaterial({
+  transparent: true,
+  depthWrite: false,
+  toneMapped: false,
+  side: THREE.DoubleSide,
+});
+
+/** Fades every piece. The materials are module-level, so this is global. */
 export function setJewelleryOpacity(o: number) {
   GOLD.opacity = o;
   GEM.opacity = o;
+  NECKLACE.opacity = o;
 }
 
 // One unit sphere shared by every bead; the instance matrix carries the size.
@@ -47,36 +66,20 @@ const BEAD_GEO = new THREE.SphereGeometry(
   Math.round(BEAD_SEGMENTS * 0.75)
 );
 
-const STRAND_BEADS = Q.tier === "high" ? 52 : Q.tier === "mid" ? 38 : 26;
 const RADIAL = Q.tier === "high" ? 16 : Q.tier === "mid" ? 12 : 8;
 
 type Bead = { p: readonly [number, number, number]; r: number };
 
 /**
- * Every small gold sphere the bust wears — two necklace strands, the maang
- * tikka chain and drop, the nose stud and the ear studs — in one instanced
- * mesh, one draw call. They are all static; only the jhumkas and the pendant
- * move.
+ * Every small gold sphere the bust wears — the maang tikka chain and drop, the
+ * nose stud and the ear studs — in one instanced mesh, one draw call. They are
+ * all static; only the jhumkas move.
+ *
+ * The two bead strands round her neck were built here too, from
+ * `ANATOMY.strands`, until the photographed necklace took their place.
  */
 function buildBeads(): Bead[] {
   const beads: Bead[] = [];
-
-  for (const { backY, frontDrop, bead } of ANATOMY.strands) {
-    const gap = bead + ANATOMY.strandClearance;
-    for (let i = 0; i < STRAND_BEADS; i++) {
-      const theta = (i / STRAND_BEADS) * Math.PI * 2;
-      const front = (Math.cos(theta) + 1) / 2;
-      // Bias the fall towards the front so the back of the strand stays up on
-      // the neck instead of sagging off the shoulders.
-      const drape = front ** 1.5;
-      const y = backY - frontDrop * drape;
-      const radius = torsoRadiusAt(y) + gap;
-      beads.push({
-        p: [Math.sin(theta) * radius, y, Math.cos(theta) * radius],
-        r: bead,
-      });
-    }
-  }
 
   // Maang tikka: a chain from the crown to the brow, bowed out so it follows
   // the scalp rather than cutting through it.
@@ -140,18 +143,74 @@ function Beads() {
 }
 
 /**
+ * The necklace, as photographed, lifted off the display bust it was shot on and
+ * put on the muse.
+ *
+ * Not a flat card at her chest: an open cylinder arc, so the piece curves away
+ * at both ends the way it does on a body and the outer drops sit beside the
+ * neck instead of hanging in front of it. The arc comes from the photograph's
+ * own aspect, and the width it is fitted to is the *chord* across that arc
+ * rather than the arc length — what the camera reads is the projection.
+ *
+ * The band's radius clears her chest at every height it covers (see
+ * ANATOMY.necklace), so no part of the piece is ever inside her.
+ */
+function Necklace() {
+  const tex = useTexture(MUSE_NECKLACE, (t) => {
+    const map = Array.isArray(t) ? t[0] : t;
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.anisotropy = 8;
+  });
+
+  useLayoutEffect(() => {
+    NECKLACE.map = tex;
+    NECKLACE.needsUpdate = true;
+  }, [tex]);
+
+  const { top, height, radius } = ANATOMY.necklace;
+  const geometry = useMemo(() => {
+    const img = tex.image as { width?: number; height?: number } | undefined;
+    const aspect = img?.width && img?.height ? img.width / img.height : 0.85;
+    // Clamped: a piece wider than the band's diameter cannot be wrapped onto
+    // it, and asin would answer NaN rather than say so.
+    const chord = Math.min(0.95, (height * aspect) / (2 * radius));
+    const theta = 2 * Math.asin(chord);
+    return new THREE.CylinderGeometry(
+      radius,
+      radius,
+      height,
+      24,
+      1,
+      true,
+      -theta / 2,
+      theta
+    );
+  }, [tex, height, radius]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  return (
+    <mesh
+      geometry={geometry}
+      material={NECKLACE}
+      position={[0, top - height / 2, 0]}
+      // Her lacquer is transparent too, and both are centred on the same axis,
+      // so the depth sort has nothing to separate them by. Without this the
+      // necklace flickers behind her.
+      renderOrder={1}
+    />
+  );
+}
+
+/**
  * Everything the muse wears. Sits inside the bust's group, so it inherits the
  * bust's position and scale — see FountainBust in StoryRooms.tsx.
  */
 export default function Jewellery() {
-  const pendant = useRef<THREE.Group>(null);
   const jhumkas = useRef<Array<THREE.Group | null>>([null, null]);
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     // The bust is invisible for the last stretch of the zone; nothing to move.
     if (GOLD.opacity < 0.01) return;
-
-    if (pendant.current) pendant.current.rotation.y += delta * 0.5;
 
     const t = state.clock.getElapsedTime();
     for (let i = 0; i < 2; i++) {
@@ -162,32 +221,14 @@ export default function Jewellery() {
     }
   });
 
-  const [px, py, pz] = ANATOMY.pendant;
-
   return (
     <group>
       <Beads />
 
-      {/* Pendant: the house's orb motif, turning slowly enough to catch the
-          light once per pass. The emerald rides on its face so the rotation
-          actually reads — on a bare sphere it would be invisible. */}
-      <group ref={pendant} position={[px, py, pz]}>
-        <mesh material={GOLD}>
-          <sphereGeometry args={[0.085, RADIAL + 6, RADIAL]} />
-        </mesh>
-        <mesh position={[0, 0, 0.076]} material={GEM}>
-          <octahedronGeometry args={[0.05, 0]} />
-        </mesh>
-      </group>
-
-      {/* Bail, tipped back to meet the lowest bead of the drape. */}
-      <mesh
-        position={[px, py + 0.078, pz - 0.05]}
-        rotation={[Math.PI / 2.4, 0, 0]}
-        material={GOLD}
-      >
-        <torusGeometry args={[0.028, 0.008, 6, 14]} />
-      </mesh>
+      {/* The piece itself. It replaced a modelled orb pendant on two bead
+          strands: a house motif that was never a real product, where this is
+          the necklace a visitor can actually be sold. */}
+      <Necklace />
 
       {/* Jhumkas, swinging from the stud they hang on. A hoop would be edge-on
           to this camera — it only ever sees the bust from the front — so the

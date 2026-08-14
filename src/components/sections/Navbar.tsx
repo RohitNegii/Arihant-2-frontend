@@ -92,7 +92,13 @@ export default function Navbar() {
             <div className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-verdant-emerald/10 to-verdant-gold/10 border border-verdant-emerald/15 group-hover:border-verdant-gold/40 transition-all duration-300">
               <Sparkles className="w-4 h-4 text-verdant-gold group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <span className="font-serif text-lg tracking-[0.15em] font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
+            {/* The wordmark is letter-spaced twice over — once by the spaces in
+                the text and once by `tracking` — which at 390px wide put the
+                final T on a line of its own under the rest of the name. Both
+                scale down with the viewport now, and it may not wrap in any
+                case: a house name that breaks mid-word is worse than a small
+                one. */}
+            <span className="font-serif text-[13px] sm:text-base md:text-lg tracking-[0.06em] sm:tracking-[0.12em] md:tracking-[0.15em] whitespace-nowrap font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
               G E E T E J   V I R A A S A T
             </span>
           </Link>

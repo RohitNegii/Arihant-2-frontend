@@ -5,12 +5,23 @@ import { useFrame } from "@react-three/fiber";
 import { Html, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { JEWELRY_IMAGES, type JewelryImage } from "@/content/jewelry";
+import { quality } from "./quality";
 
 // --- REUSABLE BRILLIANT CUT GEMSTONE COMPONENT ---
 // Note: #0F4C3A (brand emerald) is a TEXT color — through a transmission
 // material it renders near-black. Gems use this brighter emerald instead,
 // which darkens back to a rich jewel tone once light passes through.
 const GEM_EMERALD = "#15805C";
+
+/**
+ * Most of this file is the disabled thirteen-room exhibition, but `LuxuryRing`
+ * — and this gem inside it — is live: the finale's gift box has one. Its
+ * transmission was unconditional, and one transmissive object anywhere in
+ * frame costs a full-resolution re-render of the whole scene every frame. On a
+ * phone the finale is inside the mid tier's far plane from more than half the
+ * journey, so that pass was running for most of the scroll.
+ */
+const REFRACT = quality().transmission;
 
 export function BrilliantCutGem({ color = GEM_EMERALD, scale = 1.0, position = [0, 0, 0] }: { color?: string; scale?: number; position?: [number, number, number] }) {
   return (
@@ -20,7 +31,9 @@ export function BrilliantCutGem({ color = GEM_EMERALD, scale = 1.0, position = [
         <cylinderGeometry args={[0.26, 0.45, 0.18, 12, 1]} />
         <meshPhysicalMaterial
           color={color}
-          transmission={0.95}
+          transmission={REFRACT ? 0.95 : 0}
+          transparent={!REFRACT}
+          opacity={REFRACT ? 1 : 0.92}
           roughness={0.02}
           ior={2.42}
           thickness={1.4}
@@ -39,7 +52,9 @@ export function BrilliantCutGem({ color = GEM_EMERALD, scale = 1.0, position = [
         <cylinderGeometry args={[0.45, 0.01, 0.45, 12, 1]} />
         <meshPhysicalMaterial
           color={color}
-          transmission={0.95}
+          transmission={REFRACT ? 0.95 : 0}
+          transparent={!REFRACT}
+          opacity={REFRACT ? 1 : 0.92}
           roughness={0.02}
           ior={2.42}
           thickness={1.4}

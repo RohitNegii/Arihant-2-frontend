@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
+// Only the disabled floating product card and the disabled thirteen-zone cards
+// used it — uncomment along with either of them.
+// import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -452,6 +454,17 @@ export default function Home() {
         </AnimatePresence>
       </div>
 
+      {/* The floating product card is disabled by request — it sat over the
+          right third of every zone and competed with the room behind it. The
+          `image` field is still on every entry of `zones`, so restoring it is
+          uncommenting this block and nothing else.
+
+          Two things go with it: the `next/image` import at the top of the file,
+          which nothing live uses any more, and the note that used to sit on the
+          <Image> below — the card was on screen from the first frame, so Next
+          measured it as the LCP and it carried `priority` for that reason. With
+          the card gone the LCP is the canvas. */}
+      {/*
       <div
         className={`fixed right-20 xl:right-28 top-1/2 -translate-y-1/2 z-10 pointer-events-none w-56 xl:w-72 ${
           atFinale ? "hidden" : "hidden lg:block"
@@ -472,11 +485,6 @@ export default function Home() {
                 className="relative"
               >
                 <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-verdant-gold/40 shadow-[0_20px_60px_rgba(200,169,106,0.28)]">
-                  {/* The floating product card is on screen from the first
-                      frame, and Next measures it as the Largest Contentful
-                      Paint — so it must not be lazy. `priority` marks it
-                      eager and high fetch-priority; without it the browser
-                      defers the one image the LCP is actually waiting on. */}
                   <Image
                     src={currentZone.image.src}
                     alt={currentZone.image.alt}
@@ -502,6 +510,7 @@ export default function Home() {
           )}
         </AnimatePresence>
       </div>
+      */}
 
       <div className="fixed left-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-8 md:left-8 z-10 flex items-center gap-3 md:gap-4 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/70">
         <span className="hidden sm:inline">Exhibition Progress</span>

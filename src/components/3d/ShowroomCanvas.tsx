@@ -29,7 +29,17 @@ import { palette } from "@/theme/palette";
 const Q = quality();
 const P = palette();
 const TOUCH = isTouchDevice();
-const MOBILE_PITCH = -0.085;
+/**
+ * How far the lens tips down on a touch device.
+ *
+ * It leans further than it used to because the frame is taller than it used to
+ * be — see ResponsiveLens. A phone sees a lot more vertically, and what it was
+ * seeing was sky: every room is wider than it is high, so the extra height
+ * arrived as a band of empty background above the walls. Tipping down lifts the
+ * room in the frame and puts the surplus below instead, where the copy card
+ * covers it anyway.
+ */
+const MOBILE_PITCH = -0.13;
 
 function ReadySignal() {
   const frames = useRef(0);
@@ -37,6 +47,55 @@ function ReadySignal() {
     if (frames.current > 4) return;
     if (++frames.current > 4) markSceneReady();
   });
+  return null;
+}
+
+/**
+ * The frame this show was composed in, and the widest the lens may go.
+ *
+ * Every room is laid out to be read across a 16:9 frame. Three keeps the
+ * *vertical* field fixed as the viewport changes, so a phone held upright — a
+ * 0.46 aspect against 1.78 — was seeing a 22° horizontal slice of a scene built
+ * for 73°: the workbench ran off both edges of the screen, and the pictures
+ * hung either side of the portrait in Made for Moments were not on screen at
+ * all.
+ *
+ * So the horizontal field is what is held constant here, and the vertical one
+ * derived from it. That cannot be free: holding all 73° on a phone needs a 116°
+ * vertical lens, which is a fisheye. `MAX_FOV` is where it stops — 78° gives
+ * back most of the width, and a wide vertical field on a tall screen is what
+ * that shape of screen is for.
+ */
+const DESIGN_ASPECT = 16 / 9;
+const DESIGN_FOV = 45;
+// 78 gave back a little more width and cost more than it was worth at both
+// ends of it: a band of empty sky above every room, and enough edge stretch to
+// smear the pictures hung at the sides of Made for Moments.
+const MAX_FOV = 72;
+const HALF_H_FOV = Math.atan(Math.tan((DESIGN_FOV / 2) * THREE.MathUtils.DEG2RAD) * DESIGN_ASPECT);
+
+function ResponsiveLens() {
+  // Driven from the frame loop rather than an effect on `size`: the camera is
+  // the one thing in here that is mutated, and mutating what a hook returned is
+  // exactly what the compiler will not have. One float comparison per frame is
+  // not a cost, and this way an orientation change is picked up on the next
+  // frame with no listener of its own.
+  const applied = useRef(0);
+
+  useFrame(({ camera, size }) => {
+    const aspect = size.width / Math.max(1, size.height);
+    if (Math.abs(aspect - applied.current) < 0.001) return;
+    applied.current = aspect;
+
+    const lens = camera as THREE.PerspectiveCamera;
+    lens.fov = THREE.MathUtils.clamp(
+      2 * Math.atan(Math.tan(HALF_H_FOV) / aspect) * THREE.MathUtils.RAD2DEG,
+      DESIGN_FOV,
+      MAX_FOV
+    );
+    lens.updateProjectionMatrix();
+  });
+
   return null;
 }
 
@@ -91,6 +150,7 @@ export default function ShowroomCanvas() {
         }}
         shadows={Q.shadows ? "percentage" : false}
       >
+        <ResponsiveLens />
         <CameraController />
         <ReadySignal />
 

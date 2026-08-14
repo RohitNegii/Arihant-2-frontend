@@ -84,7 +84,20 @@ function detectTier(): QualityTier {
 let cached: Quality | null = null;
 
 export function quality(): Quality {
-  if (!cached) cached = PRESETS[detectTier()];
+  if (!cached) {
+    const preset = PRESETS[detectTier()];
+    /**
+     * No real shadows on a touch device, whatever tier it lands in.
+     *
+     * A shadow map is charged twice: once to draw the scene into it, and again
+     * in every material that samples it afterwards. Counted at the entrance on
+     * a phone viewport, that first pass alone is half of every draw call in the
+     * frame — 783 with, 391 without — and what it buys is contact shadow a few
+     * hundred pixels across, on a screen held at arm's length, in a scene where
+     * every story room already fakes its own with `GroundShadow` discs.
+     */
+    cached = preset.shadows && isTouchDevice() ? { ...preset, shadows: false } : preset;
+  }
   return cached;
 }
 
