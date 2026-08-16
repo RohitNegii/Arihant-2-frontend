@@ -207,17 +207,20 @@ export default function CartDrawer() {
 
                   const isUpdating = localUpdatingId === `${product._id}-${item.size || ""}-${item.variant || ""}`;
 
-                  let itemPrice = product.price ?? 0;
+                  let originalPrice = product.price ?? 0;
+                  let itemPrice = product.discountPrice !== undefined ? product.discountPrice : originalPrice;
                   let itemStock = product.stock ?? 0;
                   if (product.hasVariants && item.variant) {
                     const variant = product.variants?.find(
                       (v: any) => v.name.toLowerCase() === item.variant?.toLowerCase()
                     );
                     if (variant) {
-                      itemPrice = variant.price;
+                      originalPrice = variant.price;
+                      itemPrice = variant.discountPrice !== undefined ? variant.discountPrice : variant.price;
                       itemStock = variant.stock;
                     }
                   }
+                  const hasDiscount = itemPrice < originalPrice;
 
                   return (
                     <motion.div
@@ -278,8 +281,15 @@ export default function CartDrawer() {
 
                         <div className="flex justify-between items-center mt-3">
                           {/* Price */}
-                          <div className="text-xs font-bold text-verdant-gold font-mono">
-                            {formatPrice(itemPrice * item.quantity)}
+                          <div className="flex items-baseline gap-2 font-mono">
+                            <span className="text-xs font-bold text-verdant-gold">
+                              {formatPrice(itemPrice * item.quantity)}
+                            </span>
+                            {hasDiscount && (
+                              <span className="text-[10px] text-verdant-emerald/40 line-through">
+                                {formatPrice(originalPrice * item.quantity)}
+                              </span>
+                            )}
                           </div>
 
                           {/* Quantity Counter controls */}

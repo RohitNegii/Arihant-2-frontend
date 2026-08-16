@@ -13,7 +13,7 @@ export default function VideoShowcase() {
         transition={{ duration: 2.0, ease: "easeOut" }}
         className="absolute inset-0 bg-cover bg-center select-none pointer-events-none"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=80')`,
+          backgroundImage: `url('/images/products/ksp_15.jpg')`,
         }}
       />
 

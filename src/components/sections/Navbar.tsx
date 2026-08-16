@@ -152,6 +152,45 @@ export default function Navbar() {
                 />
               )}
             </Link>
+            {/* Legal Dropdown */}
+            <div className="relative group/dropdown py-2">
+              <button
+                className={`hover-target flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold cursor-pointer ${
+                  pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy"
+                    ? "text-verdant-gold"
+                    : "text-verdant-emerald/75 hover:text-verdant-gold"
+                }`}
+              >
+                Legal
+                <span className="text-[8px] transform group-hover/dropdown:rotate-180 transition-transform duration-300 ml-1">▼</span>
+              </button>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 bg-[var(--color-background)]/95 backdrop-blur-xl border border-verdant-gold/15 rounded-xl shadow-xl py-2 opacity-0 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:pointer-events-auto transition-all duration-300 transform scale-95 group-hover/dropdown:scale-100 origin-top">
+                <Link
+                  href="/privacy-policy"
+                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${
+                    pathname === "/privacy-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                  }`}
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  href="/terms-of-use"
+                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${
+                    pathname === "/terms-of-use" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                  }`}
+                >
+                  Terms of Use
+                </Link>
+                <Link
+                  href="/refund-policy"
+                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${
+                    pathname === "/refund-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                  }`}
+                >
+                  Refund Policy
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Dynamic Sign-In / User Profile CTA Button & Cart */}
@@ -300,6 +339,33 @@ export default function Navbar() {
                 >
                   Contact
                 </Link>
+                <Link
+                  href="/privacy-policy"
+                  onClick={() => setIsOpen(false)}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
+                    pathname === "/privacy-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  }`}
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  href="/terms-of-use"
+                  onClick={() => setIsOpen(false)}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
+                    pathname === "/terms-of-use" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  }`}
+                >
+                  Terms of Use
+                </Link>
+                <Link
+                  href="/refund-policy"
+                  onClick={() => setIsOpen(false)}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
+                    pathname === "/refund-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  }`}
+                >
+                  Refund Policy
+                </Link>
               </div>
 
               {/* Drawer CTAs at bottom */}
@@ -353,7 +419,7 @@ export default function Navbar() {
                 {/* Left side premium image (responsive) */}
                 <div className="hidden md:block md:col-span-5 relative min-h-[500px]">
                   <img
-                    src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80"
+                    src="/images/products/ksp_16.jpg"
                     alt="Luxury jewelry collection preview"
                     className="absolute inset-0 w-full h-full object-cover brightness-[0.8]"
                   />

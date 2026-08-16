@@ -85,7 +85,7 @@ export default function MyOrdersPage() {
         <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
           <div className="absolute inset-0 z-0">
             <img
-              src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=2000&q=80"
+              src="/images/products/ksp_18.jpg"
               alt="Luxury Jewelry Banner"
               className="w-full h-full object-cover object-center opacity-20 select-none pointer-events-none filter blur-[0.5px]"
             />
@@ -158,7 +158,7 @@ export default function MyOrdersPage() {
         {/* Background Image with Elegant Light Overlays */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=2000&q=80"
+            src="/images/products/ksp_18.jpg"
             alt="Luxury Jewelry Banner"
             className="w-full h-full object-cover object-center opacity-80 scale-105 select-none pointer-events-none"
           />
@@ -312,17 +312,6 @@ export default function MyOrdersPage() {
                       </div>
 
                       <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-verdant-emerald/5 pt-4 md:pt-0 shrink-0">
-                        <span
-                          className={`text-[9px] uppercase tracking-[0.15em] font-bold px-3 py-1 rounded-full border ${
-                            order.orderStatus === "Delivered"
-                              ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-700"
-                              : order.orderStatus === "Cancelled"
-                              ? "bg-red-500/5 border-red-500/20 text-red-600"
-                              : "bg-verdant-gold/5 border-verdant-gold/30 text-verdant-gold"
-                          }`}
-                        >
-                          {order.orderStatus}
-                        </span>
                         <button className="text-[11px] font-bold text-verdant-emerald group-hover:text-verdant-gold transition-colors font-sans uppercase flex items-center gap-1.5 cursor-pointer">
                           View Details{" "}
                           <ArrowRight className="w-4 h-4 text-verdant-gold transition-transform group-hover:translate-x-1" />
@@ -535,11 +524,23 @@ export default function MyOrdersPage() {
 
               {/* Modal Footer */}
               <div className="p-6 border-t border-verdant-emerald/5 bg-white/20 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="text-left w-full sm:w-auto">
-                  <span className="text-[9px] tracking-widest uppercase text-verdant-emerald/40 font-mono block">Order Summary</span>
-                  <div className="flex items-baseline gap-2 mt-0.5">
-                    <span className="text-[10px] text-verdant-emerald/60">Grand Total:</span>
-                    <span className="font-sans font-bold text-lg text-verdant-emerald">₹{selectedOrder.grandTotal.toLocaleString("en-IN")}</span>
+                <div className="text-left w-full sm:w-auto font-mono text-[10px] space-y-1">
+                  <span className="text-[9px] tracking-widest uppercase text-verdant-emerald/40 block font-bold">Order Breakdown</span>
+                  {selectedOrder.discountAmount > 0 && (
+                    <>
+                      <div className="flex justify-between gap-4 text-verdant-emerald/60">
+                        <span>Original Subtotal:</span>
+                        <span>₹{(selectedOrder.subtotal || 0).toLocaleString("en-IN")}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 text-emerald-700 font-bold">
+                        <span>Storewide Discount:</span>
+                        <span>-₹{selectedOrder.discountAmount.toLocaleString("en-IN")}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex items-baseline justify-between gap-4 pt-1 font-sans border-t border-verdant-emerald/10">
+                    <span className="text-xs font-semibold text-verdant-emerald">Grand Total:</span>
+                    <span className="font-bold text-lg text-verdant-emerald">₹{selectedOrder.grandTotal.toLocaleString("en-IN")}</span>
                   </div>
                 </div>
                 

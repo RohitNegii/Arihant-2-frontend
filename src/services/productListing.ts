@@ -12,6 +12,7 @@ export interface ReviewData {
 export interface VariantData {
   name: string;
   price: number;
+  discountPrice?: number;
   stock: number;
   sku?: string;
 }
@@ -35,6 +36,7 @@ export interface ProductData {
   gender: "Men" | "Women" | "Unisex";
   occasion?: string;
   price?: number;
+  discountPrice?: number;
   stock?: number;
   status: "Draft" | "Published";
   isFeatured: boolean;

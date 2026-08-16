@@ -98,25 +98,25 @@ export default function Collections() {
     {
       title: "Diamond Rings",
       subtitle: "Infinite Brilliance",
-      image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80",
+      image: "/images/products/ksp_5.jpg",
       price: "From $12,500",
     },
     {
       title: "Necklaces",
       subtitle: "Sculpted Elegance",
-      image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
+      image: "/images/products/ksp_6.jpg",
       price: "From $8,200",
     },
     {
       title: "Bracelets",
       subtitle: "Modern Orbits",
-      image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=600&q=80",
+      image: "/images/products/ksp_7.jpg",
       price: "From $6,400",
     },
     {
       title: "Wedding Collection",
       subtitle: "Timeless Vows",
-      image: "https://images.unsplash.com/photo-1543294001-f7cbfe92237e?auto=format&fit=crop&w=600&q=80",
+      image: "/images/products/ksp_8.jpg",
       price: "From $15,000",
     },
   ];

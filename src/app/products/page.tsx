@@ -137,7 +137,7 @@ export default function ProductListingPage() {
           <motion.div
             className="absolute top-[-25%] left-0 w-full h-[150%] bg-cover bg-center bg-no-repeat brightness-[0.35]"
             style={{
-              backgroundImage: "url('https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=2000&q=80')",
+              backgroundImage: "url('/images/products/ksp_17.jpg')",
               y: bannerY
             }}
           />

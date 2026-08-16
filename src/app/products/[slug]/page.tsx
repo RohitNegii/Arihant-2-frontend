@@ -154,6 +154,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
                     product.hasVariants && selectedVariant 
                       ? (product.variants?.find(v => v.name === selectedVariant)?.price ?? product.price ?? 0)
                       : (product.price ?? 0)
+                  }
+                  discountPrice={
+                    product.hasVariants && selectedVariant
+                      ? product.variants?.find(v => v.name === selectedVariant)?.discountPrice
+                      : product.discountPrice
                   } 
                   className="text-xl md:text-2xl" 
                 />

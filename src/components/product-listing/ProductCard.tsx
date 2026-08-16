@@ -31,6 +31,14 @@ export default function ProductCard({ product, isListView = false }: ProductCard
     ? (product.variants && product.variants.length > 0 ? Math.min(...product.variants.map(v => v.price)) : 0)
     : (product.price ?? 0);
 
+  const displayDiscountPrice = product.discountPrice ?? (
+    product.hasVariants && product.variants && product.variants.length > 0
+      ? (product.variants.some(v => v.discountPrice !== undefined)
+          ? Math.min(...product.variants.map(v => v.discountPrice ?? v.price))
+          : undefined)
+      : undefined
+  );
+
   if (isListView) {
     return (
       <motion.div
@@ -115,7 +123,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
           </div>
 
           <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-verdant-emerald/5">
-            <ProductPrice price={displayPrice} />
+            <ProductPrice price={displayPrice} discountPrice={displayDiscountPrice} />
             <Link
               href={productLink}
               className="gold-gradient-bg text-black hover:scale-105 active:scale-95 text-[9px] tracking-widest uppercase font-bold px-6 py-3.5 rounded-full flex items-center gap-2 shadow-md transition-all duration-300"
@@ -207,7 +215,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
         </div>
 
         <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-verdant-emerald/5">
-          <ProductPrice price={displayPrice} />
+          <ProductPrice price={displayPrice} discountPrice={displayDiscountPrice} />
           <Link
             href={productLink}
             className="hover-target text-[9px] tracking-widest uppercase font-bold text-verdant-emerald hover:text-verdant-gold flex items-center gap-1.5 transition-colors duration-300 group/btn"

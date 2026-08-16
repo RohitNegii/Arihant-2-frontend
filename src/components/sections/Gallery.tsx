@@ -5,32 +5,32 @@ import { motion } from "framer-motion";
 export default function Gallery() {
   const images = [
     {
-      src: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=600&q=80",
+      src: "/images/products/ksp_9.jpg",
       title: "The Radiant Choker",
       category: "High Jewelry",
     },
     {
-      src: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=600&q=80",
+      src: "/images/products/ksp_10.jpg",
       title: "Symmetry Band",
       category: "Fine Gold",
     },
     {
-      src: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80",
-      title: "The Sourcing Sketch",
+      src: "/images/products/ksp_11.jpg",
+      title: "The Sourcing Atelier",
       category: "Atelier Process",
     },
     {
-      src: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=600&q=80",
+      src: "/images/products/ksp_12.jpg",
       title: "Double Solitaire Ring",
       category: "Custom Engagement",
     },
     {
-      src: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?auto=format&fit=crop&w=600&q=80",
-      title: "Gears of Chrono",
-      category: "Horology",
+      src: "/images/products/ksp_13.jpg",
+      title: "Gold Heritage Band",
+      category: "Horology & Craft",
     },
     {
-      src: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=600&q=80",
+      src: "/images/products/ksp_14.jpg",
       title: "Dewdrop Emeralds",
       category: "Atelier Benchwork",
     },

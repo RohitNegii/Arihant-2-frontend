@@ -109,7 +109,19 @@ function CheckoutPageContent() {
     }
   }, [isAuthenticated, isInitialized]);
 
-  // Pricing calculations (replicated from backend for UI preview only)
+  // Pricing calculations
+  const originalTotal = cartItems.reduce((sum, item) => {
+    let price = item.product?.price || 0;
+    if (item.product?.hasVariants && item.variant) {
+      const variant = item.product.variants?.find(
+        (v: any) => v.name.toLowerCase() === item.variant?.toLowerCase()
+      );
+      if (variant) price = variant.price;
+    }
+    return sum + price * item.quantity;
+  }, 0);
+
+  const discountAmount = Math.max(0, originalTotal - cartTotal);
   const taxAmount = 0; // GST is already included in the product price
   const shippingAmount = cartTotal > 15000 ? 0 : 250;
   const grandTotal = cartTotal + taxAmount + shippingAmount;
@@ -402,13 +414,18 @@ function CheckoutPageContent() {
               {/* Items List scroll container */}
               <div className="max-h-72 overflow-y-auto pr-2 space-y-4 mb-6 scrollbar-thin">
                 {cartItems.map((item) => {
-                  let itemPrice = item.product?.price || 0;
+                  let originalItemPrice = item.product?.price || 0;
+                  let itemPrice = item.product?.discountPrice !== undefined ? item.product.discountPrice : originalItemPrice;
                   if (item.product?.hasVariants && item.variant) {
                     const variant = item.product.variants?.find(
                       (v: any) => v.name.toLowerCase() === item.variant?.toLowerCase()
                     );
-                    if (variant) itemPrice = variant.price;
+                    if (variant) {
+                      originalItemPrice = variant.price;
+                      itemPrice = variant.discountPrice !== undefined ? variant.discountPrice : variant.price;
+                    }
                   }
+                  const hasItemDiscount = itemPrice < originalItemPrice;
 
                   return (
                     <div key={item._id} className="flex gap-4 items-center border-b border-verdant-emerald/5 pb-4">
@@ -446,9 +463,16 @@ function CheckoutPageContent() {
                           )}
                         </div>
                       </div>
-                      <span className="font-serif text-sm font-semibold shrink-0 text-right">
-                        {`₹${(itemPrice * item.quantity).toLocaleString("en-IN")}`}
-                      </span>
+                      <div className="text-right shrink-0">
+                        <span className="font-serif text-sm font-semibold text-verdant-emerald block">
+                          {`₹${(itemPrice * item.quantity).toLocaleString("en-IN")}`}
+                        </span>
+                        {hasItemDiscount && (
+                          <span className="text-[10px] text-verdant-emerald/40 line-through font-mono block">
+                            {`₹${(originalItemPrice * item.quantity).toLocaleString("en-IN")}`}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -456,10 +480,27 @@ function CheckoutPageContent() {
 
               {/* Billing Subtotals */}
               <div className="space-y-3 font-mono text-[9px] text-verdant-emerald/65 border-b border-verdant-emerald/10 pb-4 mb-4 uppercase tracking-widest">
-                <div className="flex justify-between">
-                  <span>Bag Subtotal</span>
-                  <span className="font-semibold text-verdant-emerald">{`₹${cartTotal.toLocaleString("en-IN")}`}</span>
-                </div>
+                {discountAmount > 0 ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span>Bag Total (Original)</span>
+                      <span className="font-semibold text-verdant-emerald/60 line-through">{`₹${originalTotal.toLocaleString("en-IN")}`}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-700 font-bold">
+                      <span>Storewide Discount</span>
+                      <span>{`-₹${discountAmount.toLocaleString("en-IN")}`}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-verdant-emerald/5 pt-2 font-bold">
+                      <span>Discounted Subtotal</span>
+                      <span className="font-semibold text-verdant-emerald">{`₹${cartTotal.toLocaleString("en-IN")}`}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between">
+                    <span>Bag Subtotal</span>
+                    <span className="font-semibold text-verdant-emerald">{`₹${cartTotal.toLocaleString("en-IN")}`}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Express Shipping</span>
                   <span className="font-semibold text-verdant-emerald">{shippingAmount > 0 ? `₹${shippingAmount}` : "FREE"}</span>
