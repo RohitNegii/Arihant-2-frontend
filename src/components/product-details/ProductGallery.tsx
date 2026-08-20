@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImageUrl } from "../../utils/api";
@@ -21,6 +21,10 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
   const [showLightbox, setShowLightbox] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isZoomed, setIsZoomed] = useState(false);
+
+  useEffect(() => {
+    setActiveIdx(0);
+  }, [images]);
 
   const galleryImages = images.length > 0 ? images : ["/emerald_ring.png"];
   const activeImage = getImageUrl(galleryImages[activeIdx]);

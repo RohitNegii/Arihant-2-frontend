@@ -15,6 +15,8 @@ export interface VariantData {
   discountPrice?: number;
   stock: number;
   sku?: string;
+  images?: string[];
+  video?: string;
 }
 
 export interface ProductData {

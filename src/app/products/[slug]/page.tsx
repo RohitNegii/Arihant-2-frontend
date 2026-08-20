@@ -123,11 +123,39 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* Main Details Workspace Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start mt-8">
-          {/* Left Gallery Block */}
-          <div className="lg:col-span-7">
-            <ProductGallery images={product.images} name={product.name} />
-          </div>
+        {(() => {
+          const selectedVariantObj = product.hasVariants && selectedVariant
+            ? product.variants?.find(v => v.name === selectedVariant)
+            : null;
+
+          let activeGalleryImages: string[] = [];
+          if (selectedVariantObj) {
+            const variantMedia: string[] = [];
+            if (selectedVariantObj.video) {
+              variantMedia.push(selectedVariantObj.video);
+            }
+            if (selectedVariantObj.images && selectedVariantObj.images.length > 0) {
+              selectedVariantObj.images.forEach((img) => {
+                if (!variantMedia.includes(img)) {
+                  variantMedia.push(img);
+                }
+              });
+            }
+            if (variantMedia.length > 0) {
+              activeGalleryImages = variantMedia;
+            }
+          }
+
+          if (activeGalleryImages.length === 0) {
+            activeGalleryImages = product.images || [];
+          }
+
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start mt-8">
+              {/* Left Gallery Block */}
+              <div className="lg:col-span-7">
+                <ProductGallery images={activeGalleryImages} name={product.name} />
+              </div>
 
           {/* Right Product Summary Block */}
           <div className="lg:col-span-5 flex flex-col gap-6 text-left">
@@ -325,8 +353,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
                 </div>
               </div>
             </div>
+            </div>
           </div>
-        </div>
+        );
+      })()}
 
         {/* Elegant Interactive Tabs Switcher (Saves immense vertical scrolling whitespace) */}
         <div className="mt-12">
