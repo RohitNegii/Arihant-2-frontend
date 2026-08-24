@@ -21,6 +21,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://geetviraasat.com"),
   title: {
     default: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
     template: "%s | GEETEJ VIRAASAT",
@@ -33,6 +34,14 @@ export const metadata: Metadata = {
       "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
     type: "website",
     siteName: "GEETEJ VIRAASAT",
+    url: "/",
+    locale: "en_IN",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
+    description:
+      "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
   },
   robots: { index: true, follow: true },
 };
@@ -53,7 +62,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans overflow-x-hidden`}
     >
-      <body className="min-h-full flex flex-col bg-luxury-black text-white overflow-x-hidden">
+      <body className="min-h-full flex flex-col bg-verdant-cream text-verdant-emerald overflow-x-hidden">
 
         <style href="palette" precedence="high">
           {paletteCss()}

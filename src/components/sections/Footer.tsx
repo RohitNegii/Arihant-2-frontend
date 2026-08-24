@@ -31,7 +31,7 @@ export default function Footer() {
 
   return (
     <footer
-      className="relative bg-[#FAF7F2] pt-16 pb-8 border-t border-verdant-gold/20 overflow-hidden select-none"
+      className="relative bg-verdant-cream pt-16 pb-8 border-t border-verdant-gold/20 overflow-hidden select-none"
     >
       {/* Luxury Background Watermark */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
@@ -41,15 +41,15 @@ export default function Footer() {
           className="w-full h-full object-cover object-center opacity-25"
         />
         {/* Soft, semi-transparent gradient overlays to showcase the image watermark clearly */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/60 to-[#FAF7F2]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/60 to-verdant-cream" />
       </div>
 
       {/* Decorative Glows */}
       <div
-        className="absolute top-[-20%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-[#C8A96A]/8 to-transparent blur-[120px] pointer-events-none z-0"
+        className="absolute top-[-20%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-verdant-gold/8 to-transparent blur-[120px] pointer-events-none z-0"
       />
       <div
-        className="absolute bottom-[-20%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[120px] pointer-events-none z-0"
+        className="absolute bottom-[-20%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-verdant-emerald/6 to-transparent blur-[120px] pointer-events-none z-0"
       />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-10">

@@ -83,6 +83,12 @@ export interface Palette {
   ink: string;
   accent: string;
   uiShell: string;
+
+  goldLight: string;
+
+  success: string;
+  danger: string;
+  warning: string;
 }
 
 /** The original green-and-cream showroom. */
@@ -142,6 +148,12 @@ const verdant: Palette = {
   ink: "#0F4C3A",
   accent: "#5D7A68",
   uiShell: "#FAF7F2",
+
+  goldLight: "#E3CDA4",
+
+  success: "#2E7D5B",
+  danger: "#9B2C2C",
+  warning: "#A9741F",
 };
 
 /**
@@ -206,6 +218,12 @@ const cassis: Palette = {
   ink: "#351E28",
   accent: "#7A5D68",
   uiShell: "#F7F2EE",
+
+  goldLight: "#E3CDA4",
+
+  success: "#3F7A5E",
+  danger: "#9B2C48",
+  warning: "#A97A32",
 };
 
 export const PALETTES = { verdant, cassis } as const;
@@ -263,6 +281,13 @@ export function paletteVars(
     "--color-accent-rgb": rgbTriplet(p.accent),
     "--color-shell": p.shell,
     "--color-shell-rgb": rgbTriplet(p.shell),
+    "--color-secondary-light": p.goldLight,
+    "--color-success": p.success,
+    "--color-success-rgb": rgbTriplet(p.success),
+    "--color-danger": p.danger,
+    "--color-danger-rgb": rgbTriplet(p.danger),
+    "--color-warning": p.warning,
+    "--color-warning-rgb": rgbTriplet(p.warning),
   };
 }
 

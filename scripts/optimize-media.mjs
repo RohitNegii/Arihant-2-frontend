@@ -35,6 +35,7 @@ import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT_DIR = path.join(ROOT, "public", "images");
+const APP_DIR = path.join(ROOT, "src", "app");
 
 /**
  * What counts as background, per source.
@@ -123,6 +124,55 @@ const ASSETS = [
   },
 ];
 
+const FAVICON = {
+  src: "home-logo/img-1.jpeg",
+  crop: { left: 0.225, top: 0.183, width: 0.565, height: 0.53 },
+  key: "paper",
+  background: { r: 0x35, g: 0x1e, b: 0x28, alpha: 1 },
+  inset: 0.86,
+  icoSizes: [16, 32, 48],
+  png: [
+    { out: "icon.png", size: 512 },
+    { out: "apple-icon.png", size: 180 },
+  ],
+};
+
+const OG = {
+  crest: "home-logo/img-1.jpeg",
+  lockup: "home-logo/img-2.jpeg",
+  width: 1200,
+  height: 630,
+  wordmark: { left: 80, top: 974, width: 910, height: 104 },
+  /** Alpha ramp for the gold-on-plum crops: luma lo -> 0, hi -> 255. */
+  goldRamp: { word: [42, 150] },
+  out: ["opengraph-image.jpg", "twitter-image.jpg"],
+};
+
+function icoFromPngs(images) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // 1 = icon
+  header.writeUInt16LE(images.length, 4);
+
+  const dir = Buffer.alloc(16 * images.length);
+  let offset = header.length + dir.length;
+
+  images.forEach(({ size, data }, i) => {
+    const o = i * 16;
+    dir.writeUInt8(size >= 256 ? 0 : size, o);
+    dir.writeUInt8(size >= 256 ? 0 : size, o + 1);
+    dir.writeUInt8(0, o + 2); // palette size — none
+    dir.writeUInt8(0, o + 3); // reserved
+    dir.writeUInt16LE(1, o + 4); // colour planes
+    dir.writeUInt16LE(32, o + 6); // bits per pixel
+    dir.writeUInt32LE(data.length, o + 8);
+    dir.writeUInt32LE(offset, o + 12);
+    offset += data.length;
+  });
+
+  return Buffer.concat([header, dir, ...images.map((i) => i.data)]);
+}
+
 /**
  * Replaces the background with transparency.
  *
@@ -138,7 +188,7 @@ const ASSETS = [
  * Alpha comes out binary, so a 3x3 mean takes the stagger off the edge, and the
  * result is cropped to what is left.
  */
-async function liftAlpha(image, test) {
+async function liftAlpha(image, test, fillPockets = false) {
   const { data, info } = await image
     .ensureAlpha()
     .raw()
@@ -179,6 +229,34 @@ async function liftAlpha(image, test) {
     if (x < W - 1) seed(i + 1);
     if (i >= W) seed(i - W);
     if (i < N - W) seed(i + W);
+  }
+
+  // 1b. Pockets of background the flood cannot reach because the artwork
+  // encloses them. Only the large ones: a gem highlight is enclosed too.
+  if (fillPockets) {
+    const seen = new Uint8Array(N);
+    for (let start = 0; start < N; start++) {
+      if (bg[start] || seen[start] || !test(sample(start))) continue;
+      const comp = [start];
+      seen[start] = 1;
+      const walk = [start];
+      while (walk.length) {
+        const i = walk.pop();
+        const x = i % W;
+        const y = (i / W) | 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const xx = x + dx;
+          const yy = y + dy;
+          if (xx < 0 || xx >= W || yy < 0 || yy >= H) continue;
+          const j = yy * W + xx;
+          if (seen[j] || bg[j] || !test(sample(j))) continue;
+          seen[j] = 1;
+          comp.push(j);
+          walk.push(j);
+        }
+      }
+      if (comp.length > N * 0.004) for (const i of comp) bg[i] = 1;
+    }
   }
 
   // 2. Label what is left and keep only the substantial islands.
@@ -255,6 +333,29 @@ async function liftAlpha(image, test) {
   });
 }
 
+/** Cuts the gold lettering off the lockup by luminance. */
+async function liftGold(image, lo, hi, clear) {
+  const { data, info } = await image
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const { width: W, height: H, channels: C } = info;
+  for (let i = 0; i < W * H; i++) {
+    const o = i * C;
+    const luma = 0.299 * data[o] + 0.587 * data[o + 1] + 0.114 * data[o + 2];
+    const a = Math.round(((luma - lo) / (hi - lo)) * 255);
+    data[o + 3] = Math.max(0, Math.min(255, a));
+  }
+  if (clear) {
+    for (let y = clear.top; y < clear.top + clear.height; y++) {
+      for (let x = clear.left; x < clear.left + clear.width; x++) {
+        data[(y * W + x) * C + 3] = 0;
+      }
+    }
+  }
+  return sharp(data, { raw: { width: W, height: H, channels: C } });
+}
+
 const kb = (n) => `${(n / 1024).toFixed(0)}KB`;
 
 await mkdir(OUT_DIR, { recursive: true });
@@ -290,6 +391,119 @@ for (const asset of ASSETS) {
   console.log(
     `${asset.src.padEnd(38)} ${meta.width}x${meta.height} ${kb(before).padStart(7)}` +
       `  ->  ${asset.out.padEnd(24)} ${kb(after).padStart(6)}`
+  );
+}
+
+{
+  const src = path.join(ROOT, "originals", FAVICON.src);
+  const meta = await sharp(src).metadata();
+  const c = FAVICON.crop;
+  const cut = await liftAlpha(
+    sharp(src)
+      .extract({
+        left: Math.round(meta.width * c.left),
+        top: Math.round(meta.height * c.top),
+        width: Math.round(meta.width * c.width),
+        height: Math.round(meta.height * c.height),
+      })
+      .resize({ width: 512 }),
+    BACKGROUND[FAVICON.key]
+  );
+
+  const S = 512;
+  const inset = Math.round(S * FAVICON.inset);
+  const art = await cut
+    .resize({ width: inset, height: inset, fit: "inside" })
+    .png()
+    .toBuffer();
+  const master = await sharp({
+    create: { width: S, height: S, channels: 4, background: FAVICON.background },
+  })
+    .composite([{ input: art, gravity: "center" }])
+    .png()
+    .toBuffer();
+
+  const at = (size) =>
+    sharp(master)
+      .resize(size, size)
+      .png({ compressionLevel: 9, palette: true })
+      .toBuffer();
+
+  for (const { out, size } of FAVICON.png) {
+    await writeFile(path.join(APP_DIR, out), await at(size));
+  }
+  const ico = icoFromPngs(
+    await Promise.all(
+      FAVICON.icoSizes.map(async (size) => ({ size, data: await at(size) }))
+    )
+  );
+  await writeFile(path.join(APP_DIR, "favicon.ico"), ico);
+
+  console.log(
+    `
+${FAVICON.src.padEnd(38)} ->  ` +
+      `favicon.ico ${kb(ico.length)} (${FAVICON.icoSizes.join("/")}), ` +
+      FAVICON.png.map((f) => f.out).join(", ")
+  );
+}
+
+// The link-preview card. Both elements are cut to transparency, so neither
+// carries the vignette of the source photograph.
+{
+  const { width: W, height: H } = OG;
+  const lockup = path.join(ROOT, "originals", OG.lockup);
+
+  const bg = await sharp(
+    Buffer.from(
+      `<svg width="${W}" height="${H}"><defs>` +
+        `<radialGradient id="g" cx="38%" cy="45%" r="78%">` +
+        `<stop offset="0%" stop-color="#4A2C39"/>` +
+        `<stop offset="55%" stop-color="#351E28"/>` +
+        `<stop offset="100%" stop-color="#1E0F16"/>` +
+        `</radialGradient></defs>` +
+        `<rect width="${W}" height="${H}" fill="url(#g)"/></svg>`
+    )
+  )
+    .png()
+    .toBuffer();
+
+  const crestH = 452;
+  const crest = await (
+    await liftAlpha(
+      sharp(path.join(ROOT, "originals", OG.crest)).resize({ width: 760 }),
+      BACKGROUND.paper,
+      true
+    )
+  )
+    .resize({ height: crestH })
+    .png()
+    .toBuffer();
+
+  // The crest's bottom pendant reaches into the top of the wordmark crop.
+  const word = await (
+    await liftGold(sharp(lockup).extract(OG.wordmark), ...OG.goldRamp.word, {
+      left: 400,
+      top: 0,
+      width: 55,
+      height: 14,
+    })
+  )
+    .resize({ width: 590 })
+    .png()
+    .toBuffer();
+
+  const card = await sharp(bg)
+    .composite([
+      { input: crest, left: 110, top: Math.round((H - crestH) / 2) },
+      { input: word, left: 500, top: 281 },
+    ])
+    .jpeg({ quality: 88, mozjpeg: true })
+    .toBuffer();
+
+  for (const out of OG.out) await writeFile(path.join(APP_DIR, out), card);
+  console.log(
+    `${OG.lockup.padEnd(38)} ->  ${OG.out.join(", ")} ` +
+      `${W}x${H} ${kb(card.length)}`
   );
 }
 

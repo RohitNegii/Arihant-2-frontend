@@ -14,8 +14,24 @@ import ProductGrid from "@/components/product-listing/ProductGrid";
 import { ProductGridSkeleton } from "@/components/global/LoadingSkeleton";
 import { fetchProducts, ProductData } from "@/services/productListing";
 
+function pageWindow(current: number, total: number): (number | "gap")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  const out: (number | "gap")[] = [1];
+
+  if (start > 2) out.push("gap");
+  for (let p = start; p <= end; p++) out.push(p);
+  if (end < total - 1) out.push("gap");
+  out.push(total);
+
+  return out;
+}
+
 export default function ProductListingPage() {
   const bannerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: bannerScroll } = useScroll({
     target: bannerRef,
     offset: ["start start", "end start"],
@@ -83,9 +99,10 @@ export default function ProductListingPage() {
   }, [search, sort, filters, page]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 380, behavior: "smooth" });
-    }
+    const grid = gridRef.current;
+    if (!grid) return;
+    const top = grid.getBoundingClientRect().top + window.scrollY - 96;
+    window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
   }, [page]);
 
   const handleFilterChange = (updates: Partial<typeof filters>) => {
@@ -119,13 +136,14 @@ export default function ProductListingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative overflow-x-hidden">
+    <div className="min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative">
       <MouseFollower />
       <Navbar />
 
-      {/* Decorative Glows */}
-      <div className="absolute top-[10%] left-[-15%] w-[40vw] h-[40vw] bg-radial from-[#C8A96A]/4 to-transparent blur-[140px] pointer-events-none" />
-      <div className="absolute top-[40%] right-[-15%] w-[40vw] h-[40vw] bg-radial from-[#0F4C3A]/3 to-transparent blur-[140px] pointer-events-none" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[10%] left-[-15%] w-[40vw] h-[40vw] bg-radial from-verdant-gold/4 to-transparent blur-[140px] pointer-events-none" />
+        <div className="absolute top-[40%] right-[-15%] w-[40vw] h-[40vw] bg-radial from-verdant-emerald/3 to-transparent blur-[140px] pointer-events-none" />
+      </div>
 
       {/* Hero Exhibition Header */}
       <div
@@ -142,7 +160,7 @@ export default function ProductListingPage() {
             }}
           />
           {/* Rich luxury emerald gradient overlay fading to cream at the bottom */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0F4C3A]/90 via-[#0F4C3A]/65 to-[#FAF7F2]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-verdant-emerald/90 via-verdant-emerald/65 to-verdant-cream" />
         </div>
 
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center relative z-10">
@@ -198,12 +216,12 @@ export default function ProductListingPage() {
             {/* Mobile Filters Toggle Button */}
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-full border border-verdant-emerald/10 text-verdant-emerald text-[9px] tracking-widest font-bold uppercase hover:bg-verdant-emerald/5 hover:border-verdant-gold/50 transition-all cursor-pointer"
+              className="lg:hidden shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border border-verdant-emerald/10 text-verdant-emerald text-[9px] tracking-widest font-bold uppercase hover:bg-verdant-emerald/5 hover:border-verdant-gold/50 transition-all cursor-pointer"
             >
               <Filter className="w-3.5 h-3.5" /> Filters
             </button>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0 flex-1 sm:flex-initial">
               <ProductSort value={sort} onChange={(val) => { setSort(val); setPage(1); }} />
 
               {/* Grid/List View Toggles */}
@@ -245,7 +263,7 @@ export default function ProductListingPage() {
           {/* Mobile Slide-in Filters Modal Overlay */}
           {showMobileFilters && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex justify-end lg:hidden">
-              <div className="w-[80vw] max-w-sm h-full bg-[#FAF7F2] p-6 overflow-y-auto relative shadow-2xl flex flex-col gap-6">
+              <div className="w-[80vw] max-w-sm h-full bg-verdant-cream p-6 overflow-y-auto relative shadow-2xl flex flex-col gap-6">
                 <button
                   onClick={() => setShowMobileFilters(false)}
                   className="absolute top-6 right-6 text-verdant-emerald/50 hover:text-verdant-emerald bg-white/50 p-2 rounded-full border border-verdant-emerald/10 cursor-pointer"
@@ -265,7 +283,7 @@ export default function ProductListingPage() {
           )}
 
           {/* Products Feed display */}
-          <div className="lg:col-span-3">
+          <div ref={gridRef} className="lg:col-span-3">
             <div className="flex justify-between items-center mb-4">
               <span className="text-[10px] tracking-widest uppercase font-bold text-verdant-emerald/55">
                 CURATING {totalCount} MASTERPIECE{totalCount !== 1 ? "S" : ""}
@@ -282,39 +300,60 @@ export default function ProductListingPage() {
                   onClearFilters={handleClearFilters}
                 />
 
-                {/* Numeric Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center items-center gap-2 mt-12 font-mono text-xs select-none">
+                  <nav
+                    aria-label="Pagination"
+                    className="flex flex-wrap justify-center items-center gap-2 mt-12 font-mono text-xs select-none"
+                  >
                     <button
                       onClick={() => page > 1 && setPage(page - 1)}
                       disabled={page === 1}
-                      className="w-10 h-10 rounded-full border border-verdant-emerald/10 flex items-center justify-center text-verdant-emerald hover:border-verdant-gold hover:text-verdant-gold disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold"
+                      className="w-11 h-11 shrink-0 rounded-full border border-verdant-emerald/10 flex items-center justify-center text-verdant-emerald hover:border-verdant-gold hover:text-verdant-gold disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold"
                       aria-label="Previous Page"
                     >
                       &larr;
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all cursor-pointer ${
-                          page === p
-                            ? "bg-verdant-emerald text-white shadow-md scale-105 animate-pulse"
-                            : "border border-verdant-emerald/10 text-verdant-emerald hover:border-verdant-gold hover:text-verdant-gold"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
+
+                    <span className="sm:hidden px-3 text-[10px] tracking-widest uppercase font-bold text-verdant-emerald/60">
+                      Page {page} / {totalPages}
+                    </span>
+
+                    <div className="hidden sm:flex items-center gap-2">
+                      {pageWindow(page, totalPages).map((p, i) =>
+                        p === "gap" ? (
+                          <span
+                            key={`gap-${i}`}
+                            aria-hidden
+                            className="w-6 text-center text-verdant-emerald/30 font-bold"
+                          >
+                            &hellip;
+                          </span>
+                        ) : (
+                          <button
+                            key={p}
+                            onClick={() => setPage(p)}
+                            aria-current={page === p ? "page" : undefined}
+                            className={`w-11 h-11 shrink-0 rounded-full flex items-center justify-center font-bold transition-all cursor-pointer ${
+                              page === p
+                                ? "bg-verdant-emerald text-verdant-cream shadow-md scale-105"
+                                : "border border-verdant-emerald/10 text-verdant-emerald hover:border-verdant-gold hover:text-verdant-gold"
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        )
+                      )}
+                    </div>
+
                     <button
                       onClick={() => page < totalPages && setPage(page + 1)}
                       disabled={page === totalPages}
-                      className="w-10 h-10 rounded-full border border-verdant-emerald/10 flex items-center justify-center text-verdant-emerald hover:border-verdant-gold hover:text-verdant-gold disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold"
+                      className="w-11 h-11 shrink-0 rounded-full border border-verdant-emerald/10 flex items-center justify-center text-verdant-emerald hover:border-verdant-gold hover:text-verdant-gold disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold"
                       aria-label="Next Page"
                     >
                       &rarr;
                     </button>
-                  </div>
+                  </nav>
                 )}
               </>
             )}

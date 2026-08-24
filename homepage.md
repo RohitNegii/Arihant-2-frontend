@@ -20,6 +20,7 @@ This document is the map. It covers what exists today, the numbers that have to 
 | `src/components/SmoothScroll.tsx` | Creates Lenis and drives it from a plain rAF loop. Wraps the app in `layout.tsx`. |
 | `src/store/scroll-store.ts` | Holds the Lenis instance; exports `scrollToOffset()`. |
 | `src/content/jewelry.ts` | The photography shown in the side showcase panel. |
+| `scripts/optimize-media.mjs` | Turns `originals/` into what is served: the WebP photography in `public/images/`, and the tab icons (`favicon.ico`, `icon.png`, `apple-icon.png`) cut from the house crest. Run by hand, not wired into the build. |
 
 There is no server-side data. The App Router only provides the shell.
 
@@ -73,8 +74,9 @@ The camera flies straight down the Z axis at eye height `y ≈ 0.5` with a 45° 
 A fixed-position HTML layer over the canvas. Five pieces:
 
 - **Zone card** — bottom sheet on mobile, left panel from `md`. Re-keyed on `activeZone` so framer-motion cross-fades it. Numbered chapters get a serif numeral and an ornament divider; unnumbered zones get a tag chip instead.
-- **Chapter rail** — fixed right, `md` and up, visible while `activeZone < STORY_ZONES`. Each button calls `goToZone`.
+- **Chapter rail** — the numbered chapters, visible while `activeZone < STORY_ZONES`. Each button calls `goToZone`. Two layouts off one `ChapterDot`: a vertical rail fixed right from `md` up, and below that a horizontal strip riding on top of the zone card, because the card is a full-width bottom sheet on a phone and leaves nothing beside it.
 - **Side showcase** — fixed right, `lg` and up. Real photography for zones that set `image`, with a slow float loop and gold corner accents.
+- **Category finale** — takes over from the zone card past `FINALE_AT`. Anchored under the navbar on mobile and centred from `md` up. It is the one card that is opaque rather than glass: it is the last thing the visitor is asked to act on, and the showroom sign sits directly behind it.
 - **Progress indicator** — bottom left. Written directly to the DOM via refs in the scroll handler, deliberately not React state: it updates every frame and re-rendering the page for it would be wasteful.
 - **`LoadingScreen` / `MouseFollower` / `Navbar`** — mounted unconditionally.
 

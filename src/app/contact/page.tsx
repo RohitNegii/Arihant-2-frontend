@@ -145,13 +145,13 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
       {/* Navbar */}
       <Navbar />
 
       {/* Ambient background glows */}
-      <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-[#C8A96A]/8 to-transparent blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: "12s" }} />
-      <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[140px] pointer-events-none animate-pulse" style={{ animationDuration: "10s" }} />
+      <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-verdant-gold/8 to-transparent blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: "12s" }} />
+      <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-emerald/6 to-transparent blur-[140px] pointer-events-none animate-pulse" style={{ animationDuration: "10s" }} />
 
       {/* HERO BANNER */}
       <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
@@ -162,7 +162,7 @@ export default function ContactPage() {
             alt="Luxury Jewelry Showroom"
             className="w-full h-full object-cover object-center opacity-85 select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/45 to-[#FAF7F2]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
         </div>
 
         {/* Content */}
@@ -187,7 +187,7 @@ export default function ContactPage() {
 
           {/* LEFT COLUMN: CONTACT INFORMATION */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-8 shadow-[0_12px_40px_rgba(15,76,58,0.03)] text-left relative overflow-hidden">
+            <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-8 shadow-[0_12px_40px_rgba(var(--color-primary-rgb),0.03)] text-left relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-verdant-gold/10 to-transparent blur-2xl pointer-events-none" />
 
               <h2 className="font-serif text-2xl font-light text-verdant-emerald mb-2">Our Boutiques</h2>
@@ -236,7 +236,7 @@ export default function ContactPage() {
 
           {/* RIGHT COLUMN: CONTACT FORM */}
           <div className="lg:col-span-7">
-            <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-8 md:p-10 shadow-[0_12px_45px_rgba(15,76,58,0.04)] text-left">
+            <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-8 md:p-10 shadow-[0_12px_45px_rgba(var(--color-primary-rgb),0.04)] text-left">
               <h2 className="font-serif text-2xl font-light text-verdant-emerald mb-6">Send an Inquiry</h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -254,11 +254,11 @@ export default function ContactPage() {
                       value={form.name}
                       onChange={handleChange}
                       placeholder="e.g. Eleanor Vance"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.name ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                      className={`w-full bg-verdant-cream/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.name ? "border-verdant-danger/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
                         }`}
                     />
                     {errors.name && (
-                      <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
+                      <p className="text-[10px] text-verdant-danger font-sans tracking-wide mt-1">
                         {errors.name}
                       </p>
                     )}
@@ -275,11 +275,11 @@ export default function ContactPage() {
                       value={form.email}
                       onChange={handleChange}
                       placeholder="e.g. eleanor@vance.com"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.email ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                      className={`w-full bg-verdant-cream/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.email ? "border-verdant-danger/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
                         }`}
                     />
                     {errors.email && (
-                      <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
+                      <p className="text-[10px] text-verdant-danger font-sans tracking-wide mt-1">
                         {errors.email}
                       </p>
                     )}
@@ -299,11 +299,11 @@ export default function ContactPage() {
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="e.g. +1 555-0199"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.phone ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                      className={`w-full bg-verdant-cream/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.phone ? "border-verdant-danger/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
                         }`}
                     />
                     {errors.phone && (
-                      <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
+                      <p className="text-[10px] text-verdant-danger font-sans tracking-wide mt-1">
                         {errors.phone}
                       </p>
                     )}
@@ -320,11 +320,11 @@ export default function ContactPage() {
                       value={form.subject}
                       onChange={handleChange}
                       placeholder="e.g. Kundan ring customization details"
-                      className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.subject ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                      className={`w-full bg-verdant-cream/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.subject ? "border-verdant-danger/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
                         }`}
                     />
                     {errors.subject && (
-                      <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
+                      <p className="text-[10px] text-verdant-danger font-sans tracking-wide mt-1">
                         {errors.subject}
                       </p>
                     )}
@@ -342,11 +342,11 @@ export default function ContactPage() {
                     onChange={handleChange}
                     rows={6}
                     placeholder="Provide details about your custom request, reservation date, or general question..."
-                    className={`w-full bg-[#FAF8F5]/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all resize-none ${errors.message ? "border-red-500/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
+                    className={`w-full bg-verdant-cream/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all resize-none ${errors.message ? "border-verdant-danger/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
                       }`}
                   />
                   {errors.message && (
-                    <p className="text-[10px] text-red-600 font-sans tracking-wide mt-1">
+                    <p className="text-[10px] text-verdant-danger font-sans tracking-wide mt-1">
                       {errors.message}
                     </p>
                   )}

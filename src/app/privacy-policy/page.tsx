@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Shield, Lock, Eye, FileText, Sparkles, ArrowUpRight } from "lucide-react";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
+import PolicyTOCMobile from "@/components/global/PolicyTOCMobile";
 import { motion } from "framer-motion";
 
 export default function PrivacyPolicyPage() {
@@ -103,13 +104,14 @@ export default function PrivacyPolicyPage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black">
       {/* Navbar */}
       <Navbar />
 
-      {/* Background elements */}
-      <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-[#C8A96A]/6 to-transparent blur-[130px] pointer-events-none z-0" />
-      <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-[#0F4C3A]/4 to-transparent blur-[140px] pointer-events-none z-0" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-verdant-gold/6 to-transparent blur-[130px] pointer-events-none z-0" />
+        <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-emerald/4 to-transparent blur-[140px] pointer-events-none z-0" />
+      </div>
 
       {/* Header Banner */}
       <div className="relative w-full h-[320px] md:h-[360px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
@@ -119,7 +121,7 @@ export default function PrivacyPolicyPage() {
             alt="Luxury Jewelry Studio"
             className="w-full h-full object-cover object-center opacity-85 select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/45 to-[#FAF7F2]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
         </div>
 
         <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-12 flex justify-center">
@@ -172,7 +174,7 @@ export default function PrivacyPolicyPage() {
             </div>
             
             {/* Need Help Box */}
-            <div className="glass-card bg-[#0F4C3A]/5 border border-verdant-emerald/10 rounded-2xl p-6 text-left">
+            <div className="glass-card bg-verdant-emerald/5 border border-verdant-emerald/10 rounded-2xl p-6 text-left">
               <h4 className="font-serif text-xs tracking-wider font-semibold text-verdant-emerald uppercase mb-1 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-verdant-gold" /> Need Assistance?
               </h4>
@@ -189,7 +191,14 @@ export default function PrivacyPolicyPage() {
           </div>
 
           {/* Right Main Content Panel */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8">
+            <PolicyTOCMobile
+              sections={sections}
+              activeSection={activeSection}
+              onSelect={setActiveSection}
+            />
+
+            <div className="space-y-6">
             {sections.map((sec) => (
               <motion.div
                 key={sec.id}
@@ -199,7 +208,7 @@ export default function PrivacyPolicyPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
                 onViewportEnter={() => setActiveSection(sec.id)}
-                className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-2xl p-6 md:p-8 shadow-[0_8px_30px_rgba(15,76,58,0.02)] text-left space-y-4"
+                className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-2xl p-6 md:p-8 shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.02)] text-left space-y-4"
               >
                 <div className="flex items-center gap-3 border-b border-verdant-emerald/5 pb-3">
                   <div className="w-8 h-8 rounded-lg bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center shrink-0">
@@ -214,6 +223,7 @@ export default function PrivacyPolicyPage() {
                 </div>
               </motion.div>
             ))}
+            </div>
           </div>
 
         </div>

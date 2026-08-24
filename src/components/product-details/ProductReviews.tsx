@@ -168,9 +168,9 @@ export default function ProductReviews({ productId, productName, initialReviews 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-6 bg-emerald-500/5 border border-emerald-500/10 text-emerald-700 p-4 rounded-2xl flex items-center gap-2 text-xs font-semibold"
+            className="mb-6 bg-verdant-success/5 border border-verdant-success/10 text-verdant-success p-4 rounded-2xl flex items-center gap-2 text-xs font-semibold"
           >
-            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+            <Check className="w-4 h-4 text-verdant-success shrink-0" />
             Your review has been published successfully! Thank you for sharing your feedback.
           </motion.div>
         )}
@@ -191,7 +191,7 @@ export default function ProductReviews({ productId, productName, initialReviews 
             </h4>
 
             {formError && (
-              <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/10 text-red-700 text-[9px] uppercase tracking-wider font-semibold font-mono">
+              <div className="p-3.5 rounded-xl bg-verdant-danger/5 border border-verdant-danger/10 text-verdant-danger text-[9px] uppercase tracking-wider font-semibold font-mono">
                 {formError}
               </div>
             )}
