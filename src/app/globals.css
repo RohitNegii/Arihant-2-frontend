@@ -22,6 +22,13 @@
   --color-accent-rgb: 122, 93, 104;
   --color-shell: #E7DCD2;
   --color-shell-rgb: 231, 220, 210;
+  --color-secondary-light: #E3CDA4;
+  --color-success: #3F7A5E;
+  --color-success-rgb: 63, 122, 94;
+  --color-danger: #9B2C48;
+  --color-danger-rgb: 155, 44, 72;
+  --color-warning: #A97A32;
+  --color-warning-rgb: 169, 122, 50;
 
   --background: var(--color-background);
   --foreground: var(--color-primary);
@@ -32,6 +39,10 @@
   --color-verdant-cream: var(--color-background);
   --color-verdant-gold: var(--color-secondary);
   --color-verdant-accent: var(--color-accent);
+  --color-verdant-gold-light: var(--color-secondary-light);
+  --color-verdant-success: var(--color-success);
+  --color-verdant-danger: var(--color-danger);
+  --color-verdant-warning: var(--color-warning);
   --color-luxury-gold-glow: rgba(var(--color-secondary-rgb), 0.08);
   --color-luxury-border: rgba(var(--color-primary-rgb), 0.05);
   --color-luxury-card: rgba(var(--color-background-rgb), 0.5);
@@ -75,11 +86,11 @@ body {
 
 /* Glassmorphism utility */
 .glass-effect {
-  background: rgba(248, 245, 242, 0.171);
+  background: rgba(var(--color-background-rgb), 0.17);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(120, 95, 60, 0.08);
+  box-shadow: 0 8px 32px rgba(var(--color-secondary-rgb), 0.12);
 }
 
 .glass-effect-gold {
@@ -109,6 +120,38 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(var(--color-primary-rgb), 0.05);
   box-shadow: 0 10px 40px rgba(var(--color-primary-rgb), 0.03);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.custom-scrollbar,
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-secondary-rgb), 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar,
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-secondary-rgb), 0.5);
+  border-radius: 2px;
 }
 
 /* Lenis scrolling adjustments */

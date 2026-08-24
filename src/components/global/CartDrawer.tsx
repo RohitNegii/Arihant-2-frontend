@@ -94,7 +94,7 @@ export default function CartDrawer() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setCartOpen(false)}
-            className="fixed inset-0 z-100 bg-[#0F4C3A]/30 backdrop-blur-xs select-none cursor-pointer"
+            className="fixed inset-0 z-100 bg-verdant-emerald/30 backdrop-blur-xs select-none cursor-pointer"
           />
 
           {/* Cart Drawer */}
@@ -103,10 +103,10 @@ export default function CartDrawer() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 z-150 w-full sm:max-w-md bg-[#FAF7F2] border-l border-verdant-emerald/10 flex flex-col shadow-[-10px_0_50px_rgba(15,76,58,0.08)] text-verdant-emerald"
+            className="fixed right-0 top-0 bottom-0 z-150 w-full sm:max-w-md bg-verdant-cream border-l border-verdant-emerald/10 flex flex-col shadow-[-10px_0_50px_rgba(var(--color-primary-rgb),0.08)] text-verdant-emerald"
           >
             {/* Header */}
-            <div className="p-6 border-b border-verdant-emerald/10 flex justify-between items-center bg-[#FAF7F2]">
+            <div className="p-6 border-b border-verdant-emerald/10 flex justify-between items-center bg-verdant-cream">
               <div>
                 <h3 className="font-serif text-xl tracking-wider text-verdant-emerald font-light flex items-center gap-2">
                   <ShoppingBag className="w-5 h-5 text-verdant-gold" />
@@ -127,11 +127,11 @@ export default function CartDrawer() {
 
             {/* Error Message */}
             {error && (
-              <div className="mx-6 mt-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-800 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 shrink-0 text-red-600 mt-0.5" />
+              <div className="mx-6 mt-4 p-4 rounded-2xl bg-verdant-danger/10 border border-verdant-danger/20 text-verdant-danger flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 shrink-0 text-verdant-danger mt-0.5" />
                 <div className="flex-1">
                   <p className="text-xs font-bold uppercase tracking-wider">Loading Error</p>
-                  <p className="text-[11px] text-red-800/80 mt-1 font-semibold leading-relaxed">{error}</p>
+                  <p className="text-[11px] text-verdant-danger/80 mt-1 font-semibold leading-relaxed">{error}</p>
                   <button
                     onClick={fetchCart}
                     className="text-[9px] uppercase tracking-widest font-mono font-bold text-verdant-gold hover:underline mt-2 flex items-center gap-1.5 cursor-pointer"
@@ -146,7 +146,7 @@ export default function CartDrawer() {
             <div className="flex-1 overflow-y-auto p-6 space-y-4" data-lenis-prevent>
               {checkoutSuccess ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 select-none">
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 text-emerald-600">
+                  <div className="w-16 h-16 rounded-full bg-verdant-success/10 border border-verdant-success/20 flex items-center justify-center mb-6 text-verdant-success">
                     <motion.div
                       initial={{ scale: 0.5, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
@@ -229,10 +229,10 @@ export default function CartDrawer() {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -15 }}
-                      className="flex gap-4 p-4 rounded-3xl border border-verdant-emerald/10 hover:border-verdant-gold bg-white/60 hover:bg-white shadow-[0_4px_20px_rgba(15,76,58,0.02)] hover:shadow-[0_10px_30px_rgba(15,76,58,0.06)] hover:-translate-y-0.5 transition-all duration-300 relative group"
+                      className="flex gap-4 p-4 rounded-3xl border border-verdant-emerald/10 hover:border-verdant-gold bg-white/60 hover:bg-white shadow-[0_4px_20px_rgba(var(--color-primary-rgb),0.02)] hover:shadow-[0_10px_30px_rgba(var(--color-primary-rgb),0.06)] hover:-translate-y-0.5 transition-all duration-300 relative group"
                     >
                       {/* Image wrapper */}
-                      <div className="w-20 h-20 rounded-2xl bg-[#FAF7F2] border border-verdant-emerald/10 p-2 shrink-0 flex items-center justify-center relative overflow-hidden group-hover:border-verdant-gold transition-colors duration-300">
+                      <div className="w-20 h-20 rounded-2xl bg-verdant-cream border border-verdant-emerald/10 p-2 shrink-0 flex items-center justify-center relative overflow-hidden group-hover:border-verdant-gold transition-colors duration-300">
                         {isVideoUrl(product.thumbnail || product.images?.[0]) ? (
                           <video
                             src={getImageUrl(product.thumbnail || product.images?.[0])}
@@ -253,7 +253,7 @@ export default function CartDrawer() {
 
                       {/* Content details */}
                       <div className="flex-1 flex flex-col justify-between py-0.5">
-                        <div className="pr-6">
+                        <div className="pr-11">
                           <h4 className="font-serif text-sm text-verdant-emerald font-semibold leading-snug line-clamp-1 group-hover:text-verdant-gold transition-colors duration-200">
                             <Link href={`/products/${product.slug}`} onClick={() => setCartOpen(false)}>
                               {product.name}
@@ -272,7 +272,7 @@ export default function CartDrawer() {
                               </span>
                             )}
                             {itemStock <= 5 && (
-                              <span className="text-red-700 bg-red-500/10 px-1.5 py-0.5 rounded-sm ml-1 font-sans font-bold">
+                              <span className="text-verdant-danger bg-verdant-danger/10 px-1.5 py-0.5 rounded-sm ml-1 font-sans font-bold">
                                 Only {itemStock} left
                               </span>
                             )}
@@ -292,15 +292,14 @@ export default function CartDrawer() {
                             )}
                           </div>
 
-                          {/* Quantity Counter controls */}
                           <div className="flex items-center border border-verdant-emerald/20 bg-white rounded-full px-1.5 py-0.5 shadow-2xs group-hover:border-verdant-gold/40 transition-colors duration-300">
                             <button
                               onClick={() => handleUpdateQty(product._id, item.quantity, -1, item.size, item.variant)}
                               disabled={item.quantity <= 1 || isUpdating}
-                              className="w-5 h-5 rounded-full flex items-center justify-center text-verdant-emerald/65 hover:text-verdant-emerald disabled:opacity-30 cursor-pointer"
+                              className="w-8 h-5 py-3 -my-3 box-content rounded-full flex items-center justify-center text-verdant-emerald/65 hover:text-verdant-emerald disabled:opacity-30 cursor-pointer"
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-2.5 h-2.5" />
+                              <Minus className="w-3 h-3" />
                             </button>
                             <span className="w-8 text-center text-[10px] font-bold text-verdant-emerald min-w-[20px] font-mono">
                               {isUpdating ? (
@@ -312,10 +311,10 @@ export default function CartDrawer() {
                             <button
                               onClick={() => handleUpdateQty(product._id, item.quantity, 1, item.size, item.variant)}
                               disabled={item.quantity >= itemStock || isUpdating}
-                              className="w-5 h-5 rounded-full flex items-center justify-center text-verdant-emerald/65 hover:text-verdant-emerald disabled:opacity-30 cursor-pointer"
+                              className="w-8 h-5 py-3 -my-3 box-content rounded-full flex items-center justify-center text-verdant-emerald/65 hover:text-verdant-emerald disabled:opacity-30 cursor-pointer"
                               aria-label="Increase quantity"
                             >
-                              <Plus className="w-2.5 h-2.5" />
+                              <Plus className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
@@ -325,7 +324,7 @@ export default function CartDrawer() {
                       <button
                         onClick={() => handleRemoveItem(product._id, item.size, item.variant)}
                         disabled={isUpdating}
-                        className="absolute top-4 right-4 text-verdant-emerald/30 hover:text-red-700 hover:bg-red-500/10 w-7 h-7 flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer"
+                        className="absolute top-1.5 right-1.5 text-verdant-emerald/30 hover:text-verdant-danger hover:bg-verdant-danger/10 w-11 h-11 flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer"
                         aria-label="Remove item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -338,7 +337,7 @@ export default function CartDrawer() {
 
             {/* Footer */}
             {cartItems.length > 0 && !checkoutSuccess && (
-              <div className="p-6 border-t border-verdant-emerald/10 bg-[#FAF7F2] flex flex-col gap-4">
+              <div className="p-6 border-t border-verdant-emerald/10 bg-verdant-cream flex flex-col gap-4">
                 {/* Subtotal row */}
                 <div className="flex justify-between items-center select-none">
                   <span className="text-[10px] tracking-[0.2em] text-verdant-emerald/50 uppercase font-bold">
@@ -356,7 +355,7 @@ export default function CartDrawer() {
                 <button
                   onClick={handleCheckout}
                   disabled={checkoutLoading || isLoading}
-                  className="w-full bg-gradient-to-r from-verdant-gold via-[#e3cda4] to-verdant-gold text-verdant-emerald hover:text-white hover:shadow-[0_4px_25px_rgba(200,169,106,0.3)] active:scale-98 text-[10px] tracking-[0.2em] uppercase font-bold py-4 rounded-full flex items-center justify-center gap-2 shadow-md transition-all duration-300 cursor-pointer disabled:opacity-50 mt-2 font-mono"
+                  className="w-full bg-gradient-to-r from-verdant-gold via-verdant-gold-light to-verdant-gold text-verdant-emerald hover:text-white hover:shadow-[0_4px_25px_rgba(var(--color-secondary-rgb),0.3)] active:scale-98 text-[10px] tracking-[0.2em] uppercase font-bold py-4 rounded-full flex items-center justify-center gap-2 shadow-md transition-all duration-300 cursor-pointer disabled:opacity-50 mt-2 font-mono"
                 >
                   {checkoutLoading ? (
                     <>

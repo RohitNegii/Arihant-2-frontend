@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Check, ShoppingBag, Loader2, ArrowRight, Home, Calendar, Truck } from "lucide-react";
 import { getOrderDetailsApi } from "../../services/checkout";
 import { getImageUrl } from "../../utils/api";
+import Navbar from "@/components/sections/Navbar";
+import Footer from "@/components/sections/Footer";
 
 const isVideoUrl = (url: string) => {
   if (!url) return false;
@@ -49,7 +51,7 @@ function OrderSuccessContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] py-20 flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-verdant-cream py-20 flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-verdant-emerald" />
         <span className="text-[10px] tracking-widest text-verdant-emerald/50 uppercase font-bold">Securing order logs...</span>
       </div>
@@ -57,7 +59,9 @@ function OrderSuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-verdant-emerald pt-28 pb-16 selection:bg-verdant-gold selection:text-black">
+    <div className="min-h-screen bg-verdant-cream text-verdant-emerald pt-28 pb-16 selection:bg-verdant-gold selection:text-black">
+      <Navbar />
+
       <div className="max-w-3xl mx-auto px-6 text-center select-none">
 
         {/* Animated Check Banner */}
@@ -65,7 +69,7 @@ function OrderSuccessContent() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 100 }}
-          className="w-16 h-16 rounded-full bg-[#0F4C3A] text-verdant-gold border border-verdant-gold/30 flex items-center justify-center mx-auto mb-6 shadow-xl"
+          className="w-16 h-16 rounded-full bg-verdant-emerald text-verdant-gold border border-verdant-gold/30 flex items-center justify-center mx-auto mb-6 shadow-xl"
         >
           <Check className="w-7 h-7" />
         </motion.div>
@@ -154,7 +158,7 @@ function OrderSuccessContent() {
           </motion.div>
         ) : (
           error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-700 p-4 rounded-2xl text-xs mb-8">
+            <div className="bg-verdant-danger/10 border border-verdant-danger/20 text-verdant-danger p-4 rounded-2xl text-xs mb-8">
               {error}
             </div>
           )
@@ -177,6 +181,8 @@ function OrderSuccessContent() {
           </button>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
@@ -185,7 +191,7 @@ export default function OrderSuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F8F4EA] py-20 flex flex-col items-center justify-center gap-3">
+        <div className="min-h-screen bg-verdant-cream py-20 flex flex-col items-center justify-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-verdant-emerald" />
         </div>
       }

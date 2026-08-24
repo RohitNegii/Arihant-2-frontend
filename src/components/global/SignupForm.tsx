@@ -186,7 +186,7 @@ export default function SignupForm({ onSuccess, onSwitchToSignup, onSwitchToLogi
               <label className="text-[9px] uppercase tracking-widest text-verdant-gold font-bold">
                 Phone Number
               </label>
-              <span className="text-[7px] text-verdant-gold/70 tracking-wider uppercase font-bold font-mono">Optional</span>
+              <span className="text-[9px] text-verdant-gold/70 tracking-wider uppercase font-bold font-mono">Optional</span>
             </div>
             <div className="relative">
               <input

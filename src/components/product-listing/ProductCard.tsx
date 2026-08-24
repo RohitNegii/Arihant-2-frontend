@@ -47,7 +47,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/40 flex flex-col md:flex-row gap-6 p-6 shadow-[0_4px_25px_rgba(15,76,58,0.01)] hover:shadow-[0_25px_50px_rgba(15,76,58,0.07)] transition-all duration-700 ease-out w-full group text-left relative"
+        className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/40 flex flex-col md:flex-row gap-6 p-6 shadow-[0_4px_25px_rgba(var(--color-primary-rgb),0.01)] hover:shadow-[0_25px_50px_rgba(var(--color-primary-rgb),0.07)] transition-all duration-700 ease-out w-full group text-left relative"
       >
         {/* Subtle premium shimmer effect */}
         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none z-10" />
@@ -55,7 +55,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
         {/* Image Frame */}
         <Link
           href={productLink}
-          className="relative w-full md:w-64 aspect-square rounded-2xl overflow-hidden bg-gradient-to-b from-[#FAF7F2] to-verdant-emerald/[0.04] flex items-center justify-center p-4 border border-verdant-emerald/[0.02]"
+          className="relative w-full md:w-64 aspect-square rounded-2xl overflow-hidden bg-gradient-to-b from-verdant-cream to-verdant-emerald/[0.04] flex items-center justify-center p-4 border border-verdant-emerald/[0.02]"
         >
           {isVideoUrl(product.thumbnail || product.images[0]) ? (
             <video
@@ -78,12 +78,12 @@ export default function ProductCard({ product, isListView = false }: ProductCard
           {/* Badge Overlay */}
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             {product.isBestSeller && (
-              <span className="bg-verdant-emerald border border-verdant-gold/30 text-verdant-cream text-[7px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md">
+              <span className="bg-verdant-emerald border border-verdant-gold/30 text-verdant-cream text-[9px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md">
                 <Sparkles className="w-2.5 h-2.5 text-verdant-gold animate-pulse" /> Best Seller
               </span>
             )}
             {outOfStock && (
-              <span className="bg-red-800 text-white text-[7px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full shadow-md">
+              <span className="bg-verdant-danger text-white text-[9px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full shadow-md">
                 Out of Stock
               </span>
             )}
@@ -91,7 +91,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
 
           {/* Quick View Button Hover Overlay */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20">
-            <span className="bg-[#FAF7F2]/90 backdrop-blur-md border border-verdant-gold/30 text-verdant-emerald px-4 py-2 rounded-full text-[9px] tracking-widest font-bold uppercase flex items-center gap-1.5 shadow-md">
+            <span className="bg-verdant-cream/90 backdrop-blur-md border border-verdant-gold/30 text-verdant-emerald px-4 py-2 rounded-full text-[9px] tracking-widest font-bold uppercase flex items-center gap-1.5 shadow-md">
               <Eye className="w-3.5 h-3.5 text-verdant-gold" /> Quick View
             </span>
           </div>
@@ -146,7 +146,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       onMouseEnter={() => setShowQuickView(true)}
       onMouseLeave={() => setShowQuickView(false)}
-      className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/40 flex flex-col h-full shadow-[0_4px_25px_rgba(15,76,58,0.01)] hover:shadow-[0_25px_50px_rgba(15,76,58,0.07)] hover:-translate-y-2.5 transition-all duration-700 ease-out group text-left relative"
+      className="glass-card rounded-3xl overflow-hidden border border-verdant-emerald/5 hover:border-verdant-gold/40 flex flex-col h-full shadow-[0_4px_25px_rgba(var(--color-primary-rgb),0.01)] hover:shadow-[0_25px_50px_rgba(var(--color-primary-rgb),0.07)] hover:-translate-y-2.5 transition-all duration-700 ease-out group text-left relative"
     >
       {/* Subtle premium shimmer effect */}
       <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none z-10" />
@@ -154,7 +154,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
       {/* Product Image Window */}
       <Link
         href={productLink}
-        className="w-full aspect-square overflow-hidden relative bg-gradient-to-b from-[#FAF7F2] to-verdant-emerald/[0.04] flex items-center justify-center p-6 border-b border-verdant-emerald/[0.03]"
+        className="w-full aspect-square overflow-hidden relative bg-gradient-to-b from-verdant-cream to-verdant-emerald/[0.04] flex items-center justify-center p-6 border-b border-verdant-emerald/[0.03]"
       >
         {isVideoUrl(product.thumbnail || product.images[0]) ? (
           <video
@@ -177,12 +177,12 @@ export default function ProductCard({ product, isListView = false }: ProductCard
         {/* Absolute Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
           {product.isBestSeller && (
-            <span className="bg-verdant-emerald border border-verdant-gold/30 text-verdant-cream text-[7px] font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-full flex items-center gap-1 shadow-md">
+            <span className="bg-verdant-emerald border border-verdant-gold/30 text-verdant-cream text-[9px] font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-full flex items-center gap-1 shadow-md">
               <Sparkles className="w-2.5 h-2.5 text-verdant-gold animate-pulse" /> Best Seller
             </span>
           )}
           {outOfStock && (
-            <span className="bg-red-800 text-white text-[7px] font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-full shadow-md">
+            <span className="bg-verdant-danger text-white text-[9px] font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-full shadow-md">
               Out of Stock
             </span>
           )}
@@ -190,7 +190,7 @@ export default function ProductCard({ product, isListView = false }: ProductCard
 
         {/* Quick View Button Hover Overlay (Luxury Sliding Pill Button) */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20">
-          <span className="bg-[#FAF7F2]/95 backdrop-blur-md border border-verdant-gold/30 text-verdant-emerald px-4 py-2.5 rounded-full text-[9px] tracking-widest font-bold uppercase flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 transition-all">
+          <span className="bg-verdant-cream/95 backdrop-blur-md border border-verdant-gold/30 text-verdant-emerald px-4 py-2.5 rounded-full text-[9px] tracking-widest font-bold uppercase flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 transition-all">
             <Eye className="w-3.5 h-3.5 text-verdant-gold" /> Quick View
           </span>
         </div>

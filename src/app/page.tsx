@@ -93,9 +93,9 @@ function CategoryFinale() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-20 flex justify-center px-4 pointer-events-none"
+      className="fixed inset-x-0 top-[calc(4.5rem+env(safe-area-inset-top))] md:top-1/2 md:-translate-y-1/2 z-20 flex justify-center px-4 pointer-events-none"
     >
-      <div className="glass-effect-gold pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[var(--color-background)]/90 to-[var(--color-background)]/70 shadow-[0_8px_40px_rgba(200,169,106,0.22)] p-6 sm:p-8 md:p-10 text-center">
+      <div className="pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/45 bg-[var(--color-background)]/97 backdrop-blur-2xl shadow-[0_16px_60px_rgba(var(--color-primary-rgb),0.35)] p-6 sm:p-8 md:p-10 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-4">
           <Sparkles className="w-2.5 h-2.5 text-verdant-gold" />
           <span className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-accent)] font-semibold">
@@ -136,6 +136,32 @@ function CategoryFinale() {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function ChapterDot({
+  zone,
+  zoneIndex,
+  isActive,
+}: {
+  zone: Zone;
+  zoneIndex: number;
+  isActive: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => goToZone(zoneIndex)}
+      aria-label={`Go to chapter ${zone.chapter}: ${zone.title}`}
+      aria-current={isActive ? "step" : undefined}
+      className={`hover-target pointer-events-auto text-[9px] tracking-[0.15em] font-semibold w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
+        isActive
+          ? "bg-verdant-emerald text-verdant-cream border border-verdant-gold/50 scale-110"
+          : "text-verdant-emerald/45 hover:text-verdant-gold"
+      }`}
+    >
+      {zone.chapter}
+    </button>
   );
 }
 
@@ -357,7 +383,7 @@ export default function Home() {
       <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
 
       <div
-        className={`fixed z-10 pointer-events-none left-1/2 -translate-x-1/2 bottom-[calc(2.5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-sm md:left-5 lg:left-8 md:translate-x-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:max-w-sm ${
+        className={`fixed z-10 pointer-events-none left-4 right-[3.25rem] bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:left-5 lg:left-8 md:right-auto md:w-full md:max-w-sm md:bottom-auto md:top-1/2 md:-translate-y-1/2 ${
           atFinale ? "hidden" : ""
         }`}
       >
@@ -412,6 +438,25 @@ export default function Home() {
         </AnimatePresence>
       </div>
 
+      <div
+        className={`md:hidden fixed right-1 top-1/2 -translate-y-1/2 z-20 ${
+          atFinale ? "hidden" : ""
+        }`}
+      >
+        {inStory && (
+          <div className="glass-effect-gold flex flex-col items-center gap-1.5 rounded-full px-1 py-2">
+            {zones.slice(1, STORY_ZONES).map((zone, i) => (
+              <ChapterDot
+                key={zone.chapter}
+                zone={zone}
+                zoneIndex={i + 1}
+                isActive={activeZone === i + 1}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="hidden md:flex fixed right-5 top-1/2 -translate-y-1/2 z-20 flex-col items-center gap-3">
         <AnimatePresence>
           {inStory && (
@@ -431,17 +476,11 @@ export default function Home() {
                 const isActive = activeZone === zoneIndex;
                 return (
                   <div key={zone.chapter} className="flex flex-col items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => goToZone(zoneIndex)}
-                      aria-label={`Go to chapter ${zone.chapter}: ${zone.title}`}
-                      className={`hover-target text-[9px] tracking-[0.15em] font-semibold w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${isActive
-                          ? "bg-verdant-emerald text-verdant-cream border border-verdant-gold/50 scale-110"
-                          : "text-verdant-emerald/45 hover:text-verdant-gold"
-                        }`}
-                    >
-                      {zone.chapter}
-                    </button>
+                    <ChapterDot
+                      zone={zone}
+                      zoneIndex={zoneIndex}
+                      isActive={isActive}
+                    />
                     {zoneIndex < STORY_ZONES - 1 && (
                       <span className="w-px h-6 bg-verdant-emerald/15" />
                     )}
@@ -512,7 +551,7 @@ export default function Home() {
       </div>
       */}
 
-      <div className="fixed left-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-8 md:left-8 z-10 flex items-center gap-3 md:gap-4 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/70">
+      <div className="fixed left-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-8 md:left-8 z-10 hidden md:flex items-center gap-3 md:gap-4 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/70">
         <span className="hidden sm:inline">Exhibition Progress</span>
         <div className="w-20 md:w-32 h-px bg-[var(--color-accent)]/10 rounded-full overflow-hidden">
           <div

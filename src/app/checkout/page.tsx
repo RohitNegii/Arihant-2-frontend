@@ -8,6 +8,8 @@ import { useCartStore } from "../../store/cartStore";
 import { useAuthStore } from "../../store/authStore";
 import { createCheckoutOrderApi, AddressDetails } from "../../services/checkout";
 import { getImageUrl } from "../../utils/api";
+import Navbar from "@/components/sections/Navbar";
+import Footer from "@/components/sections/Footer";
 
 const isVideoUrl = (url: string) => {
   if (!url) return false;
@@ -189,7 +191,7 @@ function CheckoutPageContent() {
 
   if (cartLoading && cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] py-20 flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-verdant-cream py-20 flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-verdant-emerald" />
         <span className="text-[10px] tracking-widest text-verdant-emerald/50 uppercase font-bold">Loading secure checkout...</span>
       </div>
@@ -198,7 +200,8 @@ function CheckoutPageContent() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center p-6 text-center select-none">
+      <div className="min-h-screen bg-verdant-cream flex flex-col items-center justify-center p-6 text-center select-none">
+        <Navbar />
         <AlertCircle className="w-10 h-10 text-verdant-gold mb-4" />
         <h2 className="font-serif text-2xl text-verdant-emerald mb-2 font-light">Your shopping bag is empty</h2>
         <p className="text-xs text-verdant-emerald/60 max-w-sm mb-6 leading-relaxed">
@@ -215,10 +218,12 @@ function CheckoutPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-verdant-emerald pt-10 pb-16 selection:bg-verdant-gold selection:text-black relative overflow-x-hidden">
+    <div className="min-h-screen bg-verdant-cream text-verdant-emerald pt-28 pb-16 selection:bg-verdant-gold selection:text-black relative overflow-x-hidden">
+      <Navbar />
+
       {/* Decorative Glows */}
-      <div className="absolute top-[10%] left-[-15%] w-[40vw] h-[40vw] bg-radial from-[#C8A96A]/4 to-transparent blur-[140px] pointer-events-none" />
-      <div className="absolute top-[40%] right-[-15%] w-[40vw] h-[40vw] bg-radial from-[#0F4C3A]/3 to-transparent blur-[140px] pointer-events-none" />
+      <div className="absolute top-[10%] left-[-15%] w-[40vw] h-[40vw] bg-radial from-verdant-gold/4 to-transparent blur-[140px] pointer-events-none" />
+      <div className="absolute top-[40%] right-[-15%] w-[40vw] h-[40vw] bg-radial from-verdant-emerald/3 to-transparent blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
         {/* Back Link */}
@@ -241,7 +246,7 @@ function CheckoutPageContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* LEFT: Shipping Details Form (Span 7) */}
           <div className="lg:col-span-7">
-            <div className="glass-card bg-white/60 border border-verdant-emerald/10 rounded-3xl p-6 md:p-8 text-left shadow-[0_8px_30px_rgba(15,76,58,0.02)]">
+            <div className="glass-card bg-white/60 border border-verdant-emerald/10 rounded-3xl p-6 md:p-8 text-left shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.02)]">
               <h2 className="font-serif text-xl font-light mb-6 flex items-center gap-2 border-b border-verdant-emerald/10 pb-3">
                 <Truck className="w-5 h-5 text-verdant-gold animate-pulse" /> Shipping Destination
               </h2>
@@ -270,7 +275,7 @@ function CheckoutPageContent() {
                       onChange={(e) => setPhone(e.target.value)}
                       required
                       placeholder="E.g. 9876543210"
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300 font-mono"
+                      className="w-full px-4 py-3 rounded-xl bg-verdant-cream border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300 font-mono"
                     />
                   </div>
                 </div>
@@ -297,7 +302,7 @@ function CheckoutPageContent() {
                     onChange={(e) => setAddressLine1(e.target.value)}
                     required
                     placeholder="Flat/House No., Building Name, Street Name"
-                    className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300"
+                    className="w-full px-4 py-3 rounded-xl bg-verdant-cream border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300"
                   />
                 </div>
 
@@ -309,7 +314,7 @@ function CheckoutPageContent() {
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
                     placeholder="Landmark, Area, Colony"
-                    className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300"
+                    className="w-full px-4 py-3 rounded-xl bg-verdant-cream border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300"
                   />
                 </div>
 
@@ -323,7 +328,7 @@ function CheckoutPageContent() {
                       onChange={(e) => setCity(e.target.value)}
                       required
                       placeholder="Mumbai"
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300"
+                      className="w-full px-4 py-3 rounded-xl bg-verdant-cream border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300"
                     />
                   </div>
                   {/* State */}
@@ -333,7 +338,7 @@ function CheckoutPageContent() {
                       value={state}
                       onChange={(e) => setState(e.target.value)}
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300 cursor-pointer"
+                      className="w-full px-4 py-3 rounded-xl bg-verdant-cream border border-verdant-emerald/15 text-xs text-verdant-emerald focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300 cursor-pointer"
                     >
                       <option value="" disabled className="text-verdant-emerald/40">Select State</option>
                       {INDIAN_STATES.map((s) => (
@@ -352,7 +357,7 @@ function CheckoutPageContent() {
                       onChange={(e) => setPostalCode(e.target.value)}
                       required
                       placeholder="400001"
-                      className="w-full px-4 py-3 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300 font-mono"
+                      className="w-full px-4 py-3 rounded-xl bg-verdant-cream border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-1 focus:ring-verdant-gold/30 focus:outline-hidden transition-all duration-300 font-mono"
                     />
                   </div>
                   {/* Country */}
@@ -374,7 +379,7 @@ function CheckoutPageContent() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="bg-red-500/10 border border-red-500/20 text-red-800 p-4 rounded-xl flex items-center gap-3 text-xs font-semibold"
+                      className="bg-verdant-danger/10 border border-verdant-danger/20 text-verdant-danger p-4 rounded-xl flex items-center gap-3 text-xs font-semibold"
                     >
                       <AlertCircle className="w-5 h-5 shrink-0" />
                       <span>{error}</span>
@@ -386,7 +391,7 @@ function CheckoutPageContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-13 rounded-full bg-gradient-to-r from-verdant-gold via-[#e3cda4] to-verdant-gold text-verdant-emerald hover:text-white hover:shadow-[0_4px_25px_rgba(200,169,106,0.35)] active:scale-98 text-[10px] tracking-[0.2em] uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full h-13 rounded-full bg-gradient-to-r from-verdant-gold via-verdant-gold-light to-verdant-gold text-verdant-emerald hover:text-white hover:shadow-[0_4px_25px_rgba(var(--color-secondary-rgb),0.35)] active:scale-98 text-[10px] tracking-[0.2em] uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -406,7 +411,7 @@ function CheckoutPageContent() {
 
           {/* RIGHT: Order Summary Card (Span 5) */}
           <div className="lg:col-span-5 space-y-6 text-left">
-            <div className="glass-card bg-white/60 border border-verdant-emerald/10 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgba(15,76,58,0.02)]">
+            <div className="glass-card bg-white/60 border border-verdant-emerald/10 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.02)]">
               <h2 className="font-serif text-xl font-light mb-6 border-b border-verdant-emerald/10 pb-3">
                 Order Summary
               </h2>
@@ -429,7 +434,7 @@ function CheckoutPageContent() {
 
                   return (
                     <div key={item._id} className="flex gap-4 items-center border-b border-verdant-emerald/5 pb-4">
-                      <div className="w-14 h-14 rounded-xl bg-[#FAF7F2] border border-verdant-emerald/10 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                      <div className="w-14 h-14 rounded-xl bg-verdant-cream border border-verdant-emerald/10 flex items-center justify-center p-1 shrink-0 overflow-hidden">
                         {isVideoUrl(item.product?.thumbnail || item.product?.images[0]) ? (
                           <video
                             src={getImageUrl(item.product?.thumbnail || item.product?.images[0])}
@@ -486,7 +491,7 @@ function CheckoutPageContent() {
                       <span>Bag Total (Original)</span>
                       <span className="font-semibold text-verdant-emerald/60 line-through">{`₹${originalTotal.toLocaleString("en-IN")}`}</span>
                     </div>
-                    <div className="flex justify-between text-emerald-700 font-bold">
+                    <div className="flex justify-between text-verdant-success font-bold">
                       <span>Storewide Discount</span>
                       <span>{`-₹${discountAmount.toLocaleString("en-IN")}`}</span>
                     </div>
@@ -507,7 +512,7 @@ function CheckoutPageContent() {
                 </div>
                 <div className="flex justify-between">
                   <span>GST</span>
-                  <span className="font-semibold text-[#0F4C3A]/50">INCLUDED</span>
+                  <span className="font-semibold text-verdant-emerald/50">INCLUDED</span>
                 </div>
               </div>
 
@@ -526,6 +531,8 @@ function CheckoutPageContent() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
@@ -534,7 +541,7 @@ export default function CheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FAF7F2] py-20 flex flex-col items-center justify-center gap-3">
+        <div className="min-h-screen bg-verdant-cream py-20 flex flex-col items-center justify-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-verdant-emerald" />
           <span className="text-[10px] tracking-widest text-verdant-emerald/50 uppercase font-bold">Loading secure checkout...</span>
         </div>

@@ -77,7 +77,7 @@ export default function MyOrdersPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden">
+      <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald">
         {/* Navbar */}
         <Navbar />
 
@@ -89,7 +89,7 @@ export default function MyOrdersPage() {
               alt="Luxury Jewelry Banner"
               className="w-full h-full object-cover object-center opacity-20 select-none pointer-events-none filter blur-[0.5px]"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FAF7F2]/40 to-[#FAF7F2]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-verdant-cream/40 to-verdant-cream" />
           </div>
           <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-16 flex justify-center">
             <div className="glass-effect rounded-3xl p-8 md:p-10 w-full max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col items-center space-y-3">
@@ -145,13 +145,14 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black">
       {/* Navbar */}
       <Navbar />
 
-      {/* Ambient Light Glows */}
-      <div className="absolute top-[30%] left-[-15%] w-[50vw] h-[50vw] bg-radial from-[#C8A96A]/8 to-transparent blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
-      <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-[#0F4C3A]/6 to-transparent blur-[140px] pointer-events-none animate-pulse" style={{ animationDuration: '10s' }} />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[30%] left-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-gold/8 to-transparent blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-emerald/6 to-transparent blur-[140px] pointer-events-none animate-pulse" style={{ animationDuration: '10s' }} />
+      </div>
 
       {/* HERO BANNER SECTION */}
       <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
@@ -162,7 +163,7 @@ export default function MyOrdersPage() {
             alt="Luxury Jewelry Banner"
             className="w-full h-full object-cover object-center opacity-80 scale-105 select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/45 to-[#FAF7F2]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
         </div>
 
         {/* Banner Content */}
@@ -185,13 +186,13 @@ export default function MyOrdersPage() {
       {/* MAIN CONTAINER */}
       <div className="max-w-6xl mx-auto px-6 py-16 relative z-10">
         {error && (
-          <div className="bg-red-500/5 border border-red-500/10 text-red-700 p-4 rounded-2xl text-xs mb-8 text-left">
+          <div className="bg-verdant-danger/5 border border-verdant-danger/10 text-verdant-danger p-4 rounded-2xl text-xs mb-8 text-left">
             {error}
           </div>
         )}
 
         {orders.length === 0 ? (
-          <div className="glass-card bg-white/40 border border-verdant-emerald/5 rounded-3xl p-16 text-center max-w-xl mx-auto shadow-[0_10px_40px_-15px_rgba(15,76,58,0.05)] hover:border-verdant-gold/20 transition-all duration-300">
+          <div className="glass-card bg-white/40 border border-verdant-emerald/5 rounded-3xl p-8 sm:p-12 md:p-16 text-center max-w-xl mx-auto shadow-[0_10px_40px_-15px_rgba(var(--color-primary-rgb),0.05)] hover:border-verdant-gold/20 transition-all duration-300">
             <div className="w-20 h-20 bg-verdant-emerald/5 border border-verdant-emerald/10 rounded-full flex items-center justify-center mx-auto mb-6 group hover:border-verdant-gold/40 transition-colors duration-300">
               <Package className="w-8 h-8 text-verdant-gold group-hover:scale-110 transition-transform duration-300" />
             </div>
@@ -212,7 +213,7 @@ export default function MyOrdersPage() {
             {/* STICKY USER PROFILE & METRICS SIDEBAR */}
             <div className="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
               {/* Profile Card */}
-              <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-6 shadow-[0_10px_35px_rgba(15,76,58,0.02)] relative overflow-hidden">
+              <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-6 shadow-[0_10px_35px_rgba(var(--color-primary-rgb),0.02)] relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-radial from-verdant-gold/10 to-transparent blur-xl pointer-events-none" />
                 
                 <div className="flex items-center gap-4 mb-6 text-left relative z-10">
@@ -263,7 +264,7 @@ export default function MyOrdersPage() {
                 return (
                   <div
                     key={order._id}
-                    className="glass-card bg-white/60 border border-verdant-emerald/5 hover:border-verdant-gold/25 rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(15,76,58,0.02)] hover:shadow-[0_20px_50px_-12px_rgba(15,76,58,0.08)] hover:-translate-y-0.5 transition-all duration-300 text-left"
+                    className="glass-card bg-white/60 border border-verdant-emerald/5 hover:border-verdant-gold/25 rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(var(--color-primary-rgb),0.02)] hover:shadow-[0_20px_50px_-12px_rgba(var(--color-primary-rgb),0.08)] hover:-translate-y-0.5 transition-all duration-300 text-left"
                   >
                     {/* Order Overview Header */}
                     <div
@@ -293,18 +294,18 @@ export default function MyOrdersPage() {
                           <span
                             className={`text-[8.5px] px-2.5 py-0.5 rounded-full font-bold border inline-flex items-center gap-1 mt-0.5 ${
                               order.paymentStatus === "Paid"
-                                ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-700"
+                                ? "bg-verdant-success/5 border-verdant-success/20 text-verdant-success"
                                 : order.paymentStatus === "Failed"
-                                ? "bg-red-500/5 border-red-500/20 text-red-600"
-                                : "bg-amber-500/5 border-amber-500/20 text-amber-600"
+                                ? "bg-verdant-danger/5 border-verdant-danger/20 text-verdant-danger"
+                                : "bg-verdant-warning/5 border-verdant-warning/20 text-verdant-warning"
                             }`}
                           >
                             <span className={`w-1 h-1 rounded-full ${
                               order.paymentStatus === "Paid"
-                                ? "bg-emerald-500"
+                                ? "bg-verdant-success"
                                 : order.paymentStatus === "Failed"
-                                ? "bg-red-500"
-                                : "bg-amber-500"
+                                ? "bg-verdant-danger"
+                                : "bg-verdant-warning"
                             }`} />
                             {order.paymentStatus}
                           </span>
@@ -345,7 +346,7 @@ export default function MyOrdersPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="glass-card bg-[#FAF7F2] border border-verdant-emerald/10 w-full max-w-4xl rounded-[2rem] shadow-[0_25px_70px_-10px_rgba(15,76,58,0.2)] relative z-10 overflow-hidden max-h-[90vh] flex flex-col text-left text-verdant-emerald"
+              className="glass-card bg-verdant-cream border border-verdant-emerald/10 w-full max-w-4xl rounded-[2rem] shadow-[0_25px_70px_-10px_rgba(var(--color-primary-rgb),0.2)] relative z-10 overflow-hidden max-h-[90vh] flex flex-col text-left text-verdant-emerald"
             >
               {/* Modal Header */}
               <div className="p-6 md:p-8 border-b border-verdant-emerald/5 flex justify-between items-center bg-white/20">
@@ -366,7 +367,7 @@ export default function MyOrdersPage() {
               </div>
 
               {/* Modal Scrollable Body */}
-              <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-8 bg-[#FAF4EA]/40" data-lenis-prevent>
+              <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-8 bg-verdant-cream/40" data-lenis-prevent>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   
                   {/* Left Column: Items & Shipment */}
@@ -532,7 +533,7 @@ export default function MyOrdersPage() {
                         <span>Original Subtotal:</span>
                         <span>₹{(selectedOrder.subtotal || 0).toLocaleString("en-IN")}</span>
                       </div>
-                      <div className="flex justify-between gap-4 text-emerald-700 font-bold">
+                      <div className="flex justify-between gap-4 text-verdant-success font-bold">
                         <span>Storewide Discount:</span>
                         <span>-₹{selectedOrder.discountAmount.toLocaleString("en-IN")}</span>
                       </div>

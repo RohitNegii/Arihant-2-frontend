@@ -62,7 +62,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] pb-24 text-verdant-emerald selection:bg-verdant-emerald/15">
+      <div className="min-h-screen bg-verdant-cream pb-24 text-verdant-emerald selection:bg-verdant-emerald/15">
         <Navbar />
         <div className="max-w-7xl mx-auto px-6 md:px-12 pt-36">
           <ProductDetailsSkeleton />
@@ -73,10 +73,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] pb-24 text-verdant-emerald selection:bg-verdant-emerald/15 flex flex-col justify-between">
+      <div className="min-h-screen bg-verdant-cream pb-24 text-verdant-emerald selection:bg-verdant-emerald/15 flex flex-col justify-between">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center pt-36 px-6 text-center max-w-md mx-auto">
-          <BadgeAlert className="w-16 h-16 text-red-800 mb-6 animate-pulse" />
+          <BadgeAlert className="w-16 h-16 text-verdant-danger mb-6 animate-pulse" />
           <h2 className="font-serif text-2xl font-light mb-3">Masterpiece Unreachable</h2>
           <p className="text-verdant-emerald/65 text-xs font-light leading-relaxed tracking-wide mb-8">
             The jewelry archive returned an empty response. It is possible the product is deleted, set to draft, or the path is invalid.
@@ -102,13 +102,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative overflow-x-hidden">
+    <div className="min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative overflow-x-hidden">
       <MouseFollower />
       <Navbar />
 
       {/* Glow overlays */}
-      <div className="absolute top-[15%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-[#C8A96A]/4 to-transparent blur-[120px] pointer-events-none" />
-      <div className="absolute top-[50%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-[#0F4C3A]/3 to-transparent blur-[120px] pointer-events-none" />
+      <div className="absolute top-[15%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-verdant-gold/4 to-transparent blur-[120px] pointer-events-none" />
+      <div className="absolute top-[50%] left-[-10%] w-[35vw] h-[35vw] bg-radial from-verdant-emerald/3 to-transparent blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 pt-28 pb-12">
         {/* Navigation Breadcrumbs & Back Link */}
@@ -191,7 +191,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
                   className="text-xl md:text-2xl" 
                 />
                 {product.isBestSeller && (
-                  <span className="bg-verdant-gold/10 text-verdant-gold text-[7px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1">
+                  <span className="bg-verdant-gold/10 text-verdant-gold text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1">
                     <Sparkles className="w-2.5 h-2.5" /> Best Seller
                   </span>
                 )}

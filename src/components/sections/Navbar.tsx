@@ -222,7 +222,7 @@ export default function Navbar() {
                 </span>
                 <button
                   onClick={handleSignOut}
-                  className="hover-target border border-red-800/10 hover:border-red-800/40 text-red-800 bg-red-800/5 hover:bg-red-800/10 w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                  className="hover-target border border-verdant-danger/10 hover:border-verdant-danger/40 text-verdant-danger bg-verdant-danger/5 hover:bg-verdant-danger/10 w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer"
                   aria-label="Sign Out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -377,7 +377,7 @@ export default function Navbar() {
                     </div>
                     <button
                       onClick={handleSignOut}
-                      className="w-full border border-red-800/10 hover:border-red-800/40 text-red-800 bg-red-800/5 hover:bg-red-800/10 py-3 rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer font-bold uppercase tracking-wider text-[10px]"
+                      className="w-full border border-verdant-danger/10 hover:border-verdant-danger/40 text-verdant-danger bg-verdant-danger/5 hover:bg-verdant-danger/10 py-3 rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer font-bold uppercase tracking-wider text-[10px]"
                     >
                       <LogOut className="w-4 h-4" /> Sign Out
                     </button>

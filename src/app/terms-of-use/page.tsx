@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Scale, ShieldAlert, Sparkles, BookOpen, ScrollText, ArrowUpRight, Ban } from "lucide-react";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
+import PolicyTOCMobile from "@/components/global/PolicyTOCMobile";
 import { motion } from "framer-motion";
 
 export default function TermsOfUsePage() {
@@ -28,12 +29,12 @@ export default function TermsOfUsePage() {
     {
       id: "no-refunds",
       title: "2. Absolute No-Refund Policy",
-      icon: <Ban className="w-4 h-4 text-red-500" />,
+      icon: <Ban className="w-4 h-4 text-verdant-danger" />,
       content: (
         <div className="space-y-4">
-          <div className="glass-card bg-red-950/5 border border-red-500/20 rounded-2xl p-6 text-left relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-red-500/5 rounded-full blur-xl pointer-events-none" />
-            <span className="text-[9px] tracking-[0.2em] font-bold text-red-600 uppercase flex items-center gap-1.5 mb-2">
+          <div className="glass-card bg-verdant-danger/5 border border-verdant-danger/20 rounded-2xl p-6 text-left relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-24 h-24 bg-verdant-danger/5 rounded-full blur-xl pointer-events-none" />
+            <span className="text-[9px] tracking-[0.2em] font-bold text-verdant-danger uppercase flex items-center gap-1.5 mb-2">
               <ShieldAlert className="w-3.5 h-3.5" /> Critical Purchase Notice
             </span>
             <p className="font-serif text-sm text-verdant-emerald font-semibold leading-relaxed mb-3">
@@ -97,13 +98,14 @@ export default function TermsOfUsePage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#FAF7F2] text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black">
       {/* Navbar */}
       <Navbar />
 
-      {/* Background elements */}
-      <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-[#C8A96A]/6 to-transparent blur-[130px] pointer-events-none z-0" />
-      <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-[#0F4C3A]/4 to-transparent blur-[140px] pointer-events-none z-0" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-verdant-gold/6 to-transparent blur-[130px] pointer-events-none z-0" />
+        <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-emerald/4 to-transparent blur-[140px] pointer-events-none z-0" />
+      </div>
 
       {/* Header Banner */}
       <div className="relative w-full h-[320px] md:h-[360px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
@@ -113,7 +115,7 @@ export default function TermsOfUsePage() {
             alt="Luxury Diamonds Exhibit"
             className="w-full h-full object-cover object-center opacity-85 select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/10 via-[#FAF7F2]/45 to-[#FAF7F2]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
         </div>
 
         <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-12 flex justify-center">
@@ -166,7 +168,7 @@ export default function TermsOfUsePage() {
             </div>
             
             {/* Need Help Box */}
-            <div className="glass-card bg-[#0F4C3A]/5 border border-verdant-emerald/10 rounded-2xl p-6 text-left">
+            <div className="glass-card bg-verdant-emerald/5 border border-verdant-emerald/10 rounded-2xl p-6 text-left">
               <h4 className="font-serif text-xs tracking-wider font-semibold text-verdant-emerald uppercase mb-1 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-verdant-gold" /> Need Assistance?
               </h4>
@@ -183,7 +185,14 @@ export default function TermsOfUsePage() {
           </div>
 
           {/* Right Main Content Panel */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8">
+            <PolicyTOCMobile
+              sections={sections}
+              activeSection={activeSection}
+              onSelect={setActiveSection}
+            />
+
+            <div className="space-y-6">
             {sections.map((sec) => (
               <motion.div
                 key={sec.id}
@@ -193,16 +202,16 @@ export default function TermsOfUsePage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
                 onViewportEnter={() => setActiveSection(sec.id)}
-                className={`glass-card backdrop-blur-md border rounded-2xl p-6 md:p-8 shadow-[0_8px_30px_rgba(15,76,58,0.02)] text-left space-y-4 ${
+                className={`glass-card backdrop-blur-md border rounded-2xl p-6 md:p-8 shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.02)] text-left space-y-4 ${
                   sec.id === "no-refunds"
-                    ? "bg-red-50/20 border-red-500/20"
+                    ? "bg-verdant-danger/20 border-verdant-danger/20"
                     : "bg-white/60 border-verdant-emerald/10"
                 }`}
               >
                 <div className="flex items-center gap-3 border-b border-verdant-emerald/5 pb-3 animate-none">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
                     sec.id === "no-refunds"
-                      ? "bg-red-500/5 border-red-500/20"
+                      ? "bg-verdant-danger/5 border-verdant-danger/20"
                       : "bg-verdant-emerald/5 border-verdant-emerald/10"
                   }`}>
                     {sec.icon}
@@ -216,6 +225,7 @@ export default function TermsOfUsePage() {
                 </div>
               </motion.div>
             ))}
+            </div>
           </div>
 
         </div>

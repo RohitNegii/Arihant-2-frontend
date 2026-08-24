@@ -102,7 +102,7 @@ export default function ProductActions({ product, selectedSize, selectedVariant 
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-[#0F4C3A] text-white border border-verdant-gold/30 px-6 py-3 rounded-full flex items-center gap-2 shadow-2xl text-[10px] tracking-widest font-bold uppercase"
+            className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-verdant-emerald text-white border border-verdant-gold/30 px-6 py-3 rounded-full flex items-center gap-2 shadow-2xl text-[10px] tracking-widest font-bold uppercase"
           >
             <Check className="w-4 h-4 text-verdant-gold" />
             {toastMessage}
@@ -112,7 +112,7 @@ export default function ProductActions({ product, selectedSize, selectedVariant 
  
       {/* Stock Status details */}
       <div className="flex items-center gap-2 mb-2">
-        <span className={`w-2 h-2 rounded-full ${outOfStock ? "bg-red-600 animate-pulse" : "bg-emerald-600 animate-pulse"}`} />
+        <span className={`w-2 h-2 rounded-full ${outOfStock ? "bg-verdant-danger animate-pulse" : "bg-verdant-success animate-pulse"}`} />
         <span className="text-[10px] tracking-widest font-bold uppercase text-verdant-emerald/60">
           {outOfStock ? "Unavailable (Out of Stock)" : `In Stock (Only ${currentStock} units left)`}
         </span>

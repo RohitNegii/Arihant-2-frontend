@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImageUrl } from "../../utils/api";
@@ -10,6 +11,11 @@ const isVideoUrl = (url: string) => {
   const ext = url.split(".").pop()?.toLowerCase();
   return ["mp4", "webm", "ogg", "mov"].includes(ext || "");
 };
+
+// Media from the API lives on a host that is only known at runtime, so it can't
+// be listed in `images.remotePatterns` — skip the optimizer for those URLs and
+// let local assets (the fallback) still go through it.
+const isRemote = (url: string) => /^https?:\/\//.test(url);
 
 interface ProductGalleryProps {
   images: string[];
@@ -22,9 +28,13 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isZoomed, setIsZoomed] = useState(false);
 
-  useEffect(() => {
+  // Reset to the first slide when a different image set arrives. Adjusted during
+  // render rather than in an effect, so it costs no extra commit.
+  const [prevImages, setPrevImages] = useState(images);
+  if (prevImages !== images) {
+    setPrevImages(images);
     setActiveIdx(0);
-  }, [images]);
+  }
 
   const galleryImages = images.length > 0 ? images : ["/emerald_ring.png"];
   const activeImage = getImageUrl(galleryImages[activeIdx]);
@@ -68,15 +78,19 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
             />
           ) : (
             <div
-              className="w-full h-full cursor-zoom-in"
+              className="w-full h-full relative cursor-zoom-in"
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsZoomed(true)}
               onMouseLeave={() => setIsZoomed(false)}
             >
-              <img
+              <Image
                 ref={imageRef}
                 src={activeImage}
                 alt={`${name} - Active view`}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                unoptimized={isRemote(activeImage)}
                 className={`w-full h-full object-cover transition-transform duration-200 ${
                   isZoomed ? "scale-200" : "scale-100"
                 }`}
@@ -93,7 +107,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
         {/* Maximize Icon Overlay */}
         <button
           onClick={() => setShowLightbox(true)}
-          className="absolute bottom-4 right-4 bg-[#FAF7F2]/80 hover:bg-[#FAF7F2] text-verdant-emerald hover:text-verdant-gold p-2.5 rounded-full shadow-md backdrop-blur-xs transition-all active:scale-95 z-10"
+          className="absolute bottom-4 right-4 bg-verdant-cream/80 hover:bg-verdant-cream text-verdant-emerald hover:text-verdant-gold p-2.5 rounded-full shadow-md backdrop-blur-xs transition-all active:scale-95 z-10"
           aria-label="Enlarge Image"
         >
           <Maximize2 className="w-4 h-4" />
@@ -121,9 +135,13 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                   playsInline
                 />
               ) : (
-                <img
+                <Image
                   src={getImageUrl(img)}
                   alt={`${name} - Thumb ${idx + 1}`}
+                  width={64}
+                  height={64}
+                  sizes="64px"
+                  unoptimized={isRemote(getImageUrl(img))}
                   className="object-cover w-full h-full"
                 />
               )}
