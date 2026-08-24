@@ -123,7 +123,7 @@ function CheckoutPageContent() {
 
   const discountAmount = Math.max(0, originalTotal - cartTotal);
   const taxAmount = 0; // GST is already included in the product price
-  const shippingAmount = cartTotal > 15000 ? 0 : 250;
+  const shippingAmount = 0; // Shipping fee is included in product price (Complimentary Express Shipping)
   const grandTotal = cartTotal + taxAmount + shippingAmount;
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
