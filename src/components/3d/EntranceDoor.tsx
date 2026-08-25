@@ -10,16 +10,24 @@ const DETAIL = quality().doorDetail;
 const P = palette();
 
 export const DOOR_W = 1.78;
-export const DOOR_H = 4.0;
+export const DOOR_H = 3.8;
 export const DOOR_D = 0.13;
+
+/**
+ * World y of the leaf's bottom edge. It clears the doorstep in StoryRooms, and
+ * the clearance came out of DOOR_H rather than lifting the leaf, because the
+ * head has to stay at 2.5 where the fanlight above the opening is set.
+ */
+export const DOOR_FOOT = -1.3;
+const DOOR_Y = DOOR_FOOT + DOOR_H / 2;
 
 const STILE = 0.16;
 const BEVEL = 0.02;
 
 const PANELS = [
-  { cy: 1.145, h: 1.35 },
-  { cy: -0.205, h: 0.95 },
-  { cy: -1.29, h: 0.82 },
+  { cy: 1.09, h: 1.26 },
+  { cy: -0.185, h: 0.89 },
+  { cy: -1.215, h: 0.77 },
 ];
 const PANEL_W = DOOR_W - 2 * STILE;
 
@@ -185,8 +193,14 @@ export default function DoorLeaf({ side }: { side: 1 | -1 }) {
   const panels = useMemo(() => PANELS.map((p, i) => ({ ...p, geo: PANEL_GEOS[i] })), []);
 
   return (
-    <group position={[side * 0.9, 0.5, 0]}>
+    <group position={[side * 0.9, DOOR_Y, 0]}>
       <mesh geometry={FRAME_GEO} material={DOOR_PAINT} castShadow receiveShadow />
+
+      {/* Weather bar. It hangs into the reveal over the doorstep, so what shows
+          under an open leaf is a dark line rather than the lit stone jamb. */}
+      <mesh position={[0, -DOOR_H / 2 - 0.014, 0]} material={DOOR_PAINT} castShadow>
+        <boxGeometry args={[DOOR_W - 0.02, 0.028, DOOR_D * 0.8]} />
+      </mesh>
 
       {panels.map((p) => (
         <mesh
@@ -199,7 +213,7 @@ export default function DoorLeaf({ side }: { side: 1 | -1 }) {
         />
       ))}
 
-      {[1.55, 0.05, -1.45].map((y) => (
+      {[1.45, 0.05, -1.35].map((y) => (
         <Hinge key={y} y={y} side={side} />
       ))}
       <PullHandle side={side} />

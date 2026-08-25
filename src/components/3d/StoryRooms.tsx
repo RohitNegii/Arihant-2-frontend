@@ -14,7 +14,7 @@ import {
 } from "@/content/gallery";
 import { JEWELRY_IMAGES } from "@/content/jewelry";
 import { LuxuryRing } from "./RoomComponents";
-import DoorLeaf from "./EntranceDoor";
+import DoorLeaf, { DOOR_FOOT } from "./EntranceDoor";
 import Mannequin, { MANNEQUIN_BASE_Y, setMannequinOpacity } from "./Mannequin";
 import {
   leafMaps,
@@ -26,7 +26,7 @@ import {
   SLAB_TILE_W,
   SLAB_TILE_D,
 } from "./procedural-textures";
-import { isTouchDevice, quality } from "./quality";
+import { SCROLL_TRACKING, isTouchDevice, quality } from "./quality";
 import { palette } from "@/theme/palette";
 
 export const STORY_ROOM_Z = [72, 60, 48, 36, 24, 12] as const;
@@ -207,6 +207,20 @@ export const MAT = {
     transparent: true,
     opacity: 0.5,
     depthWrite: false,
+  }),
+  /**
+   * The shaft of light over the finale's plinth. Additive and double sided, so
+   * the cone reads as lit air from inside and out rather than as a solid, and
+   * faint enough that what it falls on still shows through it.
+   */
+  shaft: new THREE.MeshBasicMaterial({
+    color: P.glow,
+    transparent: true,
+    opacity: 0.06,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
   }),
   halo: new THREE.MeshBasicMaterial({
     color: P.glowSoft,
@@ -1213,6 +1227,70 @@ function CrestMedallion({
   );
 }
 
+/**
+ * The doorstep. Two courses of stone: a sill between the jambs that the leaves
+ * stand over, and a wider tread in front of it. Both stay below DOOR_FOOT, so
+ * the leaves sweep clear of the stone the whole way open — the old single slab
+ * stood 0.04 proud of the leaf and sliced its foot off at an angle.
+ */
+const FLOOR_Y = -1.5;
+const SILL_TOP = DOOR_FOOT - 0.04;
+const TREAD_TOP = SILL_TOP - 0.08;
+
+function Doorstep() {
+  return (
+    <group>
+      <mesh
+        position={[0, (FLOOR_Y + SILL_TOP) / 2, 0.135]}
+        material={MAT.threshold}
+        receiveShadow
+      >
+        <boxGeometry args={[3.98, SILL_TOP - FLOOR_Y, 0.97]} />
+      </mesh>
+      <mesh
+        position={[0, (FLOOR_Y + TREAD_TOP) / 2, 0.69]}
+        material={MAT.threshold}
+        receiveShadow
+      >
+        <boxGeometry args={[4.8, TREAD_TOP - FLOOR_Y, 0.98]} />
+      </mesh>
+    </group>
+  );
+}
+
+/**
+ * The house mark on its own, with no roundel behind it — for the dark boards,
+ * which already are the ground the medallion has to bring with it. Tinted with
+ * the sign lettering colour so it reads as the same warm metal as the type
+ * under it. The texture is fetched once; useTexture caches by URL.
+ */
+function CrestMark({
+  height,
+  position,
+}: {
+  height: number;
+  position: [number, number, number];
+}) {
+  const crest = useTexture(BRAND_CREST, (tex) => {
+    const t = Array.isArray(tex) ? tex[0] : tex;
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+  });
+
+  const size = useMemo<[number, number]>(() => {
+    const img = crest?.image as { width?: number; height?: number } | undefined;
+    const aspect = img?.width && img?.height ? img.width / img.height : 0.72;
+    return [height * aspect, height];
+  }, [crest, height]);
+
+  return (
+    <mesh position={position}>
+      <planeGeometry args={size} />
+      <meshBasicMaterial map={crest} color={P.signText} transparent toneMapped={false} />
+    </mesh>
+  );
+}
+
 function GrandEntrance({ z }: { z: number }) {
   const leftHinge = useRef<THREE.Group>(null);
   const rightHinge = useRef<THREE.Group>(null);
@@ -1233,14 +1311,14 @@ function GrandEntrance({ z }: { z: number }) {
       leftHinge.current.rotation.y = THREE.MathUtils.lerp(
         leftHinge.current.rotation.y,
         -angle,
-        0.05
+        SCROLL_TRACKING
       );
     }
     if (rightHinge.current) {
       rightHinge.current.rotation.y = THREE.MathUtils.lerp(
         rightHinge.current.rotation.y,
         angle,
-        0.05
+        SCROLL_TRACKING
       );
     }
   });
@@ -1301,15 +1379,18 @@ function GrandEntrance({ z }: { z: number }) {
             <boxGeometry args={[0.14, 4.16, 0.1]} />
           </mesh>
         ))}
-        <mesh position={[0, -1.44, 0.32]} material={MAT.threshold} receiveShadow>
-          <boxGeometry args={[4.0, 0.12, 0.7]} />
-        </mesh>
+        <Doorstep />
 
+        {/* The contact shadow rides inside the hinge group so it swings with
+            the leaf. Touch devices run with shadows off, and without it the
+            foot of an open leaf has nothing holding it to the stone. */}
         <group ref={leftHinge} position={[-1.8, 0, 0.2]}>
           <DoorLeaf side={1} />
+          <GroundShadow position={[0.9, SILL_TOP + 0.006, 0]} radius={0.9} stretch={0.24} />
         </group>
         <group ref={rightHinge} position={[1.8, 0, 0.2]}>
           <DoorLeaf side={-1} />
+          <GroundShadow position={[-0.9, SILL_TOP + 0.006, 0]} radius={0.9} stretch={0.24} />
         </group>
       </group>
 
@@ -1629,9 +1710,7 @@ function TheBeginning({ z }: { z: number }) {
             letterSpacing="0.4em"
             position={[0, -0.26, 0.07]}
           />
-          <mesh position={[0, 0.44, 0.07]} scale={[0.5, 1, 0.5]} material={MAT.gold}>
-            <sphereGeometry args={[0.13, 8, 6]} />
-          </mesh>
+          <CrestMark height={0.26} position={[0, 0.42, 0.07]} />
           {/* Brass caps where the board meets the frame. */}
           {[-0.66, 0.66].map((cx) => (
             <mesh key={cx} position={[cx, -0.6, 0.06]} material={MAT.gold}>
@@ -2759,12 +2838,11 @@ function TheCollection({ z }: { z: number }) {
  * page background the panel was put here to hide.
  */
 const MOMENTS_PANEL = {
-  // Wider than the 5.4 it was. The portrait stands a quarter-unit in front of
-  // the panel, so at 5.4 it covered the inner half of each archway from the
-  // camera's line and they read as slivers. The extra width pushes them out
-  // past its edge; what it adds outboard stays hidden behind the angled walls,
-  // which cover everything past their own inner edge from here.
-  width: 6.0,
+  // Wide enough that the two archways can sit outboard of the portrait's
+  // silhouette and still have panel beyond them. What it adds outboard stays
+  // hidden behind the angled walls, which cover everything past their own
+  // inner edge from here.
+  width: 7.0,
   // Taller than the ceiling is high, or the strip between the two is a slot
   // onto the lit room behind — which arrives as a hard white bar across the
   // top of the wall, directly above the house mark.
@@ -2780,12 +2858,23 @@ const MOMENTS_PANEL = {
    */
   x: 0,
   y: 1.15,
-  z: -5.75,
-  /** Each archway's offset from that centre, and its half-width. Far enough out
-   *  that its inner jamb clears the portrait's edge by a comfortable margin,
-   *  and still 0.2 inside the panel's own edge. */
-  offset: 2.3,
-  half: 0.475,
+  /**
+   * Pushed back from -5.75. At the end of the zone the camera was 0.84 off the
+   * portrait and it filled the frame edge to edge — the last stretch of the
+   * scroll was spent flying through a photograph, which is what made the room
+   * read as the end of the site. At -7.4 the camera comes no closer than about
+   * two and a half units and it stays a picture in a room.
+   */
+  z: -7.4,
+  /**
+   * Each archway's offset from that centre, and its half-width. Both grew:
+   * at 0.475 the openings were slivers, and the portrait — a quarter-unit
+   * proud of the panel — covered their inner halves from the camera's line,
+   * so the one thing telling a visitor the journey continues was the thing
+   * they could not see. Wider, and pushed out clear of the portrait.
+   */
+  offset: 2.55,
+  half: 0.7,
   floorY: -1.5,
   /**
    * The openings run much taller than they did. At head height 1.6 the two
@@ -2796,8 +2885,10 @@ const MOMENTS_PANEL = {
    * inboard is the portrait. So the arches went up instead, and what shows
    * above the pictures is a tall slice of the finale.
    */
-  springY: 1.975,
-  headY: 2.45,
+  // Derived, not chosen: archedWallGeometry springs an opening at
+  // `headY - width / 2`, and the gold trim has to be put on the same line.
+  springY: 2.05,
+  headY: 2.75,
 } as const;
 
 const MOMENTS_PANEL_GEO = archedWallGeometry(
@@ -2816,15 +2907,14 @@ const MOMENTS_PANEL_GEO = archedWallGeometry(
 /**
  * Whether this device gets the film at all.
  *
- * The file is 17MB for four and a half seconds — it has not been re-encoded
- * (see the header of scripts/optimize-media.mjs for the command that will fix
- * that), so until it is, it may only go to a machine that has plainly said it
- * can take it: a desktop on the high tier, not asking for reduced motion, and
- * not asking to save data. Everyone else gets the still, which is what the
- * frame showed before and is no worse for it.
+ * It used to be desktop-on-high only, because the file was 17MB of unencoded
+ * 1080x1920 at 50fps — 32 Mbps to decode and eight megabytes of texture to
+ * upload every frame, which is what made it stutter. Re-encoded to 720x1280 at
+ * 30fps it is 0.29MB, so the only refusals left are the ones a visitor asked
+ * for, plus the low tier, which turns everything else off too.
  */
 function filmAllowed() {
-  if (QUALITY.tier !== "high" || isTouchDevice()) return false;
+  if (QUALITY.tier === "low") return false;
   if (typeof window === "undefined") return false;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
   const link = (navigator as Navigator & { connection?: { saveData?: boolean } })
@@ -3204,14 +3294,14 @@ function MadeForMoments({ z }: { z: number }) {
           slightly larger quad showing underneath, which is one draw call for an
           edge on all four sides. */}
       <mesh
-        position={[0, -1.492, -3.1]}
+        position={[0, -1.492, -3.72]}
         rotation={[-Math.PI / 2, 0, 0]}
         material={MAT.goldSoft}
       >
-        <planeGeometry args={[2.48, 6.12]} />
+        <planeGeometry args={[2.48, 7.68]} />
       </mesh>
       <mesh
-        position={[0, -1.488, -3.1]}
+        position={[0, -1.488, -3.72]}
         rotation={[-Math.PI / 2, 0, 0]}
         // Not the display velvet, which carries a sheen that catches right
         // across a plane this large at this raking an angle — and not the
@@ -3222,7 +3312,7 @@ function MadeForMoments({ z }: { z: number }) {
         // the room that stays dark after that lift.
         material={MAT.emeraldDeep}
       >
-        <planeGeometry args={[2.4, 6.04]} />
+        <planeGeometry args={[2.4, 7.6]} />
       </mesh>
 
       {/* What the occasion left behind. */}
@@ -3281,7 +3371,7 @@ function MadeForMoments({ z }: { z: number }) {
         </group>
       ))}
 
-      <group position={[0, 0.5, -5.5]}>
+      <group position={[0, 0.5, -7.15]}>
         {/* The plinth the frame stands on. It was set half a unit too high and
             half a unit too far forward, so instead of carrying the picture it
             crossed it: a white bar over the bottom of the artwork, with the
@@ -3421,6 +3511,116 @@ function MadeForMoments({ z }: { z: number }) {
   );
 }
 
+/**
+ * The finale's architecture.
+ *
+ * This is the one room in the journey allowed a wall across the back of it. The
+ * rule against them exists so a room does not blank out the one behind it, and
+ * nothing follows this one — so the closing scene is the only place the journey
+ * can actually be closed. It had no wall, no ceiling and no horizon: two bare
+ * panels and a rug adrift in cream, with the page background for a sky.
+ *
+ * An apse instead, on the axis, with the house mark over it. You came in
+ * through an arch under that mark five rooms ago; you leave under another.
+ */
+const SANCTUM = {
+  width: 15,
+  height: 9.4,
+  /** World y of the wall's centre — its top edge lands above the ceiling. */
+  y: 1.4,
+  z: -8.6,
+  /** Half-width of the apse, which is also its depth and its arch radius. */
+  half: 1.65,
+  floorY: -1.5,
+  headY: 3.0,
+  ceilingY: 4.3,
+} as const;
+
+/** Where the arch springs. archedWallGeometry puts it at `headY - half`. */
+const SANCTUM_SPRING = SANCTUM.headY - SANCTUM.half;
+/** Back of the recess: the apse is as deep as it is wide. */
+const SANCTUM_BACK = SANCTUM.z - SANCTUM.half;
+
+const SANCTUM_GEO = archedWallGeometry(SANCTUM.width, SANCTUM.height, [
+  {
+    x: 0,
+    // The sill runs below the floor, where the floor hides it, so the opening
+    // reaches the ground without its hole touching the outline.
+    bottom: SANCTUM.floorY - 0.3 - SANCTUM.y,
+    top: SANCTUM.headY - SANCTUM.y,
+    width: SANCTUM.half * 2,
+  },
+]);
+
+/** Where the camera comes to rest, and what the room is composed for. */
+const SANCTUM_PLINTH_Z = -6.6;
+
+/**
+ * Petals on the runner, thickest at the foot of the plinth. Same construction
+ * as the ones in Made for Moments — the occasion carries through into the room
+ * that closes on it.
+ */
+const SANCTUM_PETALS: Speck[] = (() => {
+  const specks: Speck[] = [];
+  const random = rng(80231);
+  const count = Math.round(48 * QUALITY.foliage + 14);
+  for (let i = 0; i < count; i++) {
+    const spread = (random() + random()) / 2;
+    specks.push({
+      p: [
+        (spread - 0.5) * 5.8,
+        -1.47,
+        SANCTUM_PLINTH_Z + 0.8 + ((random() + random()) / 2 - 0.5) * 6.4,
+      ],
+      rot: [random() * 0.5 - 0.25, random() * Math.PI, random() * 0.4 - 0.2],
+      s: [0.07 + random() * 0.05, 0.016, 0.05 + random() * 0.035],
+      tint: random() > 0.82 ? 2 : random() > 0.5 ? 1 : 0,
+    });
+  }
+  return specks;
+})();
+
+/**
+ * A taper on a gold stand. The pair flanking the apse — the only thing in the
+ * room at standing height between the plinth and the side walls, which is what
+ * stops the floor running straight out to the corners.
+ */
+function Taper({
+  position,
+  height,
+}: {
+  position: [number, number, number];
+  height: number;
+}) {
+  return (
+    <group position={position}>
+      <GroundShadow position={[0, 0.03, 0.02]} radius={0.22} stretch={0.9} />
+      <mesh position={[0, 0.03, 0]} material={MAT.goldSoft}>
+        <cylinderGeometry args={[0.14, 0.17, 0.06, 14]} />
+      </mesh>
+      <mesh position={[0, 0.36, 0]} material={MAT.goldSoft}>
+        <cylinderGeometry args={[0.045, 0.06, 0.62, 10]} />
+      </mesh>
+      <mesh position={[0, 0.7, 0]} material={MAT.gold}>
+        <cylinderGeometry args={[0.09, 0.06, 0.05, 12]} />
+      </mesh>
+      <mesh position={[0, 0.73 + height / 2, 0]} material={MAT.blossom}>
+        <cylinderGeometry args={[0.055, 0.062, height, 12]} />
+      </mesh>
+      <mesh position={[0, 0.79 + height, 0]} material={MAT.glow}>
+        <coneGeometry args={[0.028, 0.11, 8]} />
+      </mesh>
+      <mesh
+        position={[0, 0.78 + height, 0.01]}
+        material={MAT.lightPool}
+        renderOrder={2}
+      >
+        <planeGeometry args={[0.75, 0.75]} />
+      </mesh>
+    </group>
+  );
+}
+
 function YoursForever({ z }: { z: number }) {
   const lidRef = useRef<THREE.Group>(null);
   const lidOpen = useRef(0);
@@ -3461,82 +3661,258 @@ function YoursForever({ z }: { z: number }) {
 
   return (
     <group position={[0, 0, z - 1.8]}>
-      {/* The two panels were four and a half by six units of flat dark nothing,
-          angled in at the sides of the last thing anyone sees. They are the
-          largest surfaces in the closing scene, so they carry the closing
-          images — a diptych the camera walks between. */}
-      {[-1, 1].map((s, i) => (
-        <group key={s} position={[s * 4.0, 0.6, -3.4]} rotation={[0, s * -0.5, 0]}>
-          <mesh material={MAT.emeraldDeep}>
-            <planeGeometry args={[4.5, 6]} />
+      {/* Ceiling. Only ever seen on the approach — by the time the camera is at
+          the plinth it is well outside the frame — but that approach was the
+          stretch that read as walking into nothing. A gold beam on its leading
+          edge, so it ends as a beam rather than as the place geometry stops. */}
+      <mesh
+        position={[0, SANCTUM.ceilingY, -5.6]}
+        rotation={[Math.PI / 2, 0, 0]}
+        material={MAT.emeraldDeep}
+      >
+        <planeGeometry args={[SANCTUM.width, 8.2]} />
+      </mesh>
+      <mesh position={[0, SANCTUM.ceilingY - 0.03, -1.5]} material={MAT.goldSoft}>
+        <boxGeometry args={[SANCTUM.width, 0.07, 0.07]} />
+      </mesh>
+      {/* Two beams across it. On a phone the ceiling is the top fifth of the
+          frame for the whole approach, and flat dark plum that size reads as a
+          hole rather than as a roof. */}
+      {[-3.4, -6.2].map((bz) => (
+        <mesh
+          key={bz}
+          position={[0, SANCTUM.ceilingY - 0.06, bz]}
+          material={MAT.emeraldDeep}
+        >
+          <boxGeometry args={[SANCTUM.width, 0.14, 0.26]} />
+        </mesh>
+      ))}
+
+      {/* The apse recess, built before the wall that frames it: a back, two
+          returns and a soffit, all facing the camera, so the opening reads as a
+          niche with depth rather than a hole cut in a flat. */}
+      <mesh position={[0, 0.6, SANCTUM_BACK]} material={MAT.emeraldDeep}>
+        <planeGeometry args={[3.5, 5.2]} />
+      </mesh>
+      {[-1, 1].map((s) => (
+        <mesh
+          key={s}
+          position={[s * (SANCTUM.half + 0.08), 0.6, SANCTUM.z - SANCTUM.half / 2]}
+          material={MAT.emeraldWall}
+        >
+          <boxGeometry args={[0.16, 5.2, SANCTUM.half]} />
+        </mesh>
+      ))}
+      <mesh
+        position={[0, SANCTUM.headY + 0.08, SANCTUM.z - SANCTUM.half / 2]}
+        material={MAT.emeraldWall}
+      >
+        <boxGeometry args={[3.5, 0.16, SANCTUM.half]} />
+      </mesh>
+      <mesh
+        position={[0, SANCTUM.floorY + 0.03, SANCTUM.z - SANCTUM.half / 2]}
+        material={MAT.marble}
+      >
+        <boxGeometry args={[3.46, 0.06, SANCTUM.half]} />
+      </mesh>
+      {/* The light in the niche. Additive, so it lifts the plum behind the box
+          instead of painting over it — the box has to be read against this. */}
+      <mesh
+        position={[0, 0.1, SANCTUM_BACK + 0.06]}
+        material={MAT.lightPool}
+        renderOrder={2}
+      >
+        <planeGeometry args={[4.0, 4.6]} />
+      </mesh>
+
+      {/* A halo hung in the apse, over the box. The niche above the lid was two
+          units of dark nothing and the last object of the journey had nothing
+          behind it to be read against. A ring, because that is what is in the
+          box — and the one shape the whole zone is named for. */}
+      <group position={[0, 1.52, SANCTUM.z - 0.12]}>
+        <mesh position={[0, 0, -0.04]} material={MAT.lightPool} renderOrder={2}>
+          <planeGeometry args={[2.1, 2.1]} />
+        </mesh>
+        <mesh material={MAT.gold}>
+          <torusGeometry args={[0.72, 0.02, 8, 44]} />
+        </mesh>
+      </group>
+
+      {/* The wall itself. One mesh, one draw call, arch and all. */}
+      <mesh
+        position={[0, SANCTUM.y, SANCTUM.z]}
+        geometry={SANCTUM_GEO}
+        material={MAT.emeraldWall}
+      />
+
+      {/* Gold on the arch, and a skirting along the wall's foot — the two
+          things that give a plain wall its scale. */}
+      <group position={[0, 0, SANCTUM.z + 0.05]}>
+        {[-1, 1].map((s) => (
+          <mesh
+            key={s}
+            position={[
+              s * (SANCTUM.half + 0.04),
+              (SANCTUM.floorY + SANCTUM_SPRING) / 2,
+              0,
+            ]}
+            material={MAT.goldSoft}
+          >
+            <boxGeometry args={[0.05, SANCTUM_SPRING - SANCTUM.floorY, 0.05]} />
           </mesh>
-          <group position={[0, 0.3, 0.03]}>
-            <mesh material={MAT.gold}>
-              <planeGeometry args={[2.78, 3.44]} />
-            </mesh>
-            <mesh position={[0, 0, 0.01]} material={MAT.paper}>
-              <planeGeometry args={[2.62, 3.28]} />
-            </mesh>
-            <mesh position={[0, 0.06, 0.02]}>
-              <planeGeometry args={[2.36, 2.95]} />
-              <meshBasicMaterial map={finale[i]} toneMapped={false} />
-            </mesh>
+        ))}
+        <mesh position={[0, SANCTUM_SPRING, 0]} material={MAT.goldSoft}>
+          <torusGeometry args={[SANCTUM.half + 0.04, 0.032, 6, 26, Math.PI]} />
+        </mesh>
+      </group>
+      <mesh
+        position={[0, SANCTUM.floorY + 0.22, SANCTUM.z + 0.09]}
+        material={MAT.emeraldDeep}
+      >
+        <boxGeometry args={[SANCTUM.width, 0.44, 0.14]} />
+      </mesh>
+      <mesh
+        position={[0, SANCTUM.floorY + 0.45, SANCTUM.z + 0.11]}
+        material={MAT.goldSoft}
+      >
+        <boxGeometry args={[SANCTUM.width, 0.035, 0.035]} />
+      </mesh>
+      <mesh
+        position={[0, SANCTUM.ceilingY - 0.17, SANCTUM.z + 0.02]}
+        material={MAT.emeraldDeep}
+      >
+        <boxGeometry args={[SANCTUM.width, 0.34, 0.12]} />
+      </mesh>
+
+      {/* The house mark in the tympanum, on its own dark ground with a pool of
+          light behind it — the same medallion that crowns the entrance sign,
+          which is the whole point of putting it here. */}
+      <group position={[0, 3.68, SANCTUM.z + 0.16]}>
+        <mesh position={[0, 0, -0.03]} material={MAT.lightPool} renderOrder={2}>
+          <planeGeometry args={[2.6, 2.6]} />
+        </mesh>
+        <CrestMedallion radius={0.56} markY={0.03} />
+      </group>
+
+      {/* The runner, carried through from Made for Moments — the same two
+          quads, the same plum and gold, so the last two rooms read as one
+          walk. It stops at the apse's sill. */}
+      <mesh
+        position={[0, -1.492, -4.05]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        material={MAT.goldSoft}
+      >
+        <planeGeometry args={[2.72, 9.5]} />
+      </mesh>
+      <mesh
+        position={[0, -1.488, -4.05]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        material={MAT.emeraldDeep}
+      >
+        <planeGeometry args={[2.64, 9.42]} />
+      </mesh>
+
+      <SpeckCloud specks={SANCTUM_PETALS} tints={PETAL_TINTS} />
+
+      {/* The two closing photographs. They were bare dark rectangles with a
+          picture stuck on each; they now carry the same skirting, picture rail
+          and cornice the walls of Made for Moments do, and a light over each
+          frame. Everything hangs off an inboard station rather than the panel's
+          centre, because the copy card covers the outer half of the left panel
+          for the whole zone. */}
+      {[-1, 1].map((s, i) => (
+        <group key={s} position={[s * 4.7, 0.9, -6.1]} rotation={[0, s * -0.62, 0]}>
+          {/* 7.4 tall, not 6: at 6 the panel stopped below the ceiling and left
+              a wedge of page background in each top corner of the frame. */}
+          <mesh material={MAT.emeraldWall}>
+            <planeGeometry args={[4.6, 7.4]} />
+          </mesh>
+          <mesh position={[0, -2.18, 0.05]} material={MAT.emeraldDeep}>
+            <boxGeometry args={[4.6, 0.44, 0.1]} />
+          </mesh>
+          <mesh position={[0, -1.95, 0.07]} material={MAT.goldSoft}>
+            <boxGeometry args={[4.6, 0.03, 0.03]} />
+          </mesh>
+          <mesh position={[0, 3.54, 0.09]} material={MAT.emeraldDeep}>
+            <boxGeometry args={[4.6, 0.32, 0.18]} />
+          </mesh>
+          <mesh position={[0, 3.35, 0.12]} material={MAT.goldSoft}>
+            <boxGeometry args={[4.6, 0.035, 0.035]} />
+          </mesh>
+
+          <group position={[-s * 0.75, -0.3, 0]}>
+            {/* Picture light, and the pool it throws down the frame. */}
+            <group position={[0, 2.1, 0.1]}>
+              <mesh position={[0, -0.16, 0.02]} material={MAT.goldSoft}>
+                <cylinderGeometry args={[0.02, 0.05, 0.3, 8]} />
+              </mesh>
+              <mesh position={[0, 0.02, 0.04]} material={MAT.glow}>
+                <sphereGeometry args={[0.075, 10, 8]} />
+              </mesh>
+              <mesh position={[0, -0.6, 0.05]} material={MAT.lightPool} renderOrder={2}>
+                <planeGeometry args={[3.0, 4.2]} />
+              </mesh>
+            </group>
+
+            <group position={[0, 0.2, 0.03]}>
+              <mesh material={MAT.gold}>
+                <planeGeometry args={[2.78, 3.44]} />
+              </mesh>
+              <mesh position={[0, 0, 0.01]} material={MAT.paper}>
+                <planeGeometry args={[2.62, 3.28]} />
+              </mesh>
+              <mesh position={[0, 0.06, 0.02]}>
+                <planeGeometry args={[2.36, 2.95]} />
+                <meshBasicMaterial map={finale[i]} toneMapped={false} />
+              </mesh>
+            </group>
           </group>
         </group>
       ))}
 
+      {/* The shaft. A cone of lit air from the ceiling onto the box, and the
+          pool it lands in — the gesture that says this is the end of the road
+          rather than another display. */}
       <mesh
-        position={[0, -1.44, -3]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        material={MAT.silk}
+        position={[0, 0.9, SANCTUM_PLINTH_Z]}
+        material={MAT.shaft}
+        renderOrder={3}
       >
-        <planeGeometry args={[6.5, 7]} />
+        <coneGeometry args={[1.15, 4.2, 22, 1, true]} />
       </mesh>
-      {[-2.6, -1.4, 1.5, 2.7].map((x, i) => (
-        <mesh
-          key={x}
-          position={[x, -1.4, -3 + (i % 2) * 1.2]}
-          rotation={[0, (i - 1.5) * 0.35, 0]}
-          material={MAT.silk}
-        >
-          <boxGeometry args={[0.5, 0.08, 3.4]} />
-        </mesh>
-      ))}
+      <mesh
+        position={[0, -1.485, SANCTUM_PLINTH_Z]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        material={MAT.lightPool}
+        renderOrder={2}
+      >
+        <planeGeometry args={[3.6, 3.6]} />
+      </mesh>
 
-      {/* Pedestal. The whole tableau used to lie on the floor at y = -1.1,
-          which the camera — level, at y = 0.5 — reads almost edge-on: the
-          closing shot of the whole journey was a flat-lay seen from the side,
-          with the middle of the frame empty above it. The box now stands on a
-          column at eye level between the two pictures, and the cloth, gift and
-          letter stay down on the silk as the setting around its foot. */}
-      <group position={[0, 0, -3.6]}>
-        <GroundShadow position={[0, -1.46, 0.12]} radius={1.05} stretch={0.9} />
+      {/* Pedestal, on the axis inside the apse. */}
+      <group position={[0, 0, SANCTUM_PLINTH_Z]}>
+        <GroundShadow position={[0, -1.46, 0.12]} radius={1.15} stretch={0.9} />
         <mesh position={[0, -1.43, 0]} material={MAT.marble}>
-          <cylinderGeometry args={[0.58, 0.68, 0.14, 28]} />
+          <cylinderGeometry args={[0.62, 0.74, 0.14, 28]} />
         </mesh>
-        <mesh position={[0, -1.03, 0]} material={MAT.marble}>
-          <cylinderGeometry args={[0.4, 0.5, 0.66, 28]} />
+        <mesh position={[0, -1.0, 0]} material={MAT.marble}>
+          <cylinderGeometry args={[0.44, 0.54, 0.72, 28]} />
         </mesh>
-        <mesh position={[0, -0.64, 0]} material={MAT.marble}>
-          <cylinderGeometry args={[0.64, 0.5, 0.12, 28]} />
+        <mesh position={[0, -0.58, 0]} material={MAT.marble}>
+          <cylinderGeometry args={[0.7, 0.54, 0.13, 28]} />
         </mesh>
         <mesh
-          position={[0, -0.585, 0]}
+          position={[0, -0.52, 0]}
           rotation={[Math.PI / 2, 0, 0]}
           material={MAT.gold}
         >
-          <torusGeometry args={[0.625, 0.016, 6, 30]} />
+          <torusGeometry args={[0.685, 0.018, 6, 30]} />
         </mesh>
       </group>
 
-      {/* Halo behind the box — the same additive quad the workbench lamp uses.
-          Nothing in this room was lit; the box is the last object of the
-          journey and had no more emphasis than the floor it sat on. */}
-      <mesh position={[0, -0.32, -3.95]} material={MAT.lightPool} renderOrder={2}>
-        <planeGeometry args={[3.1, 3.1]} />
-      </mesh>
-
-      <group position={[0, -0.37, -3.6]}>
+      {/* The box. Bigger than it was — it is the last object of the journey and
+          it was a thumbnail on a column. */}
+      <group position={[0, -0.28, SANCTUM_PLINTH_Z]} scale={1.28}>
         <GroundShadow position={[0, -0.205, 0.1]} radius={0.6} />
         <mesh material={MAT.velvet}>
           <boxGeometry args={[1.15, 0.42, 0.92]} />
@@ -3571,39 +3947,23 @@ function YoursForever({ z }: { z: number }) {
         </group>
       </group>
 
-      <group position={[1.5, -1.08, -3.1]} rotation={[-0.5, -0.35, 0.06]}>
-        <mesh material={MAT.paper}>
-          <planeGeometry args={[1.1, 0.82]} />
-        </mesh>
-        <mesh position={[0, 0, 0.004]} material={MAT.goldSoft}>
-          <ringGeometry args={[0.44, 0.455, 4, 1]} />
-        </mesh>
-        <mesh position={[0, -0.02, 0.02]} rotation={[Math.PI / 2, 0, 0]} material={MAT.wax}>
-          <cylinderGeometry args={[0.1, 0.1, 0.03, 16]} />
-        </mesh>
-        <mesh position={[0, -0.02, 0.04]} material={MAT.gold}>
-          <torusGeometry args={[0.06, 0.008, 6, 18]} />
-        </mesh>
-      </group>
+      {/* A taper either side of the apse. Graded, so the pair is not a gate. */}
+      {[-1, 1].map((s) =>
+        [0, 1].map((i) => (
+          <Taper
+            key={`${s}:${i}`}
+            position={[s * (2.15 + i * 0.5), -1.5, -7.5 + i * 0.75]}
+            height={0.78 - i * 0.24}
+          />
+        ))
+      )}
 
-      <Foliage position={[-1.8, -1.34, -3.2]} seed={181} count={26} spread={[0.55, 0.12, 0.5]} scale={1.1} />
-      {[
-        [-1.55, -1.3, -2.95],
-        [-2.05, -1.28, -3.35],
-        [-1.35, -1.32, -3.5],
-        [-2.3, -1.31, -2.9],
-      ].map((p, i) => (
-        <group key={i} position={p as [number, number, number]}>
-          <mesh material={MAT.blossom}>
-            <sphereGeometry args={[0.11, 10, 8]} />
-          </mesh>
-          <mesh position={[0, 0.02, 0]} material={MAT.gold}>
-            <sphereGeometry args={[0.035, 8, 6]} />
-          </mesh>
-        </group>
-      ))}
-
-      <group position={[-2.3, -1.15, -1.9]} rotation={[0, 0.4, 0]}>
+      {/* What the occasion left at the foot of it: the gift, the letter, and a
+          little greenery. All three used to be scattered across an empty white
+          rug; they now sit along the runner's edges, where they frame the walk
+          in instead of competing with it. */}
+      <group position={[-1.72, -1.16, -4.5]} rotation={[0, 0.45, 0]}>
+        <GroundShadow position={[0, -0.33, 0.06]} radius={0.62} stretch={0.85} />
         <mesh material={MAT.silk}>
           <boxGeometry args={[0.75, 0.52, 0.75]} />
         </mesh>
@@ -3618,10 +3978,56 @@ function YoursForever({ z }: { z: number }) {
         </mesh>
       </group>
 
-      <mesh position={[0, -0.6, -5.6]}>
-        <circleGeometry args={[2.6, 28]} />
-        <meshBasicMaterial color="#FFE3B2" transparent opacity={0.22} depthWrite={false} />
-      </mesh>
+      <group position={[1.66, -1.44, -4.3]} rotation={[-1.35, -0.3, 0.06]}>
+        <mesh material={MAT.paper}>
+          <planeGeometry args={[1.1, 0.82]} />
+        </mesh>
+        <mesh position={[0, 0, 0.004]} material={MAT.goldSoft}>
+          <ringGeometry args={[0.44, 0.455, 4, 1]} />
+        </mesh>
+        <mesh position={[0, -0.02, 0.02]} rotation={[Math.PI / 2, 0, 0]} material={MAT.wax}>
+          <cylinderGeometry args={[0.1, 0.1, 0.03, 16]} />
+        </mesh>
+        <mesh position={[0, -0.02, 0.04]} material={MAT.gold}>
+          <torusGeometry args={[0.06, 0.008, 6, 18]} />
+        </mesh>
+      </group>
+
+      <Foliage
+        position={[1.95, -1.34, -5.6]}
+        seed={181}
+        count={26}
+        spread={[0.55, 0.12, 0.5]}
+        scale={1.1}
+      />
+      {[
+        [-1.95, -1.3, -5.9],
+        [2.25, -1.28, -6.15],
+        [-2.15, -1.32, -5.35],
+        [2.02, -1.31, -5.05],
+      ].map((p, i) => (
+        <group key={i} position={p as [number, number, number]}>
+          <mesh material={MAT.blossom}>
+            <sphereGeometry args={[0.11, 10, 8]} />
+          </mesh>
+          <mesh position={[0, 0.02, 0]} material={MAT.gold}>
+            <sphereGeometry args={[0.035, 8, 6]} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Motes in the shaft. Already off on the tier that cannot afford them. */}
+      {QUALITY.sparkles > 0 && (
+        <Sparkles
+          count={20}
+          position={[0, 0.3, SANCTUM_PLINTH_Z + 0.2]}
+          scale={[3.2, 3.4, 3.0]}
+          size={2.2}
+          speed={0.14}
+          opacity={0.4}
+          color={P.glow}
+        />
+      )}
     </group>
   );
 }
@@ -3633,6 +4039,11 @@ export default function StorySection() {
       <pointLight position={[0, 3.0, 65]} intensity={13} distance={16} decay={2} color="#FFD9A0" />
       <pointLight position={[1.3, 0.7, 42.4]} intensity={9} distance={7} decay={2} color="#FFC98A" />
       <pointLight position={[0, 2.6, 31.5]} intensity={20} distance={14} decay={2} color="#FFE7C0" />
+      {/* The apse. The finale had no light of its own — the closing shot of the
+          whole journey was lit by the same hemisphere as the corridor. Finite
+          distance, so it reaches the box and the wall behind it and nothing
+          else; every light costs every material a lighting term. */}
+      <pointLight position={[0, 1.4, 3.2]} intensity={16} distance={10} decay={2} color="#FFE0AE" />
 
       <GrandEntrance z={STORY_ROOM_Z[0]} />
       <TheBeginning z={STORY_ROOM_Z[1]} />

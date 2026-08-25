@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldCheck, HelpCircle, Sparkles, Scale, Info, ArrowUpRight, Ban } from "lucide-react";
+import { ShieldCheck, HelpCircle, Scale, Info, ArrowUpRight, Ban } from "lucide-react";
+import CrestMark from "@/components/global/CrestMark";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 import PolicyTOCMobile from "@/components/global/PolicyTOCMobile";
@@ -20,7 +21,7 @@ export default function RefundPolicyPage() {
           <div className="glass-card bg-verdant-gold/5 border border-verdant-gold/30 rounded-2xl p-6 text-left relative overflow-hidden">
             <div className="absolute -top-10 -right-10 w-24 h-24 bg-verdant-gold/10 rounded-full blur-xl pointer-events-none" />
             <span className="text-[9px] tracking-[0.2em] font-bold text-verdant-gold uppercase flex items-center gap-1.5 mb-2 animate-pulse">
-              <Sparkles className="w-3.5 h-3.5 text-verdant-gold" /> Final Transaction Agreement
+              <CrestMark size={18} /> Final Transaction Agreement
             </span>
             <p className="font-serif text-base text-verdant-emerald font-semibold leading-relaxed mb-3">
               Once any purchase is completed, money will not be refunded under any circumstances.

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Phone, MapPin, Clock, Loader2, Sparkles, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Loader2, ArrowRight } from "lucide-react";
 import Navbar from "@/components/sections/Navbar";
+import CrestMark from "@/components/global/CrestMark";
 import Footer from "@/components/sections/Footer";
 import axios from "axios";
 import { API_URL } from "@/utils/api";
@@ -162,14 +163,17 @@ export default function ContactPage() {
             alt="Luxury Jewelry Showroom"
             className="w-full h-full object-cover object-center opacity-85 select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
+          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/35 via-verdant-cream/65 to-verdant-cream" />
         </div>
 
         {/* Content */}
         <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-16 flex justify-center">
-          <div className="glass-effect rounded-3xl p-8 md:p-10 max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-3">
-            <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Direct Atelier Connection
+          {/* The photograph behind this card is gold jewellery, so the card
+              carries its own opaque ground rather than relying on the glass
+              blur — gold type on gold jewellery disappeared entirely. */}
+          <div className="rounded-3xl p-8 md:p-10 max-w-2xl border border-verdant-gold/25 bg-[var(--color-background)]/92 backdrop-blur-xl shadow-[0_10px_40px_rgba(53,30,40,0.10)] text-center space-y-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-verdant-gold/30 bg-verdant-gold/10 px-3.5 py-1.5 text-[10px] tracking-[0.3em] uppercase text-[var(--color-accent)] font-bold">
+              <CrestMark size={18} /> Direct Atelier Connection
             </span>
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-verdant-emerald leading-tight">
               Get in Touch

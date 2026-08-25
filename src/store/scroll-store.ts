@@ -15,7 +15,7 @@ export const useScrollStore = create<ScrollStore>((set) => ({
 export function scrollToOffset(offset: number) {
   const lenis = useScrollStore.getState().lenis;
   if (lenis) {
-    lenis.scrollTo(offset, { duration: 1.6 });
+    lenis.scrollTo(offset, { duration: 1.0 });
   } else {
     window.scrollTo({ top: offset, behavior: "smooth" });
   }

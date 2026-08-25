@@ -50,11 +50,10 @@ export const MUSE_NECKLACE = "/images/necklace-muse.webp";
 /**
  * The ring turning, shown in the gold frame of Made for Moments.
  *
- * Full size and unencoded at 18MB — far too big to hand to a phone, which is
- * why `MadeForMoments` will not fetch it at all unless the device is on the
- * high tier, not touch, not asking for reduced motion and not asking to save
- * data. Everyone else gets the still. The re-encode that makes this a ~1.5MB
- * file is written out in the header of optimize-media.mjs.
+ * 720x1280 at 30fps, 0.29MB — re-encoded from the 17MB 1080x1920 original in
+ * `originals/display-pictures/`, by the command in the header of
+ * optimize-media.mjs. `MadeForMoments` still withholds it on the low tier and
+ * from anyone asking for reduced motion or to save data; they get the still.
  */
 export const ATELIER_FILM = "/media/fancy-ring.mp4";
 

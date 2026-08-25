@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
-import { ANATOMY } from "./mannequin-anatomy";
+import { ANATOMY, torsoRadiusAt } from "./mannequin-anatomy";
 import { quality } from "./quality";
 import { MUSE_NECKLACE } from "@/content/gallery";
 import { palette } from "@/theme/palette";
@@ -142,18 +142,78 @@ function Beads() {
   return <instancedMesh ref={ref} args={[BEAD_GEO, GOLD, beads.length]} />;
 }
 
+const NECKLACE_ROWS = 20;
+const NECKLACE_COLS = 20;
+
+/**
+ * The surface the photographed piece is worn on.
+ *
+ * A cylinder arc of one radius cannot do this. It has to clear the widest part
+ * of the chest it passes, and at that radius the top of the piece — the two
+ * chain ends — stood half a unit off a neck a quarter as wide, hanging in the
+ * air beside her instead of resting on her.
+ *
+ * Each row instead takes its depth from `torsoRadiusAt`, so the chain sits on
+ * the neck and the piece opens onto the chest as it falls. Width is held in
+ * world units rather than in arc angle: where a row is too narrow to lay the
+ * piece flat across it, the row curls further round instead — which is exactly
+ * what a chain does at the neck — up to `maxWrap`, short of the profile's side
+ * where it would be edge on to the camera.
+ */
+function buildNecklaceGeometry(aspect: number) {
+  const { top, height, clearance, minRadius, closeFrom, maxWrap } =
+    ANATOMY.necklace;
+  const halfWidth = (height * aspect) / 2;
+  const count = (NECKLACE_ROWS + 1) * (NECKLACE_COLS + 1);
+
+  const positions = new Float32Array(count * 3);
+  const uvs = new Float32Array(count * 2);
+  const indices: number[] = [];
+
+  for (let i = 0; i <= NECKLACE_ROWS; i++) {
+    const v = i / NECKLACE_ROWS;
+    const y = top - height * (1 - v);
+    const body = torsoRadiusAt(y) + clearance;
+    const radius = THREE.MathUtils.lerp(
+      Math.max(minRadius, body),
+      body,
+      THREE.MathUtils.smoothstep(v, closeFrom, 1)
+    );
+    const half = Math.min(maxWrap, Math.asin(Math.min(1, halfWidth / radius)));
+
+    for (let j = 0; j <= NECKLACE_COLS; j++) {
+      const u = j / NECKLACE_COLS;
+      const phi = -half + 2 * half * u;
+      const k = i * (NECKLACE_COLS + 1) + j;
+      positions[k * 3] = radius * Math.sin(phi);
+      positions[k * 3 + 1] = y;
+      positions[k * 3 + 2] = radius * Math.cos(phi);
+      uvs[k * 2] = u;
+      uvs[k * 2 + 1] = v;
+    }
+  }
+
+  for (let i = 0; i < NECKLACE_ROWS; i++) {
+    for (let j = 0; j < NECKLACE_COLS; j++) {
+      const a = i * (NECKLACE_COLS + 1) + j;
+      const b = a + NECKLACE_COLS + 1;
+      indices.push(a, b, a + 1, a + 1, b, b + 1);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 /**
  * The necklace, as photographed, lifted off the display bust it was shot on and
- * put on the muse.
- *
- * Not a flat card at her chest: an open cylinder arc, so the piece curves away
- * at both ends the way it does on a body and the outer drops sit beside the
- * neck instead of hanging in front of it. The arc comes from the photograph's
- * own aspect, and the width it is fitted to is the *chord* across that arc
- * rather than the arc length — what the camera reads is the projection.
- *
- * The band's radius clears her chest at every height it covers (see
- * ANATOMY.necklace), so no part of the piece is ever inside her.
+ * put on the muse. The photograph is a flat lay, so its top edge is the two
+ * ends of the chain — they belong at the sides of her neck, not out in front
+ * of it. See buildNecklaceGeometry.
  */
 function Necklace() {
   const tex = useTexture(MUSE_NECKLACE, (t) => {
@@ -167,32 +227,17 @@ function Necklace() {
     NECKLACE.needsUpdate = true;
   }, [tex]);
 
-  const { top, height, radius } = ANATOMY.necklace;
   const geometry = useMemo(() => {
     const img = tex.image as { width?: number; height?: number } | undefined;
     const aspect = img?.width && img?.height ? img.width / img.height : 0.85;
-    // Clamped: a piece wider than the band's diameter cannot be wrapped onto
-    // it, and asin would answer NaN rather than say so.
-    const chord = Math.min(0.95, (height * aspect) / (2 * radius));
-    const theta = 2 * Math.asin(chord);
-    return new THREE.CylinderGeometry(
-      radius,
-      radius,
-      height,
-      24,
-      1,
-      true,
-      -theta / 2,
-      theta
-    );
-  }, [tex, height, radius]);
+    return buildNecklaceGeometry(aspect);
+  }, [tex]);
   useEffect(() => () => geometry.dispose(), [geometry]);
 
   return (
     <mesh
       geometry={geometry}
       material={NECKLACE}
-      position={[0, top - height / 2, 0]}
       // Her lacquer is transparent too, and both are centred on the same axis,
       // so the depth sort has nothing to separate them by. Without this the
       // necklace flickers behind her.

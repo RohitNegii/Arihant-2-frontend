@@ -7,7 +7,8 @@ import dynamic from "next/dynamic";
 // import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import CrestMark from "@/components/global/CrestMark";
 import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Navbar from "@/components/sections/Navbar";
@@ -97,7 +98,7 @@ function CategoryFinale() {
     >
       <div className="pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/45 bg-[var(--color-background)]/97 backdrop-blur-2xl shadow-[0_16px_60px_rgba(var(--color-primary-rgb),0.35)] p-6 sm:p-8 md:p-10 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-4">
-          <Sparkles className="w-2.5 h-2.5 text-verdant-gold" />
+          <CrestMark size={16} />
           <span className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-accent)] font-semibold">
             The Collection
           </span>
@@ -535,7 +536,7 @@ export default function Home() {
                   <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
                     <p className="text-[8px] tracking-[0.3em] uppercase text-verdant-gold font-bold mb-1 flex items-center gap-1.5">
-                      <Sparkles className="w-2.5 h-2.5" /> Verdant Jewels
+                      <CrestMark size={16} /> Verdant Jewels
                     </p>
                     <p className="font-serif text-lg text-white leading-snug">
                       {currentZone.image.name}

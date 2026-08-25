@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Scale, ShieldAlert, Sparkles, BookOpen, ScrollText, ArrowUpRight, Ban } from "lucide-react";
+import CrestMark from "@/components/global/CrestMark";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 import PolicyTOCMobile from "@/components/global/PolicyTOCMobile";
@@ -170,7 +171,7 @@ export default function TermsOfUsePage() {
             {/* Need Help Box */}
             <div className="glass-card bg-verdant-emerald/5 border border-verdant-emerald/10 rounded-2xl p-6 text-left">
               <h4 className="font-serif text-xs tracking-wider font-semibold text-verdant-emerald uppercase mb-1 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-verdant-gold" /> Need Assistance?
+                <CrestMark size={18} /> Need Assistance?
               </h4>
               <p className="text-[10px] text-verdant-emerald/65 leading-relaxed font-sans mb-3">
                 Do you require clarity regarding diamond certification or order custom parameters?

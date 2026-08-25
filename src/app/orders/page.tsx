@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Package, ArrowLeft, ArrowRight, X, MapPin, Truck, Calendar, CreditCard, ExternalLink, ShieldCheck, Sparkles, Award } from "lucide-react";
+import CrestMark from "@/components/global/CrestMark";
 import { getMyOrdersApi } from "../../services/checkout";
 import { useAuthStore } from "../../store/authStore";
 import { useScrollStore } from "../../store/scroll-store";
@@ -171,7 +172,7 @@ export default function MyOrdersPage() {
           <div className="glass-effect rounded-3xl p-8 md:p-10 w-full max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-3 relative">
             
             <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5 pt-2">
-              <Sparkles className="w-3.5 h-3.5" /> Secure Client Vault
+              <CrestMark size={18} /> Secure Client Vault
             </span>
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-verdant-emerald leading-tight">
               My Purchase Logs

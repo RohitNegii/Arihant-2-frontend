@@ -63,7 +63,7 @@ The camera flies straight down the Z axis at eye height `y ≈ 0.5` with a 45° 
 
 - **Put the focal object near `roomZ - 5`.** Anything at the room's near edge is passed within a second; anything at `-5` is read from a distance for most of the zone.
 - **Keep contents within `roomZ - 8`**, or they belong to the next room.
-- **Never put an opaque full-width wall at the back of a room.** It blanks out the next room for the entire approach. Use hanging signs, side hedges, or narrow panels — the interiors in `GrandEntrance` are open along Z for exactly this reason.
+- **Never put an opaque full-width wall at the back of a room.** It blanks out the next room for the entire approach. Use hanging signs, side hedges, or narrow panels — the interiors in `GrandEntrance` are open along Z for exactly this reason. The one exception is `YoursForever`: nothing follows it, so it is the only room that can be closed, and its back wall and apse are what stop the journey ending in cream void. `MadeForMoments` sits closest to that line — it does carry a panel across the room, which is why the two archways through it are as wide as they are.
 - **Hold centrepieces off the centre line** (or below eye level, `y ≈ 0.5`) so the camera passes beside them rather than through them. The entrance vitrine sits at `x = 1.15` and balances the copy card, which is on the left.
 - **The floor is at `y = -1.5`.** Props stand on it; contact shadows sit at `-1.47` or so to avoid Z-fighting.
 
@@ -202,13 +202,23 @@ Detection uses `navigator.deviceMemory` (Chromium only — absent on Safari), `h
 
 | | low | mid | high |
 | --- | --- | --- | --- |
-| dpr cap | 1 | 1.25 | 1.75 |
+| dpr cap | 1.5 | 2 | 1.75 |
 | shadows | off | 1024² | 2048² |
 | texture scale | ½ | ¾ | 1 |
 | foliage | 35% | 60% | 100% |
 | fog / far plane | 28 / 32 | 42 / 46 | 42 / 46 |
 | refraction | fake | fake | real |
 | draw calls | ~310 | ~575 | ~575 |
+
+The mobile dpr caps read oddly against `high` and are meant to. A phone's device
+pixel ratio is 2.5–3.5, so `low` at a cap of 1 was drawing a third of the panel
+and letting the compositor upscale it — that, not texture resolution, is what
+read as blur. The caps are ceilings, not targets: `AdaptiveResolution` in
+`ShowroomCanvas.tsx` wraps drei's `PerformanceMonitor` and drops back to
+`Q.dpr[0]` on sustained decline, so a device that cannot pay for the ceiling
+never tries to. Shadows are already off on touch, which is where the fill comes
+from. MSAA is on at every tier now: it is comparatively cheap on tile-based
+mobile GPUs and it is what removes the stair-stepping on the door and jamb edges.
 
 ### What actually cost the frames
 
@@ -270,7 +280,7 @@ chromium.launch({
 
 - `page.emulateMedia({ reducedMotion: "reduce" })` disables Lenis, so plain `window.scrollTo` drives zones. Otherwise Lenis fights programmatic scroll.
 - Scroll to zone *n* with `window.scrollTo(0, p * (scrollHeight - innerHeight))` where `p = n / ZONE_COUNT`.
-- **Wait ~4.5s after each scroll.** The camera lerps at 0.05/frame and the entrance doors animate on the same easing — screenshot too early and you catch the doors mid-swing.
+- **Wait ~4.5s after each scroll.** The camera lerps at `SCROLL_TRACKING`/frame and the entrance doors animate on the same easing — screenshot too early and you catch the doors mid-swing.
 - The loading screen runs ~3s of fake progress; wait ~5s after `networkidle`.
 - Viewport ≥ 1024px wide to see the side showcase panel.
 

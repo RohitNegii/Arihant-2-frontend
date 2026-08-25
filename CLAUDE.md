@@ -37,7 +37,7 @@ Adding/removing a zone touches all three: the `zones` array and `ZONE_COUNT` in 
 The camera flies straight down the axis, so a room's contents are only ever seen from about `roomZ + 4` (zone start) to `roomZ − 7.3` (zone end):
 
 - Put the focal object around `roomZ − 5`, so it is read from a distance for most of the zone instead of being passed immediately.
-- Keep everything within `roomZ − 8`, and **never put an opaque full-width back wall in a room** — it blanks out the next room for the whole approach. Use hanging signs, side hedges or narrow panels instead of walls.
+- Keep everything within `roomZ − 8`, and **never put an opaque full-width back wall in a room** — it blanks out the next room for the whole approach. Use hanging signs, side hedges or narrow panels instead of walls. The finale (`YoursForever`) is the one exception: nothing follows it, so it is the only room that can be closed.
 - Hold centrepieces slightly off the centre line (or below eye level, y ≈ 0.5) so the camera passes beside them rather than through them.
 - The floor is at y = −1.5; contact shadows sit just above it to avoid Z-fighting.
 

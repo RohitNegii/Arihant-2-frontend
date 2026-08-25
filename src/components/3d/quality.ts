@@ -20,7 +20,7 @@ export interface Quality {
 const PRESETS: Record<QualityTier, Quality> = {
   low: {
     tier: "low",
-    dpr: [1, 1],
+    dpr: [1, 1.5],
     shadows: false,
     shadowMapSize: 512,
     texture: 0.5,
@@ -34,7 +34,7 @@ const PRESETS: Record<QualityTier, Quality> = {
   },
   mid: {
     tier: "mid",
-    dpr: [1, 1.25],
+    dpr: [1, 2],
     shadows: true,
     shadowMapSize: 1024,
     texture: 0.75,
@@ -111,6 +111,17 @@ export function isTouchDevice(): boolean {
   }
   return coarse;
 }
+
+/**
+ * How hard the scene chases the scroll position, per frame.
+ *
+ * Lenis leaves touch alone — `syncTouch` is off, so a phone scrolls natively at
+ * full speed. What read as slow scrolling was the scene lagging behind it: at
+ * 0.05 the camera was still drifting a second after the finger left the glass.
+ * The entrance doors ride the same number so they stay in step with the
+ * approach rather than swinging on their own clock.
+ */
+export const SCROLL_TRACKING = isTouchDevice() ? 0.1 : 0.05;
 
 export function texSize(base: number): number {
   const scaled = base * quality().texture;

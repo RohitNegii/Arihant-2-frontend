@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ArrowRight, User, LogOut, ShoppingBag, Sparkles } from "lucide-react";
+import { Menu, X, ArrowRight, User, LogOut, ShoppingBag } from "lucide-react";
+import CrestMark from "@/components/global/CrestMark";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import LoginForm from "../global/LoginForm";
 import SignupForm from "../global/SignupForm";
@@ -88,10 +89,13 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="hover-target flex items-center gap-2 group">
-            {/* Elegant stylized leaf/gem icon */}
-            <div className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-verdant-emerald/10 to-verdant-gold/10 border border-verdant-emerald/15 group-hover:border-verdant-gold/40 transition-all duration-300">
-              <Sparkles className="w-4 h-4 text-verdant-gold group-hover:scale-110 transition-transform duration-300" />
-            </div>
+            {/* The house mark. The pale gradient this used to sit in had to
+                go with the sparkle: the crest is ivory and gold and would have
+                vanished into it. */}
+            <CrestMark
+              size={32}
+              className="rounded-lg border border-verdant-gold/25 group-hover:border-verdant-gold/60 group-hover:scale-105 transition-all duration-300"
+            />
             {/* The wordmark is letter-spaced twice over — once by the spaces in
                 the text and once by `tracking` — which at 390px wide put the
                 final T on a line of its own under the rest of the name. Both

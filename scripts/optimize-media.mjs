@@ -18,15 +18,17 @@
  * `sharp` comes with Next (it is what next/image uses), so this adds no
  * dependency.
  *
- * There is one thing this cannot do: `fancy-ring-video.mp4` is 18MB and needs
- * ffmpeg, which is not installed here. When it is available:
+ * There is one thing this cannot do: the film needs ffmpeg, which is not
+ * installed here. It has been run once, by hand, and the result committed —
+ * repeat it if the source is ever replaced:
  *
  *     ffmpeg -i originals/display-pictures/fancy-ring-video.mp4 \
- *       -vf "scale=720:-2" -an -c:v libx264 -crf 30 -preset slow \
- *       -movflags +faststart public/media/fancy-ring.mp4
+ *       -vf "scale=720:-2" -r 30 -an -c:v libx264 -crf 30 -preset slow \
+ *       -pix_fmt yuv420p -movflags +faststart public/media/fancy-ring.mp4
  *
- * That lands around 1.5MB. Until then the file is loaded from `public/media` as
- * it is, behind the guards in MadeForMoments.
+ * 1080x1920 at 50fps and 32 Mbps in, 720x1280 at 30fps and 0.5 Mbps out:
+ * 17.16MB to 0.29MB. The frame rate matters as much as the size — a video
+ * texture uploads a frame to the GPU every time one arrives.
  */
 
 import sharp from "sharp";
@@ -120,6 +122,10 @@ const ASSETS = [
     src: "home-logo/img-1.jpeg",
     out: "geetej-crest.webp",
     key: "paper",
+    // The ogee arch is an outline, not a filled shape, and its lobes enclose
+    // paper the edge flood cannot reach — without this the left lobe came out
+    // solid white and the right one open.
+    pockets: true,
     width: 512,
   },
 ];
@@ -379,7 +385,7 @@ for (const asset of ASSETS) {
   // source resolution that is fifty million of them for no gain.
   img = img.resize({ width: asset.width });
   if (asset.grade) img = asset.grade(img);
-  if (asset.key) img = await liftAlpha(img, BACKGROUND[asset.key]);
+  if (asset.key) img = await liftAlpha(img, BACKGROUND[asset.key], asset.pockets);
 
   const out = path.join(OUT_DIR, asset.out);
   await writeFile(

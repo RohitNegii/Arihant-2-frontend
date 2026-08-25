@@ -74,19 +74,39 @@ export const ANATOMY = {
   forehead: [0, 1.6, 0.345] as const,
   crown: [0, 1.84, 0.16] as const,
   /**
-   * The necklace she wears: the band the photographed piece is mapped onto.
+   * The necklace she wears: the drape the photographed piece is mapped onto.
    * `top` is its upper edge, kept below the chin (the head's underside is at
-   * y ≈ 0.97 and the band stands in front of it); `height` carries it down onto
-   * the chest, and the width follows from the photograph's own aspect so the
-   * piece is never stretched — see `Necklace` in Jewellery.tsx.
+   * y ≈ 0.97); `height` carries it down onto the chest, and the width follows
+   * from the photograph's own aspect so the piece is never stretched — see
+   * `Necklace` in Jewellery.tsx.
    *
-   * `radius` is the one number with a constraint on it: the band has to clear
-   * the widest torso radius it passes, which is 0.575 at the bottom of the
-   * span. Below that the pendant would be inside her chest. Above it the band
-   * simply stands further off the neck, which is invisible to a camera that
-   * only ever sees this bust head on.
+   * It used to be a band of one fixed radius, which had to clear the widest
+   * chest it passed — 0.585 — and so stood that far off a neck a quarter as
+   * wide. The two chain ends at the top of the photograph ended up hanging in
+   * the air beside her rather than resting on her. Every row now takes its own
+   * radius from `torsoRadiusAt` plus `clearance`, and `maxWrap` caps how far a
+   * row curls round when the body is too narrow to lay the piece flat across
+   * it — which is what the chain does at the neck.
+   *
+   * `minRadius` is the floor under that. Following the neck exactly squeezed
+   * the top of the photograph into a strip a third of its width, and the
+   * charms on the chain ends smeared along the neck's edge. A chain stands off
+   * a neck rather than being painted onto it, and this is that stand-off.
+   *
+   * `closeFrom` then eases the stand-off away again over the last stretch, as
+   * a fraction of the drape's height. The photograph's top edge is where the
+   * chain was cropped, and held out on the floor it ended in mid-air beside
+   * her neck; closing the drape back onto the body there tucks the cut into
+   * the neck's edge, so the chain reads as continuing round the back.
    */
-  necklace: { top: 0.82, height: 0.86, radius: 0.62 },
+  necklace: {
+    top: 0.82,
+    height: 0.86,
+    clearance: 0.025,
+    minRadius: 0.24,
+    closeFrom: 0.8,
+    maxWrap: 1.15,
+  },
   /**
    * The bead strands the muse used to wear, before the photographed necklace
    * replaced them. Kept because they are still what a *modelled* strand would

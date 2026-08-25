@@ -1,12 +1,17 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Sparkles, Environment, Lightformer } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import {
+  Sparkles,
+  Environment,
+  Lightformer,
+  PerformanceMonitor,
+} from "@react-three/drei";
 import * as THREE from "three";
 
 import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
-import { isTouchDevice, quality } from "./quality";
+import { SCROLL_TRACKING, isTouchDevice, quality } from "./quality";
 import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 import { palette } from "@/theme/palette";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
@@ -99,6 +104,27 @@ function ResponsiveLens() {
   return null;
 }
 
+/**
+ * Holds the dpr ceiling only while the device can pay for it.
+ *
+ * The mobile tiers now ask for more pixels than they used to: a phone drawing
+ * at dpr 1 into a 3x screen was rendering a third of the panel and letting the
+ * compositor upscale it, which is what read as blur. That ceiling is not safe
+ * on hardware we cannot test, so the frame rate decides — sustained decline
+ * drops back to `Q.dpr[0]`, and after `flipflops` reversals it stays there.
+ */
+function AdaptiveResolution() {
+  const setDpr = useThree((state) => state.setDpr);
+  return (
+    <PerformanceMonitor
+      flipflops={3}
+      onIncline={() => setDpr(Q.dpr[1])}
+      onDecline={() => setDpr(Q.dpr[0])}
+      onFallback={() => setDpr(Q.dpr[0])}
+    />
+  );
+}
+
 function CameraController() {
   useFrame((state) => {
     const scrollY = window.scrollY;
@@ -107,7 +133,11 @@ function CameraController() {
 
     const targetZ = 76.0 - progress * 68;
 
-    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.05);
+    state.camera.position.z = THREE.MathUtils.lerp(
+      state.camera.position.z,
+      targetZ,
+      SCROLL_TRACKING
+    );
 
     if (TOUCH) {
       state.camera.position.x = 0;
@@ -144,13 +174,14 @@ export default function ShowroomCanvas() {
         camera={{ position: [0, 0.5, 76.0], fov: 45, near: 0.5, far: Q.far }}
         dpr={Q.dpr}
         gl={{
-          antialias: Q.tier !== "low",
+          antialias: true,
           alpha: true,
           powerPreference: "high-performance",
         }}
         shadows={Q.shadows ? "percentage" : false}
       >
         <ResponsiveLens />
+        <AdaptiveResolution />
         <CameraController />
         <ReadySignal />
 
