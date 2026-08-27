@@ -102,8 +102,8 @@ export default function Navbar() {
                 scale down with the viewport now, and it may not wrap in any
                 case: a house name that breaks mid-word is worse than a small
                 one. */}
-            <span className="font-serif text-[13px] sm:text-base md:text-lg tracking-[0.06em] sm:tracking-[0.12em] md:tracking-[0.15em] whitespace-nowrap font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
-              G E E T E J V I R A A S A T
+            <span className="font-serif text-[13px] sm:text-base md:text-lg tracking-wide whitespace-nowrap font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
+              GEETEJVIRAASAT
             </span>
           </Link>
 
