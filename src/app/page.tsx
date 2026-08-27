@@ -268,7 +268,7 @@ export default function Home() {
     {
       title: "Entrance Hall",
       subtitle: "Jewelry Crafted Beyond Time",
-      desc: "Welcome to GEETEJ VIRAASAT. Explore our virtual showroom to discover the organic geometry of high craftsmanship.",
+      desc: "Welcome to GEETEJVIRAASAT. Explore our virtual showroom to discover the organic geometry of high craftsmanship.",
     },
     {
       title: "History Tunnel",
@@ -332,7 +332,7 @@ export default function Home() {
     },
     {
       title: "Create Your Forever Story",
-      subtitle: "GEETEJ VIRAASAT",
+      subtitle: "GEETEJVIRAASAT",
       desc: "Begin your bespoke design consultation with our Milan master craftsmen today.",
       cta: (
         <div className="pointer-events-auto mt-2">
@@ -374,7 +374,7 @@ export default function Home() {
   const inStory = activeZone < STORY_ZONES;
 
   return (
-    <div className="relative min-h-[700vh] bg-[var(--color-shell)] overflow-x-hidden select-none">
+    <div className="journey relative bg-[var(--color-shell)] overflow-x-hidden select-none">
       <LoadingScreen />
       <MouseFollower />
       <Navbar />

@@ -23,23 +23,23 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL("https://geetviraasat.com"),
   title: {
-    default: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
-    template: "%s | GEETEJ VIRAASAT",
+    default: "GEETEJVIRAASAT | Immersive Luxury Jewelry Showroom",
+    template: "%s | GEETEJVIRAASAT",
   },
   description:
     "Experience timeless craftsmanship with modern elegance. Walk through our immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
   openGraph: {
-    title: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
+    title: "GEETEJVIRAASAT | Immersive Luxury Jewelry Showroom",
     description:
       "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
     type: "website",
-    siteName: "GEETEJ VIRAASAT",
+    siteName: "GEETEJVIRAASAT",
     url: "/",
     locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
+    title: "GEETEJVIRAASAT | Immersive Luxury Jewelry Showroom",
     description:
       "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
   },

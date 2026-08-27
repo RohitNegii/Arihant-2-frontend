@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
       content: (
         <>
           <p className="mb-4">
-            Welcome to <strong>GEETEJ VIRAASAT</strong>. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we look after your personal data when you visit our website, browse our bespoke jewelry showrooms, or purchase our luxury articles.
+            Welcome to <strong>GEETEJVIRAASAT</strong>. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we look after your personal data when you visit our website, browse our bespoke jewelry showrooms, or purchase our luxury articles.
           </p>
           <p>
             By accessing or using our services, you consent to the collection, transfer, manipulation, storage, disclosure, and other uses of your information as described in this Privacy Policy.
@@ -128,7 +128,7 @@ export default function PrivacyPolicyPage() {
         <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-12 flex justify-center">
           <div className="glass-effect rounded-3xl p-6 md:p-8 max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-2">
             <span className="text-[9px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5">
-              <Shield className="w-3 h-3" /> GEETEJ VIRAASAT TRUST PROTOCOL
+              <Shield className="w-3 h-3" /> GEETEJVIRAASAT TRUST PROTOCOL
             </span>
             <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl font-light tracking-wide text-verdant-emerald leading-tight">
               Privacy Policy

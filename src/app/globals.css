@@ -175,3 +175,28 @@ html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+/*
+ * The length of the journey.
+ *
+ * `svh` rather than `vh`: on a phone `vh` is the tall viewport, so every time
+ * the URL bar hides or returns the page's own height changes by seven times
+ * the bar's height. `maxScroll` is measured off that, so normalised progress
+ * jumped mid-scroll and the camera lurched with it. The small viewport unit
+ * does not move. The `vh` line above it is the fallback for engines without
+ * `svh`, which would otherwise drop the declaration and collapse the page.
+ *
+ * A coarse pointer gets a much shorter run. Six zones over six screens of
+ * scroll is a wheel gesture on a desktop and a dozen swipes on a phone; the
+ * rooms are unchanged, there is simply less scroll between them.
+ */
+.journey {
+  min-height: 700vh;
+  min-height: 700svh;
+}
+
+@media (pointer: coarse) {
+  .journey {
+    min-height: 420vh;
+    min-height: 420svh;
+  }
+}

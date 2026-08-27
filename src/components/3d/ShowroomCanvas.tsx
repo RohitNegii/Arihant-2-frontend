@@ -11,7 +11,7 @@ import {
 import * as THREE from "three";
 
 import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
-import { SCROLL_TRACKING, isTouchDevice, quality } from "./quality";
+import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
 import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 import { palette } from "@/theme/palette";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
@@ -126,17 +126,19 @@ function AdaptiveResolution() {
 }
 
 function CameraController() {
-  useFrame((state) => {
+  useFrame((state, delta) => {
+    const step = Math.min(delta, MAX_STEP);
     const scrollY = window.scrollY;
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight || 1;
     const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
 
     const targetZ = 76.0 - progress * 68;
 
-    state.camera.position.z = THREE.MathUtils.lerp(
+    state.camera.position.z = THREE.MathUtils.damp(
       state.camera.position.z,
       targetZ,
-      SCROLL_TRACKING
+      SCROLL_DAMP,
+      step
     );
 
     if (TOUCH) {

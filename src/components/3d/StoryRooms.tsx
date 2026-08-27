@@ -26,7 +26,7 @@ import {
   SLAB_TILE_W,
   SLAB_TILE_D,
 } from "./procedural-textures";
-import { SCROLL_TRACKING, isTouchDevice, quality } from "./quality";
+import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
 import { palette } from "@/theme/palette";
 
 export const STORY_ROOM_Z = [72, 60, 48, 36, 24, 12] as const;
@@ -423,8 +423,8 @@ function TextPlane({
       //
       // measureText does not include `letterSpacing` in every engine, so the
       // gap has to be added by hand or the overrun is invisible to the check:
-      // GEETEJ VIRAASAT measures ~825px of glyphs, under the 1024 canvas, but
-      // draws ~1125px once 0.22em of tracking is added to all 15 characters.
+      // GEETEJVIRAASAT measures ~810px of glyphs, under the 1024 canvas, but
+      // draws ~1100px once 0.22em of tracking is added to all 14 characters.
       // Both terms scale linearly with font size, so one pass lands exactly.
       const inset = W * 0.94;
       let size = Math.round(H * fontScale);
@@ -1305,20 +1305,23 @@ function GrandEntrance({ z }: { z: number }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    const step = Math.min(delta, MAX_STEP);
     const angle = THREE.MathUtils.lerp(DOOR_SWING[0], DOOR_SWING[1], openTarget.current);
     if (leftHinge.current) {
-      leftHinge.current.rotation.y = THREE.MathUtils.lerp(
+      leftHinge.current.rotation.y = THREE.MathUtils.damp(
         leftHinge.current.rotation.y,
         -angle,
-        SCROLL_TRACKING
+        SCROLL_DAMP,
+        step
       );
     }
     if (rightHinge.current) {
-      rightHinge.current.rotation.y = THREE.MathUtils.lerp(
+      rightHinge.current.rotation.y = THREE.MathUtils.damp(
         rightHinge.current.rotation.y,
         angle,
-        SCROLL_TRACKING
+        SCROLL_DAMP,
+        step
       );
     }
   });
@@ -1694,7 +1697,7 @@ function TheBeginning({ z }: { z: number }) {
               held would read as a mistake. EST. 2020 was P.accent, the mauve
               that made the hall sign's second line unreadable. */}
           <TextPlane
-            text="GEETEJ VIRAASAT"
+            text="GEETEJVIRAASAT"
             width={1.72}
             height={0.3}
             color={P.signText}
@@ -2837,15 +2840,21 @@ function TheCollection({ z }: { z: number }) {
  * takes nothing from it. What shows through is the finale, framed — not the
  * page background the panel was put here to hide.
  */
+const MOMENTS_CANDLES = !isTouchDevice();
+
 const MOMENTS_PANEL = {
   // Wide enough that the two archways can sit outboard of the portrait's
   // silhouette and still have panel beyond them. What it adds outboard stays
   // hidden behind the angled walls, which cover everything past their own
   // inner edge from here.
-  width: 7.0,
-  // Taller than the ceiling is high, or the strip between the two is a slot
-  // onto the lit room behind — which arrives as a hard white bar across the
-  // top of the wall, directly above the house mark.
+  width: 8.0,
+  /**
+   * Taller than the ceiling is high, and it has to stay that way. Dropping the
+   * top edge to see the finale over the wall does not work: from the camera's
+   * eye line a ray that clears this wall is already above everything in the
+   * finale by the time it gets there, so the strip that opens up shows the
+   * page background and nothing else. The way through is the archways.
+   */
   height: 6.9,
   /**
    * World position of the panel's centre.
@@ -2867,28 +2876,27 @@ const MOMENTS_PANEL = {
    */
   z: -7.4,
   /**
-   * Each archway's offset from that centre, and its half-width. Both grew:
-   * at 0.475 the openings were slivers, and the portrait — a quarter-unit
-   * proud of the panel — covered their inner halves from the camera's line,
-   * so the one thing telling a visitor the journey continues was the thing
-   * they could not see. Wider, and pushed out clear of the portrait.
+   * Each archway's offset from that centre, and its half-width. The inner jamb
+   * sits just outboard of the portrait's 1.425 half-width, which is as far in
+   * as it can come without the picture covering it; everything else went into
+   * making the opening bigger. Two thirds of this wall's width is now hole.
    */
   offset: 2.55,
-  half: 0.7,
+  half: 1.05,
   floorY: -1.5,
   /**
-   * The openings run much taller than they did. At head height 1.6 the two
-   * pictures hung on the side walls stood in front of almost all of them —
-   * they are nearer the camera, so they cover more angle than they occupy —
-   * and the room went back to reading as the end of the road. Nothing can be
-   * moved sideways to fix that: outboard of here is off the edge of a phone,
-   * inboard is the portrait. So the arches went up instead, and what shows
-   * above the pictures is a tall slice of the finale.
+   * The openings run floor to lintel. At head height 1.6 the two pictures hung
+   * on the side walls stood in front of almost all of them — they are nearer
+   * the camera, so they cover more angle than they occupy — and the room read
+   * as the end of the road. Nothing can be moved sideways to fix that:
+   * outboard of here is off the edge of a phone, inboard is the portrait. So
+   * the arches went up instead, and what shows above the pictures is a tall
+   * slice of the finale.
    */
   // Derived, not chosen: archedWallGeometry springs an opening at
   // `headY - width / 2`, and the gold trim has to be put on the same line.
-  springY: 2.05,
-  headY: 2.75,
+  springY: 2.45,
+  headY: 3.5,
 } as const;
 
 const MOMENTS_PANEL_GEO = archedWallGeometry(
@@ -3458,47 +3466,48 @@ function MadeForMoments({ z }: { z: number }) {
           through the floor at -1.5 and the short ones hovered above it. Now
           two matched pairs flanking the portrait, each graded tall-then-short
           and seated on the floor by its own height. */}
-      {[-1, 1].map((s) =>
-        [0, 1].map((i) => {
-          const h = 0.8 - i * 0.22;
-          return (
-            <group
-              key={`${s}:${i}`}
-              // Seated on a stand rather than on the floor: a taper standing
-              // straight on stone reads as a bollard, which is what these were.
-              position={[s * (2.0 + i * 0.42), -1.5, -3.45 - i * 0.35]}
-            >
-              <GroundShadow position={[0, 0.03, 0.02]} radius={0.2} stretch={0.9} />
-              <mesh position={[0, 0.03, 0]} material={MAT.goldSoft}>
-                <cylinderGeometry args={[0.13, 0.16, 0.06, 14]} />
-              </mesh>
-              <mesh position={[0, 0.13, 0]} material={MAT.goldSoft}>
-                <cylinderGeometry args={[0.045, 0.06, 0.16, 10]} />
-              </mesh>
-              {/* The cup the wax stands in, so the taper has somewhere to end. */}
-              <mesh position={[0, 0.23, 0]} material={MAT.gold}>
-                <cylinderGeometry args={[0.085, 0.06, 0.05, 12]} />
-              </mesh>
-              <mesh position={[0, 0.26 + h / 2, 0]} material={MAT.blossom}>
-                <cylinderGeometry args={[0.055, 0.062, h, 12]} />
-              </mesh>
-              {/* Flame, and the light it puts on the air around it. A cone
-                  tapered to a point reads as a flame at any size; the sphere
-                  these had read as a pearl on a stick. */}
-              <mesh position={[0, 0.3 + h + 0.03, 0]} material={MAT.glow}>
-                <coneGeometry args={[0.028, 0.11, 8]} />
-              </mesh>
-              <mesh
-                position={[0, 0.3 + h + 0.02, 0.01]}
-                material={MAT.lightPool}
-                renderOrder={2}
+      {MOMENTS_CANDLES &&
+        [-1, 1].map((s) =>
+          [0, 1].map((i) => {
+            const h = 0.8 - i * 0.22;
+            return (
+              <group
+                key={`${s}:${i}`}
+                // Seated on a stand rather than on the floor: a taper standing
+                // straight on stone reads as a bollard, which is what these were.
+                position={[s * (2.0 + i * 0.42), -1.5, -3.45 - i * 0.35]}
               >
-                <planeGeometry args={[0.62, 0.62]} />
-              </mesh>
-            </group>
-          );
-        })
-      )}
+                <GroundShadow position={[0, 0.03, 0.02]} radius={0.2} stretch={0.9} />
+                <mesh position={[0, 0.03, 0]} material={MAT.goldSoft}>
+                  <cylinderGeometry args={[0.13, 0.16, 0.06, 14]} />
+                </mesh>
+                <mesh position={[0, 0.13, 0]} material={MAT.goldSoft}>
+                  <cylinderGeometry args={[0.045, 0.06, 0.16, 10]} />
+                </mesh>
+                {/* The cup the wax stands in, so the taper has somewhere to end. */}
+                <mesh position={[0, 0.23, 0]} material={MAT.gold}>
+                  <cylinderGeometry args={[0.085, 0.06, 0.05, 12]} />
+                </mesh>
+                <mesh position={[0, 0.26 + h / 2, 0]} material={MAT.blossom}>
+                  <cylinderGeometry args={[0.055, 0.062, h, 12]} />
+                </mesh>
+                {/* Flame, and the light it puts on the air around it. A cone
+                    tapered to a point reads as a flame at any size; the sphere
+                    these had read as a pearl on a stick. */}
+                <mesh position={[0, 0.3 + h + 0.03, 0]} material={MAT.glow}>
+                  <coneGeometry args={[0.028, 0.11, 8]} />
+                </mesh>
+                <mesh
+                  position={[0, 0.3 + h + 0.02, 0.01]}
+                  material={MAT.lightPool}
+                  renderOrder={2}
+                >
+                  <planeGeometry args={[0.62, 0.62]} />
+                </mesh>
+              </group>
+            );
+          })
+        )}
 
       {/* The bokeh lived here — twelve pale spheres drifting between z = -6.4
           and -9.2. Removed rather than moved again: this room ends at z = 24
@@ -3936,7 +3945,7 @@ function YoursForever({ z }: { z: number }) {
               <boxGeometry args={[0.95, 0.44, 0.01]} />
             </mesh>
             <TextPlane
-              text="GEETEJ VIRAASAT"
+              text="GEETEJVIRAASAT"
               width={0.9}
               height={0.16}
               color={P.signText}

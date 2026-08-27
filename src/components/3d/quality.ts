@@ -113,15 +113,24 @@ export function isTouchDevice(): boolean {
 }
 
 /**
- * How hard the scene chases the scroll position, per frame.
+ * How hard the scene chases the scroll position, as a rate per second.
  *
- * Lenis leaves touch alone — `syncTouch` is off, so a phone scrolls natively at
- * full speed. What read as slow scrolling was the scene lagging behind it: at
- * 0.05 the camera was still drifting a second after the finger left the glass.
- * The entrance doors ride the same number so they stay in step with the
- * approach rather than swinging on their own clock.
+ * A rate rather than a per-frame fraction, because a per-frame fraction
+ * converges at whatever the frame rate happens to be: the 0.1 this used to be
+ * settled in about a sixth of a second at 60fps and took twice as long at 30,
+ * which is where a phone spends most of its time. Same feel at any frame rate
+ * now, and the stutter that read as "the scene is lagging behind my finger"
+ * was that difference.
+ *
+ * Touch runs much tighter. Lenis leaves touch alone — `syncTouch` is off, so a
+ * phone scrolls natively — which makes this the only smoothing on the platform
+ * that has none of its own; on the desktop it is the second pass over a signal
+ * Lenis has already eased.
  */
-export const SCROLL_TRACKING = isTouchDevice() ? 0.1 : 0.05;
+export const SCROLL_DAMP = isTouchDevice() ? 11 : 3.1;
+
+/** Clamped so a stalled tab does not resume with one enormous step. */
+export const MAX_STEP = 0.1;
 
 export function texSize(base: number): number {
   const scaled = base * quality().texture;

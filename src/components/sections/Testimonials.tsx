@@ -6,7 +6,7 @@ import { Quote } from "lucide-react";
 export default function Testimonials() {
   const testimonials = [
     {
-      quote: "Geetej Viraasat's organic structure philosophy is a revelation. Sown in botanical lines, the rings curve around the finger like hand-woven vines.",
+      quote: "GeetejViraasat's organic structure philosophy is a revelation. Sown in botanical lines, the rings curve around the finger like hand-woven vines.",
       author: "Elena Rostova",
       role: "Art Curator",
       image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
