@@ -86,7 +86,7 @@ export default function Navbar() {
             : "py-5 bg-[var(--color-background)]/20 backdrop-blur-md border-b border-verdant-gold/5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="hover-target flex items-center gap-2 group">
             {/* The house mark. The pale gradient this used to sit in had to
@@ -108,7 +108,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links (Clean and spacious) */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden md:flex items-center gap-6 lg:gap-10">
             <Link
               href="/products"
               className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${

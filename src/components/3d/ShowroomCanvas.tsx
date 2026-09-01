@@ -12,6 +12,7 @@ import * as THREE from "three";
 
 import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
 import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
+import { journeyProgress } from "@/store/scroll-store";
 import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 import { palette } from "@/theme/palette";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
@@ -125,14 +126,24 @@ function AdaptiveResolution() {
   );
 }
 
+/**
+ * How close the camera is allowed to get on a phone.
+ *
+ * The travel is 76 to 8 for everyone, but a phone reads every room through a
+ * much wider lens, and at z = 8 it ends two and a half units off the finale's
+ * plinth: the ring box, the halo, the arch and the house mark are all outside
+ * the frame or behind the overlay card, and what is left on screen is the side
+ * of a white drum. Holding at 10.6 puts the whole apse back in the shot and
+ * costs the last three per cent of the scroll, where the camera settling into
+ * place is what the scroll is for anyway.
+ */
+const TOUCH_MIN_Z = 10.6;
+
 function CameraController() {
   useFrame((state, delta) => {
     const step = Math.min(delta, MAX_STEP);
-    const scrollY = window.scrollY;
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight || 1;
-    const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
-
-    const targetZ = 76.0 - progress * 68;
+    const travelled = 76.0 - journeyProgress() * 68;
+    const targetZ = TOUCH ? Math.max(travelled, TOUCH_MIN_Z) : travelled;
 
     state.camera.position.z = THREE.MathUtils.damp(
       state.camera.position.z,

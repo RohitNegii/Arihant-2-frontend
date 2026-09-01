@@ -10,7 +10,7 @@ This document is the map. It covers what exists today, the numbers that have to 
 
 | File | Role |
 | --- | --- |
-| `src/app/page.tsx` | The whole route. `"use client"`, ~700vh tall. Owns the zone copy, the overlay cards, the chapter rail, the progress bar. |
+| `src/app/page.tsx` | The whole route. `"use client"`, a 700svh journey (420svh on touch) with `Footer` below it. Owns the zone copy, the overlay cards, the chapter rail, the progress bar. |
 | `src/components/3d/ShowroomCanvas.tsx` | The `<Canvas>`: camera driver, global lighting, fog, the gallery floor, the environment. |
 | `src/components/3d/StoryRooms.tsx` | The six rooms and every prop in them. Also owns `MAT`, the shared material table. The big file (~2000 lines). |
 | `src/components/3d/EntranceDoor.tsx` | One door leaf — frame, raised panels, hinges, pull handle, kickplate. Mounted twice, mirrored. |
@@ -63,7 +63,7 @@ The camera flies straight down the Z axis at eye height `y ≈ 0.5` with a 45° 
 
 - **Put the focal object near `roomZ - 5`.** Anything at the room's near edge is passed within a second; anything at `-5` is read from a distance for most of the zone.
 - **Keep contents within `roomZ - 8`**, or they belong to the next room.
-- **Never put an opaque full-width wall at the back of a room.** It blanks out the next room for the entire approach. Use hanging signs, side hedges, or narrow panels — the interiors in `GrandEntrance` are open along Z for exactly this reason. The one exception is `YoursForever`: nothing follows it, so it is the only room that can be closed, and its back wall and apse are what stop the journey ending in cream void. `MadeForMoments` sits closest to that line — it does carry a panel across the room, which is why the two archways through it are as wide as they are.
+- **Never put an opaque full-width wall at the back of a room.** It blanks out the next room for the entire approach. Use hanging signs, side hedges, or narrow panels — the interiors in `GrandEntrance` are open along Z for exactly this reason. The one exception is `YoursForever`: nothing follows it, so it is the only room that can be closed, and its back wall and apse are what stop the journey ending in cream void. `MadeForMoments` used to carry a panel across the back and is now the proof of the rule: walls, ceiling and panel are all gone, and what is left is three framed pieces standing on a runner with the finale open behind them.
 - **Hold centrepieces off the centre line** (or below eye level, `y ≈ 0.5`) so the camera passes beside them rather than through them. The entrance vitrine sits at `x = 1.15` and balances the copy card, which is on the left.
 - **The floor is at `y = -1.5`.** Props stand on it; contact shadows sit at `-1.47` or so to avoid Z-fighting.
 
@@ -80,7 +80,7 @@ A fixed-position HTML layer over the canvas. Five pieces:
 - **Progress indicator** — bottom left. Written directly to the DOM via refs in the scroll handler, deliberately not React state: it updates every frame and re-rendering the page for it would be wasteful.
 - **`LoadingScreen` / `MouseFollower` / `Navbar`** — mounted unconditionally.
 
-`goToZone(n)` scrolls to `((n + 0.25) / ZONE_COUNT) * maxScroll` — a quarter into the zone, so you land looking at the room rather than on its boundary.
+`goToZone(n)` scrolls to `((n + 0.25) / ZONE_COUNT) * journeySpan()` — a quarter into the zone, so you land looking at the room rather than on its boundary.
 
 **Always scroll through `scrollToOffset()`** from `@/store/scroll-store`. It routes through Lenis. A direct `window.scrollTo` fights the smooth scroller. (Lenis is disabled entirely under `prefers-reduced-motion`, which is what makes headless testing possible — see §9.)
 

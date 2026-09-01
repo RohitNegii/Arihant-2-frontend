@@ -20,13 +20,13 @@ There is no test framework configured. Verification is visual — see `homepage.
 
 ## What this app is
 
-A single-page immersive 3D jewelry showroom ("VERDANT JEWELS"). The entire experience is one client-rendered route: `src/app/page.tsx` (`"use client"`, ~700vh tall). There is no server-side data; the App Router is only providing the shell (`layout.tsx`, fonts, metadata).
+A single-page immersive 3D jewelry showroom ("VERDANT JEWELS"). The entire experience is one client-rendered route: `src/app/page.tsx` (`"use client"`) — a 700svh scroll journey, 420svh on a coarse pointer (the `.journey` rule in `globals.css`), with the shared `Footer` below it. There is no server-side data; the App Router is only providing the shell (`layout.tsx`, fonts, metadata).
 
 ## Architecture: everything is driven by scroll progress
 
-Normalized scroll progress (`window.scrollY / maxScroll`, 0→1) is the single source of truth that three consumers derive from independently — they must stay in sync:
+Normalized scroll progress (`journeyProgress()` in `src/store/scroll-store.ts`, 0→1) is the single source of truth for three consumers — they must stay in sync. It is measured against the `[data-journey]` block rather than the document, because the footer sits below it; progress pins at 1 for everything past the journey:
 
-1. **3D camera** — `CameraController` in `src/components/3d/ShowroomCanvas.tsx` maps progress to camera Z travel (Z = 76 → 8, i.e. `76 - progress * 68`).
+1. **3D camera** — `CameraController` in `src/components/3d/ShowroomCanvas.tsx` maps progress to camera Z travel (Z = 76 → 8, i.e. `76 - progress * 68`), clamped to `TOUCH_MIN_Z` on a touch device so the much wider phone lens does not end up inside the finale.
 2. **Rooms** — six story rooms sit along the Z axis 12 units apart (Z = 72 → 12) in `src/components/3d/StoryRooms.tsx`. The original thirteen exhibition rooms in `RoomComponents.tsx` are disabled — see Dead code below.
 3. **Overlay cards** — `page.tsx` computes `activeZone = floor(progress * ZONE_COUNT)` (`ZONE_COUNT = 6`) and renders the matching entry of its `zones` array (titles, copy, CTAs). `STORY_ZONES = 6` entries are numbered story chapters and also drive the right-hand chapter rail.
 

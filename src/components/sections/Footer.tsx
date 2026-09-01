@@ -31,13 +31,15 @@ export default function Footer() {
 
   return (
     <footer
-      className="relative bg-verdant-cream pt-16 pb-8 border-t border-verdant-gold/20 overflow-hidden select-none"
+      className="relative bg-verdant-cream pt-6 pb-4 md:pt-14 md:pb-7 border-t border-verdant-gold/20 overflow-hidden select-none"
     >
       {/* Luxury Background Watermark */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=2000&q=80"
-          alt="Luxury Diamonds Craftsmanship"
+          alt=""
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover object-center opacity-25"
         />
         {/* Soft, semi-transparent gradient overlays to showcase the image watermark clearly */}
@@ -52,25 +54,25 @@ export default function Footer() {
         className="absolute bottom-[-20%] right-[-10%] w-[35vw] h-[35vw] bg-radial from-verdant-emerald/6 to-transparent blur-[120px] pointer-events-none z-0"
       />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-10">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-5 md:gap-8">
         {/* Top Section with Staggered Viewport Entrance */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-1 md:grid-cols-12 gap-10"
+          className="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-8"
         >
           {/* Brand Info Column */}
-          <motion.div variants={itemVariants} className="md:col-span-7 flex flex-col items-start gap-6">
+          <motion.div variants={itemVariants} className="md:col-span-7 flex flex-col items-start gap-3 md:gap-6">
             <span className="font-serif text-xl tracking-wide font-light text-verdant-emerald">
               GEETEJVIRAASAT
             </span>
-            <p className="text-verdant-emerald/60 text-sm md:text-[15px] font-normal leading-relaxed max-w-md tracking-wide text-left">
+            <p className="text-verdant-emerald/60 text-[13px] md:text-[15px] font-normal leading-snug md:leading-relaxed max-w-md tracking-wide text-left">
               Forging the boundary between organic botany and high-fashion aesthetics. Crafting timeless jewelry masterpieces since 2001.
             </p>
             {/* Social Links with Bounce Animations */}
-            <div className="flex gap-4 items-center mt-2">
+            <div className="flex gap-3 md:gap-4 items-center mt-1 md:mt-2">
               {[
                 {
                   icon: (
@@ -104,7 +106,7 @@ export default function Footer() {
                   href={social.href}
                   whileHover={{ scale: 1.12, y: -3, rotate: 4 }}
                   whileTap={{ scale: 0.95 }}
-                  className="hover-target w-8 h-8 rounded-full bg-verdant-emerald/5 border border-verdant-emerald/10 hover:border-verdant-gold/50 hover:bg-verdant-gold/5 flex items-center justify-center text-verdant-emerald/60 hover:text-verdant-gold shadow-2xs transition-all duration-300 cursor-pointer"
+                  className="hover-target w-7 h-7 md:w-8 md:h-8 rounded-full bg-verdant-emerald/5 border border-verdant-emerald/10 hover:border-verdant-gold/50 hover:bg-verdant-gold/5 flex items-center justify-center text-verdant-emerald/60 hover:text-verdant-gold shadow-2xs transition-all duration-300 cursor-pointer"
                 >
                   {social.icon}
                 </motion.a>
@@ -114,26 +116,26 @@ export default function Footer() {
 
           {/* Legal / Pages Column */}
           <motion.div variants={itemVariants} className="md:col-span-5 grid grid-cols-2 gap-4 text-left">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5 md:gap-3">
               <span className="text-xs md:text-sm tracking-[0.25em] text-verdant-emerald/90 uppercase font-bold">
                 Atelier
               </span>
               <Link
                 href="/products"
-                className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-1"
+                className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-0 md:py-1"
               >
                 Collections
                 <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-verdant-gold group-hover:w-full transition-all duration-300 ease-out" />
               </Link>
               <Link
                 href="/contact"
-                className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-1"
+                className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-0 md:py-1"
               >
                 Contact Us
                 <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-verdant-gold group-hover:w-full transition-all duration-300 ease-out" />
               </Link>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5 md:gap-3">
               <span className="text-xs md:text-sm tracking-[0.25em] text-verdant-emerald/90 uppercase font-bold">
                 Legal
               </span>
@@ -145,7 +147,7 @@ export default function Footer() {
                 <Link
                   key={p.name}
                   href={p.href}
-                  className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-1"
+                  className="hover-target text-xs md:text-sm tracking-[0.12em] text-verdant-emerald/60 hover:text-verdant-emerald transition-colors font-medium relative group w-fit py-0 md:py-1"
                 >
                   {p.name}
                   <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-verdant-gold group-hover:w-full transition-all duration-300 ease-out" />
@@ -156,13 +158,29 @@ export default function Footer() {
         </motion.div>
 
         {/* Bottom Section */}
-        <div className="border-t border-verdant-emerald/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-xs tracking-[0.15em] text-verdant-emerald/50 font-medium uppercase">
-            &copy; {new Date().getFullYear()} GEETEJVIRAASAT Boutique Inc. All rights reserved.
-          </span>
-          <span className="text-xs tracking-[0.25em] text-verdant-gold font-semibold uppercase">
-            Sown in Nature, Reaped in Elegance
-          </span>
+        <div className="border-t border-verdant-emerald/5 pt-4 md:pt-6 flex flex-col gap-2 md:gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-2 md:gap-3 text-center md:text-left">
+            <span className="text-[10px] sm:text-xs tracking-[0.12em] sm:tracking-[0.15em] text-verdant-emerald/50 font-medium uppercase">
+              &copy; {new Date().getFullYear()} GEETEJVIRAASAT Boutique Inc. All rights reserved.
+            </span>
+            <span className="text-[10px] sm:text-xs tracking-[0.18em] sm:tracking-[0.25em] text-verdant-gold font-semibold uppercase">
+              Sown in Nature, Reaped in Elegance
+            </span>
+          </div>
+
+          <a
+            href="https://www.infiinofy.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover-target group mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-verdant-emerald/40 hover:text-verdant-emerald/70 transition-colors duration-300"
+          >
+            <span className="hidden sm:block h-px w-6 bg-verdant-emerald/15 group-hover:bg-verdant-gold/40 transition-colors duration-300" />
+            <span>Designed &amp; developed by</span>
+            <span className="font-bold tracking-[0.25em] text-verdant-emerald/65 group-hover:text-verdant-gold transition-colors duration-300">
+              INFIINOFY
+            </span>
+            <span className="hidden sm:block h-px w-6 bg-verdant-emerald/15 group-hover:bg-verdant-gold/40 transition-colors duration-300" />
+          </a>
         </div>
       </div>
     </footer>

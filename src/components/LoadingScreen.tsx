@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import CrestMark from "@/components/global/CrestMark";
 import { onSceneReady } from "@/components/3d/scene-ready";
 
 const MIN_MS = 900;
@@ -63,10 +64,10 @@ export default function LoadingScreen() {
               className="relative w-20 h-20 flex items-center justify-center"
             >
               <div className="absolute inset-0 rounded-full border border-verdant-emerald/10 border-t-verdant-emerald animate-spin" style={{ animationDuration: '4s' }} />
-              
-              <span className="font-serif text-3xl font-light tracking-[0.1em] text-verdant-emerald select-none">
-                V
-              </span>
+
+              {/* The house mark, on the same dark roundel the favicon uses —
+                  the V was left over from an earlier name. */}
+              <CrestMark size={52} />
             </motion.div>
 
             <motion.div

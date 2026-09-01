@@ -200,3 +200,47 @@ html.lenis body {
     min-height: 420svh;
   }
 }
+
+/*
+ * Short viewports.
+ *
+ * The overlay cards are sized for a tall frame. On a phone in landscape (390px
+ * of height) and on the shortest portrait screens still in use (568px) they
+ * take more than half of it and bury the room they are describing — the whole
+ * point of the card is that there is something behind it. Below 640px of
+ * height they lose a third of their padding and a step of type.
+ */
+@media (max-height: 640px) {
+  .story-card {
+    padding: 0.95rem 1.15rem;
+    border-radius: 1.25rem;
+  }
+
+  .story-title {
+    font-size: 1.35rem;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+  }
+
+  .story-desc {
+    font-size: 0.7rem;
+    line-height: 1.45;
+    margin-bottom: 0.85rem;
+  }
+
+  .finale-card {
+    padding: 1rem 1.15rem;
+  }
+}
+
+/* Landscape on a phone is shorter still, and it is the one shape where the
+   copy can afford to give the centre of the frame back to the room. */
+@media (max-height: 460px) and (orientation: landscape) {
+  .story-card {
+    max-width: 17rem;
+  }
+
+  .story-desc {
+    display: none;
+  }
+}

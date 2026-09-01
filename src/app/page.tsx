@@ -11,8 +11,9 @@ import { ArrowRight } from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
+import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
-import { scrollToOffset } from "@/store/scroll-store";
+import { journeyProgress, journeySpan, scrollToOffset } from "@/store/scroll-store";
 import { JEWELRY_IMAGES, type JewelryImage } from "@/content/jewelry";
 
 interface Zone {
@@ -31,6 +32,13 @@ const STORY_ZONES = 6;
 /** Scroll progress at which the journey hands over to the category finale. */
 const FINALE_AT = 0.95;
 
+/**
+ * How far past the end of the journey the footer has to be before the fixed
+ * overlays get out of its way — a fraction of a viewport. They are all
+ * `position: fixed`, so nothing scrolls them off on its own.
+ */
+const FOOTER_AT = 0.2;
+
 /** `gender` is the exact value the products filter expects — see ProductFilters. */
 const CATEGORIES = [
   { label: "For Him", gender: "Men", note: "Signet rings, cufflinks, chains" },
@@ -43,9 +51,7 @@ const ShowroomCanvas = dynamic(() => import("@/components/3d/ShowroomCanvas"), {
 });
 
 function goToZone(zone: number) {
-  const maxScroll =
-    document.documentElement.scrollHeight - window.innerHeight || 1;
-  scrollToOffset(((zone + 0.25) / ZONE_COUNT) * maxScroll);
+  scrollToOffset(((zone + 0.25) / ZONE_COUNT) * journeySpan());
 }
 
 function StoryCTA({
@@ -86,6 +92,19 @@ function StoryCTA({
  * End of the journey. Takes over from the zone card rather than sitting beside
  * it — at this point the story is told and the only job left is to send the
  * visitor into the catalogue.
+ *
+ * Sticky rather than fixed. Fixed, it either covered the footer or had to be
+ * hidden before you reached it; stuck to the journey it holds still over the
+ * finale room, then rides the last of the journey up and comes to rest
+ * directly on top of the footer, which is where it should be at the end.
+ *
+ * The offset is written in `vh` on purpose: a percentage offset on a sticky
+ * element resolves against its containing block, and the containing block here
+ * is the whole seven-screen journey. There is no `translate` centring it
+ * either — a transform still applies once the element stops sticking, and it
+ * would lift the card behind the navbar at rest. Half its height is subtracted
+ * from the offset instead, so the resting position is exactly the journey's
+ * last pixel: the card's foot on the footer's head.
  */
 function CategoryFinale() {
   return (
@@ -94,33 +113,33 @@ function CategoryFinale() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed inset-x-0 top-[calc(4.5rem+env(safe-area-inset-top))] md:top-1/2 md:-translate-y-1/2 z-20 flex justify-center px-4 pointer-events-none"
+      className="sticky top-[calc(4.5rem+env(safe-area-inset-top))] md:top-[calc(50vh-10rem)] flex justify-center px-4 pointer-events-none"
     >
-      <div className="pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/45 bg-[var(--color-background)]/97 backdrop-blur-2xl shadow-[0_16px_60px_rgba(var(--color-primary-rgb),0.35)] p-6 sm:p-8 md:p-10 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-4">
+      <div className="finale-card pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/45 bg-[var(--color-background)]/97 backdrop-blur-2xl shadow-[0_16px_60px_rgba(var(--color-primary-rgb),0.35)] p-4 sm:p-8 md:p-10 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-2 sm:mb-4">
           <CrestMark size={16} />
           <span className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-accent)] font-semibold">
             The Collection
           </span>
         </div>
 
-        <h3 className="font-serif text-2xl md:text-3xl tracking-tight leading-tight text-verdant-emerald font-light">
+        <h3 className="font-serif text-xl sm:text-2xl md:text-3xl tracking-tight leading-tight text-verdant-emerald font-light">
           Find Your Forever
           <span className="block italic text-verdant-gold">Piece</span>
         </h3>
 
-        <div className="flex items-center justify-center gap-2 my-5">
+        <div className="flex items-center justify-center gap-2 my-3 sm:my-5">
           <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
           <span className="h-px w-14 bg-verdant-gold/30" />
           <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
           {CATEGORIES.map((c) => (
             <Link
               key={c.gender}
               href={`/products?gender=${c.gender}`}
-              className="hover-target group flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2 rounded-2xl border border-verdant-emerald/15 bg-white/40 hover:bg-white/70 hover:border-verdant-gold/50 px-4 py-3 sm:py-4 text-left transition-all duration-300 cursor-pointer"
+              className="hover-target group flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2 rounded-2xl border border-verdant-emerald/15 bg-white/40 hover:bg-white/70 hover:border-verdant-gold/50 px-4 py-2 sm:py-4 text-left transition-all duration-300 cursor-pointer"
             >
               <span className="font-serif text-lg text-verdant-emerald leading-none">
                 {c.label}
@@ -170,14 +189,13 @@ export default function Home() {
   const [activeZone, setActiveZone] = useState(0);
   const [showEntranceCTA, setShowEntranceCTA] = useState(false);
   const [atFinale, setAtFinale] = useState(false);
+  const [inFooter, setInFooter] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressTextRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      const maxScroll =
-        document.documentElement.scrollHeight - window.innerHeight || 1;
-      const progress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+      const progress = journeyProgress();
 
       if (progressBarRef.current) {
         progressBarRef.current.style.width = `${progress * 100}%`;
@@ -188,6 +206,7 @@ export default function Home() {
 
       setActiveZone(Math.min(Math.floor(progress * ZONE_COUNT), ZONE_COUNT - 1));
       setAtFinale(progress >= FINALE_AT);
+      setInFooter(window.scrollY - journeySpan() > window.innerHeight * FOOTER_AT);
     };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -374,18 +393,24 @@ export default function Home() {
   const inStory = activeZone < STORY_ZONES;
 
   return (
-    <div className="journey relative bg-[var(--color-shell)] overflow-x-hidden select-none">
+    <>
+      <div
+        data-journey
+        className="journey relative bg-[var(--color-shell)] overflow-x-clip select-none"
+      >
       <LoadingScreen />
       <MouseFollower />
       <Navbar />
 
       <ShowroomCanvas />
 
-      <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
+      <div className="absolute inset-x-0 top-0 bottom-0 md:bottom-14 z-20 pointer-events-none">
+        <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
+      </div>
 
       <div
         className={`fixed z-10 pointer-events-none left-4 right-[3.25rem] bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:left-5 lg:left-8 md:right-auto md:w-full md:max-w-sm md:bottom-auto md:top-1/2 md:-translate-y-1/2 ${
-          atFinale ? "hidden" : ""
+          atFinale || inFooter ? "hidden" : ""
         }`}
       >
         <AnimatePresence mode="wait">
@@ -395,7 +420,7 @@ export default function Home() {
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, x: 30, filter: "blur(8px)" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="glass-effect-gold p-5 sm:p-8 md:p-10 rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[var(--color-background)]/85 to-[var(--color-background)]/70 shadow-[0_8px_40px_rgba(200,169,106,0.18)] text-left"
+            className="story-card glass-effect-gold p-5 sm:p-8 md:p-10 rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[var(--color-background)]/85 to-[var(--color-background)]/70 shadow-[0_8px_40px_rgba(200,169,106,0.18)] text-left"
           >
             {currentZone.chapter ? (
               <div className="flex items-center gap-3 mb-3">
@@ -413,7 +438,7 @@ export default function Home() {
               </div>
             )}
 
-            <h3 className="font-serif text-2xl md:text-3xl lg:text-4xl tracking-tight leading-tight text-verdant-emerald font-light mb-4">
+            <h3 className="story-title font-serif text-2xl md:text-3xl lg:text-4xl tracking-tight leading-tight text-verdant-emerald font-light mb-4">
               {currentZone.subtitle}
               {currentZone.accent && (
                 <span className="block italic text-verdant-gold">
@@ -430,7 +455,7 @@ export default function Home() {
               </div>
             )}
 
-            <p className="text-verdant-emerald/70 text-xs md:text-sm font-light leading-relaxed tracking-wide mb-5 md:mb-8">
+            <p className="story-desc text-verdant-emerald/70 text-xs md:text-sm font-light leading-relaxed tracking-wide mb-5 md:mb-8">
               {currentZone.desc}
             </p>
 
@@ -441,7 +466,7 @@ export default function Home() {
 
       <div
         className={`md:hidden fixed right-1 top-1/2 -translate-y-1/2 z-20 ${
-          atFinale ? "hidden" : ""
+          atFinale || inFooter ? "hidden" : ""
         }`}
       >
         {inStory && (
@@ -458,7 +483,11 @@ export default function Home() {
         )}
       </div>
 
-      <div className="hidden md:flex fixed right-5 top-1/2 -translate-y-1/2 z-20 flex-col items-center gap-3">
+      <div
+        className={`hidden md:flex fixed right-5 top-1/2 -translate-y-1/2 z-20 flex-col items-center gap-3 ${
+          inFooter ? "md:hidden" : ""
+        }`}
+      >
         <AnimatePresence>
           {inStory && (
             <motion.div
@@ -552,7 +581,11 @@ export default function Home() {
       </div>
       */}
 
-      <div className="fixed left-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-8 md:left-8 z-10 hidden md:flex items-center gap-3 md:gap-4 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/70">
+      <div
+        className={`fixed left-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-8 md:left-8 z-10 hidden md:flex items-center gap-3 md:gap-4 text-[9px] uppercase tracking-[0.25em] text-verdant-emerald/70 ${
+          inFooter ? "md:hidden" : ""
+        }`}
+      >
         <span className="hidden sm:inline">Exhibition Progress</span>
         <div className="w-20 md:w-32 h-px bg-[var(--color-accent)]/10 rounded-full overflow-hidden">
           <div
@@ -565,6 +598,14 @@ export default function Home() {
           0%
         </span>
       </div>
-    </div>
+      </div>
+
+      {/* The footer scrolls up over the fixed canvas on its own — it is opaque
+          and sits above it — but the overlays are fixed too, so they are told
+          to leave. */}
+      <div className="relative z-30">
+        <Footer />
+      </div>
+    </>
   );
 }
