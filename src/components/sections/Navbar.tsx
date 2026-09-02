@@ -81,8 +81,8 @@ export default function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.8, ease: "easeOut" }}
         className={`w-full transition-all duration-500 ${isScrolled
-            ? "py-3 bg-[var(--color-background)]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(var(--color-primary-rgb),0.04)]"
-            : "py-5 bg-[var(--color-background)]/20 backdrop-blur-md border-b border-verdant-gold/5"
+          ? "py-3 bg-[var(--color-background)]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(var(--color-primary-rgb),0.04)]"
+          : "py-5 bg-[var(--color-background)]/20 backdrop-blur-md border-b border-verdant-gold/5"
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 flex justify-between items-center">
@@ -102,7 +102,7 @@ export default function Navbar() {
                 case: a house name that breaks mid-word is worse than a small
                 one. */}
             <span className="font-serif text-[13px] sm:text-base md:text-lg tracking-wide whitespace-nowrap font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
-              GEETE JVIRAASAT
+              GEETEJ VIRAASAT
             </span>
           </Link>
 
@@ -156,8 +156,8 @@ export default function Navbar() {
             <div className="relative group/dropdown py-2">
               <button
                 className={`hover-target flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold cursor-pointer ${pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy"
-                    ? "text-verdant-gold"
-                    : "text-verdant-emerald/75 hover:text-verdant-gold"
+                  ? "text-verdant-gold"
+                  : "text-verdant-emerald/75 hover:text-verdant-gold"
                   }`}
               >
                 Legal
@@ -437,8 +437,8 @@ export default function Navbar() {
                     <button
                       onClick={() => setAuthMode("login")}
                       className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${authMode === "login"
-                          ? "text-verdant-emerald border-b-2 border-verdant-gold"
-                          : "text-verdant-emerald/40 hover:text-verdant-emerald"
+                        ? "text-verdant-emerald border-b-2 border-verdant-gold"
+                        : "text-verdant-emerald/40 hover:text-verdant-emerald"
                         }`}
                     >
                       Sign In
@@ -446,8 +446,8 @@ export default function Navbar() {
                     <button
                       onClick={() => setAuthMode("signup")}
                       className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${authMode === "signup"
-                          ? "text-verdant-emerald border-b-2 border-verdant-gold"
-                          : "text-verdant-emerald/40 hover:text-verdant-emerald"
+                        ? "text-verdant-emerald border-b-2 border-verdant-gold"
+                        : "text-verdant-emerald/40 hover:text-verdant-emerald"
                         }`}
                     >
                       Create Account
