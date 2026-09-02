@@ -103,6 +103,7 @@ export default function Navbar() {
                 one. */}
             <span className="font-serif text-[13px] sm:text-base md:text-lg tracking-wide whitespace-nowrap font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
               GEETEJ VIRAASAT
+
             </span>
           </Link>
 
