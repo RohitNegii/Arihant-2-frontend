@@ -159,7 +159,7 @@ export default function CartDrawer() {
                     Order Initiated!
                   </h4>
                   <p className="text-xs text-verdant-emerald/60 mt-3 max-w-xs leading-relaxed">
-                    We are redirecting you to our secure payment gateway. Thank you for choosing GeetejViraasat.
+                    We are redirecting you to our secure payment gateway. Thank you for choosing Geetej Viraasat.
                   </p>
                 </div>
               ) : isLoading && cartItems.length === 0 ? (

@@ -1681,7 +1681,7 @@ function TheBeginning({ z }: { z: number }) {
               held would read as a mistake. EST. 2020 was P.accent, the mauve
               that made the hall sign's second line unreadable. */}
           <TextPlane
-            text="GEETEJVIRAASAT"
+            text="GEETEJ VIRAASAT"
             width={1.72}
             height={0.3}
             color={P.signText}
@@ -3695,7 +3695,7 @@ function YoursForever({ z }: { z: number }) {
               <boxGeometry args={[0.95, 0.44, 0.01]} />
             </mesh>
             <TextPlane
-              text="GEETEJVIRAASAT"
+              text="GEETEJ VIRAASAT"
               width={0.9}
               height={0.16}
               color={P.signText}

@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
 export default function Craftsmanship() {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"],
@@ -57,7 +57,7 @@ export default function Craftsmanship() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 items-center gap-12 relative z-10">
-        
+
         {/* Left Column - Large Typography (Horizontal Parallax) */}
         <motion.div style={{ x: xTitle }} className="lg:col-span-7 flex flex-col items-start">
           <div className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold mb-4 font-light text-left">
@@ -79,13 +79,13 @@ export default function Craftsmanship() {
           <p className="text-verdant-emerald/50 text-xs md:text-sm font-light leading-relaxed tracking-wide">
             Our master jewelers combine decades of hand-crafted technique with digital modeling instruments. The result is structural integrity that defies gravity, and facets that capture light rays with cinematic intensity.
           </p>
-          
+
           <div className="w-full h-[1px] bg-verdant-emerald/5 my-4" />
           <span className="text-[10px] tracking-[0.2em] uppercase text-verdant-gold/70 font-light">
-            GEETEJVIRAASAT LABS
+            GEETEJ VIRAASAT
           </span>
         </motion.div>
-        
+
       </div>
     </section>
   );

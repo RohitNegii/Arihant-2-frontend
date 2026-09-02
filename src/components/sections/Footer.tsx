@@ -66,7 +66,7 @@ export default function Footer() {
           {/* Brand Info Column */}
           <motion.div variants={itemVariants} className="md:col-span-7 flex flex-col items-start gap-3 md:gap-6">
             <span className="font-serif text-xl tracking-wide font-light text-verdant-emerald">
-              GEETEJVIRAASAT
+              GEETEJ VIRAASAT
             </span>
             <p className="text-verdant-emerald/60 text-[13px] md:text-[15px] font-normal leading-snug md:leading-relaxed max-w-md tracking-wide text-left">
               Forging the boundary between organic botany and high-fashion aesthetics. Crafting timeless jewelry masterpieces since 2001.
@@ -161,7 +161,7 @@ export default function Footer() {
         <div className="border-t border-verdant-emerald/5 pt-4 md:pt-6 flex flex-col gap-2 md:gap-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-2 md:gap-3 text-center md:text-left">
             <span className="text-[10px] sm:text-xs tracking-[0.12em] sm:tracking-[0.15em] text-verdant-emerald/50 font-medium uppercase">
-              &copy; {new Date().getFullYear()} GEETEJVIRAASAT Boutique Inc. All rights reserved.
+              &copy; {new Date().getFullYear()} GEETEJ VIRAASAT Boutique Inc. All rights reserved.
             </span>
             <span className="text-[10px] sm:text-xs tracking-[0.18em] sm:tracking-[0.25em] text-verdant-gold font-semibold uppercase">
               Sown in Nature, Reaped in Elegance
