@@ -113,7 +113,7 @@ function CategoryFinale() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-[calc(4.5rem+env(safe-area-inset-top))] md:top-[calc(50vh-10rem)] flex justify-center px-4 pointer-events-none"
+      className="sticky top-[calc(100svh-19.5rem-env(safe-area-inset-bottom))] md:top-[calc(50vh-10rem)] flex justify-center px-4 pointer-events-none"
     >
       <div className="finale-card pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/45 bg-[var(--color-background)]/97 backdrop-blur-2xl shadow-[0_16px_60px_rgba(var(--color-primary-rgb),0.35)] p-4 sm:p-8 md:p-10 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-2 sm:mb-4">
@@ -420,11 +420,11 @@ export default function Home() {
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, x: 30, filter: "blur(8px)" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="story-card glass-effect-gold p-5 sm:p-8 md:p-10 rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[var(--color-background)]/85 to-[var(--color-background)]/70 shadow-[0_8px_40px_rgba(200,169,106,0.18)] text-left"
+            className="story-card glass-effect-gold p-4 sm:p-8 md:p-10 rounded-3xl border border-verdant-gold/30 bg-gradient-to-br from-[var(--color-background)]/85 to-[var(--color-background)]/70 shadow-[0_8px_40px_rgba(200,169,106,0.18)] text-left"
           >
             {currentZone.chapter ? (
-              <div className="flex items-center gap-3 mb-3">
-                <span className="font-serif text-2xl md:text-3xl text-verdant-gold font-light leading-none">
+              <div className="flex items-center gap-3 mb-2 sm:mb-3">
+                <span className="font-serif text-xl sm:text-2xl md:text-3xl text-verdant-gold font-light leading-none">
                   {currentZone.chapter}
                 </span>
                 <span className="h-px flex-1 max-w-16 bg-verdant-gold/40" />
@@ -438,7 +438,7 @@ export default function Home() {
               </div>
             )}
 
-            <h3 className="story-title font-serif text-2xl md:text-3xl lg:text-4xl tracking-tight leading-tight text-verdant-emerald font-light mb-4">
+            <h3 className="story-title font-serif text-2xl md:text-3xl lg:text-4xl tracking-tight leading-tight text-verdant-emerald font-light mb-2.5 sm:mb-4">
               {currentZone.subtitle}
               {currentZone.accent && (
                 <span className="block italic text-verdant-gold">
@@ -448,14 +448,14 @@ export default function Home() {
             </h3>
 
             {currentZone.chapter && (
-              <div className="flex items-center gap-2 mb-4">
+              <div className="hidden sm:flex items-center gap-2 mb-4">
                 <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
                 <span className="h-px w-14 bg-verdant-gold/30" />
                 <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
               </div>
             )}
 
-            <p className="story-desc text-verdant-emerald/70 text-xs md:text-sm font-light leading-relaxed tracking-wide mb-5 md:mb-8">
+            <p className="story-desc text-verdant-emerald/70 text-xs md:text-sm font-light leading-snug sm:leading-relaxed tracking-wide mb-3.5 sm:mb-5 md:mb-8">
               {currentZone.desc}
             </p>
 

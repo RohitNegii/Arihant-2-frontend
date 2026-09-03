@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, memo, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Sparkles,
@@ -173,7 +173,7 @@ function CameraController() {
   return null;
 }
 
-export default function ShowroomCanvas() {
+function ShowroomCanvas() {
   const [shown, setShown] = useState(isSceneReady);
   useEffect(() => onSceneReady(() => setShown(true)), []);
 
@@ -316,3 +316,5 @@ export default function ShowroomCanvas() {
     </div>
   );
 }
+
+export default memo(ShowroomCanvas);

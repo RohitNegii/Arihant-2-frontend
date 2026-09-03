@@ -40,10 +40,10 @@ export default function Footer() {
           alt=""
           loading="lazy"
           decoding="async"
-          className="w-full h-full object-cover object-center opacity-25"
+          className="w-full h-full object-cover object-center opacity-[0.13] md:opacity-25"
         />
         {/* Soft, semi-transparent gradient overlays to showcase the image watermark clearly */}
-        <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/60 to-verdant-cream" />
+        <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/55 via-verdant-cream/80 to-verdant-cream md:from-verdant-cream/10 md:via-verdant-cream/60" />
       </div>
 
       {/* Decorative Glows */}
