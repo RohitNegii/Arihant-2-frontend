@@ -77,7 +77,7 @@ export default function LoadingScreen() {
               className="text-center"
             >
               <h2 className="font-serif text-lg tracking-[0.3em] text-verdant-emerald font-light uppercase">
-                GEETEJVIRAASAT
+                GEETEJ VIRAASAT
               </h2>
               <span className="text-[9px] tracking-[0.25em] text-verdant-gold font-light uppercase mt-1 block">
                 Luxury Boutique

@@ -80,11 +80,10 @@ export default function Navbar() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.8, ease: "easeOut" }}
-        className={`w-full transition-all duration-500 ${
-          isScrolled
-            ? "py-3 bg-[var(--color-background)]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(var(--color-primary-rgb),0.04)]"
-            : "py-5 bg-[var(--color-background)]/20 backdrop-blur-md border-b border-verdant-gold/5"
-        }`}
+        className={`w-full transition-all duration-500 ${isScrolled
+          ? "py-3 bg-[var(--color-background)]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(var(--color-primary-rgb),0.04)]"
+          : "py-5 bg-[var(--color-background)]/20 backdrop-blur-md border-b border-verdant-gold/5"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 flex justify-between items-center">
           {/* Logo */}
@@ -103,7 +102,8 @@ export default function Navbar() {
                 case: a house name that breaks mid-word is worse than a small
                 one. */}
             <span className="font-serif text-[13px] sm:text-base md:text-lg tracking-wide whitespace-nowrap font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
-              GEETEJVIRAASAT
+              GEETEJ VIRAASAT
+
             </span>
           </Link>
 
@@ -111,9 +111,8 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6 lg:gap-10">
             <Link
               href="/products"
-              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${
-                isCollectionsActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
-              }`}
+              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isCollectionsActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+                }`}
             >
               Collections
               {isCollectionsActive && (
@@ -127,9 +126,8 @@ export default function Navbar() {
             {user && (
               <Link
                 href="/orders"
-                className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${
-                  isOrdersActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
-                }`}
+                className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isOrdersActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+                  }`}
               >
                 Orders
                 {isOrdersActive && (
@@ -143,9 +141,8 @@ export default function Navbar() {
             )}
             <Link
               href="/contact"
-              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${
-                isContactActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
-              }`}
+              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isContactActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+                }`}
             >
               Contact
               {isContactActive && (
@@ -159,11 +156,10 @@ export default function Navbar() {
             {/* Legal Dropdown */}
             <div className="relative group/dropdown py-2">
               <button
-                className={`hover-target flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold cursor-pointer ${
-                  pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy"
-                    ? "text-verdant-gold"
-                    : "text-verdant-emerald/75 hover:text-verdant-gold"
-                }`}
+                className={`hover-target flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold cursor-pointer ${pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy"
+                  ? "text-verdant-gold"
+                  : "text-verdant-emerald/75 hover:text-verdant-gold"
+                  }`}
               >
                 Legal
                 <span className="text-[8px] transform group-hover/dropdown:rotate-180 transition-transform duration-300 ml-1">▼</span>
@@ -171,25 +167,22 @@ export default function Navbar() {
               <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 bg-[var(--color-background)]/95 backdrop-blur-xl border border-verdant-gold/15 rounded-xl shadow-xl py-2 opacity-0 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:pointer-events-auto transition-all duration-300 transform scale-95 group-hover/dropdown:scale-100 origin-top">
                 <Link
                   href="/privacy-policy"
-                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${
-                    pathname === "/privacy-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
-                  }`}
+                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${pathname === "/privacy-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                    }`}
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   href="/terms-of-use"
-                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${
-                    pathname === "/terms-of-use" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
-                  }`}
+                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${pathname === "/terms-of-use" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                    }`}
                 >
                   Terms of Use
                 </Link>
                 <Link
                   href="/refund-policy"
-                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${
-                    pathname === "/refund-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
-                  }`}
+                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${pathname === "/refund-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                    }`}
                 >
                   Refund Policy
                 </Link>
@@ -259,7 +252,7 @@ export default function Navbar() {
                 )}
               </button>
             )}
-            
+
             <button
               onClick={() => setIsOpen((open) => !open)}
               aria-expanded={isOpen}
@@ -317,9 +310,8 @@ export default function Navbar() {
                 <Link
                   href="/products"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
-                    isCollectionsActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
-                  }`}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isCollectionsActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                    }`}
                 >
                   Collections
                 </Link>
@@ -327,9 +319,8 @@ export default function Navbar() {
                   <Link
                     href="/orders"
                     onClick={() => setIsOpen(false)}
-                    className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
-                      isOrdersActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
-                    }`}
+                    className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isOrdersActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+                      }`}
                   >
                     Orders
                   </Link>
@@ -337,36 +328,32 @@ export default function Navbar() {
                 <Link
                   href="/contact"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
-                    isContactActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
-                  }`}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isContactActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                    }`}
                 >
                   Contact
                 </Link>
                 <Link
                   href="/privacy-policy"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
-                    pathname === "/privacy-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
-                  }`}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${pathname === "/privacy-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                    }`}
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   href="/terms-of-use"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
-                    pathname === "/terms-of-use" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
-                  }`}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${pathname === "/terms-of-use" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                    }`}
                 >
                   Terms of Use
                 </Link>
                 <Link
                   href="/refund-policy"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${
-                    pathname === "/refund-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
-                  }`}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${pathname === "/refund-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                    }`}
                 >
                   Refund Policy
                 </Link>
@@ -428,7 +415,7 @@ export default function Navbar() {
                     className="absolute inset-0 w-full h-full object-cover brightness-[0.8]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-8 select-none">
-                    <h3 className="font-serif text-2xl text-verdant-gold font-light mb-2">GEETEJVIRAASAT</h3>
+                    <h3 className="font-serif text-2xl text-verdant-gold font-light mb-2">GEETEJ VIRAASAT</h3>
                     <p className="text-[10px] uppercase tracking-widest text-white/70 leading-relaxed font-bold font-sans">
                       Enter the vault of handcrafted masterpieces and timeless designs.
                     </p>
@@ -450,21 +437,19 @@ export default function Navbar() {
                   <div className="flex border-b border-verdant-emerald/10 mb-6">
                     <button
                       onClick={() => setAuthMode("login")}
-                      className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${
-                        authMode === "login"
-                          ? "text-verdant-emerald border-b-2 border-verdant-gold"
-                          : "text-verdant-emerald/40 hover:text-verdant-emerald"
-                      }`}
+                      className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${authMode === "login"
+                        ? "text-verdant-emerald border-b-2 border-verdant-gold"
+                        : "text-verdant-emerald/40 hover:text-verdant-emerald"
+                        }`}
                     >
                       Sign In
                     </button>
                     <button
                       onClick={() => setAuthMode("signup")}
-                      className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${
-                        authMode === "signup"
-                          ? "text-verdant-emerald border-b-2 border-verdant-gold"
-                          : "text-verdant-emerald/40 hover:text-verdant-emerald"
-                      }`}
+                      className={`flex-1 pb-3 text-xs tracking-[0.15em] uppercase font-bold text-center transition-all ${authMode === "signup"
+                        ? "text-verdant-emerald border-b-2 border-verdant-gold"
+                        : "text-verdant-emerald/40 hover:text-verdant-emerald"
+                        }`}
                     >
                       Create Account
                     </button>
