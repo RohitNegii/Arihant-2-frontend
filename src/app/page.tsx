@@ -113,7 +113,7 @@ function CategoryFinale() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-[calc(100svh-19.5rem-env(safe-area-inset-bottom))] md:top-[calc(50vh-10rem)] flex justify-center px-4 pointer-events-none"
+      className="sticky top-[calc(100svh-20.5rem-env(safe-area-inset-bottom))] md:top-[calc(50vh-10rem)] flex justify-center px-4 pointer-events-none"
     >
       <div className="finale-card pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/45 bg-[var(--color-background)]/97 backdrop-blur-2xl shadow-[0_16px_60px_rgba(var(--color-primary-rgb),0.35)] p-4 sm:p-8 md:p-10 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-2 sm:mb-4">
@@ -404,7 +404,7 @@ export default function Home() {
 
       <ShowroomCanvas />
 
-      <div className="absolute inset-x-0 top-0 bottom-0 md:bottom-14 z-20 pointer-events-none">
+      <div className="absolute inset-x-0 top-0 bottom-10 sm:bottom-12 md:bottom-16 z-20 pointer-events-none">
         <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
       </div>
 
