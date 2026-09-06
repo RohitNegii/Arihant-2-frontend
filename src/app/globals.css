@@ -245,6 +245,33 @@ html.lenis body {
   }
 }
 
+/*
+ * The mobile card is a caption, not a page.
+ *
+ * Below `md` the card is not beside the room, it is on top of it — anchored to
+ * the bottom of the frame, over the one thing it is describing. The chapter,
+ * the title and the accent line say what the room is; the paragraph and the
+ * button under it were a second screenful of furniture covering the third of
+ * the frame the room had left. They are hidden by request, on every zone.
+ *
+ * Matched to Tailwind's `md` (768px) rather than to `(pointer: coarse)`,
+ * because 768px is where the card's own layout flips from bottom-anchored to
+ * beside-the-room: this hides the copy exactly when the card is in the shape
+ * that cannot afford it, and a real desktop is never in that shape.
+ */
+@media (max-width: 767.98px) {
+  .story-desc,
+  .story-cta {
+    display: none;
+  }
+
+  /* Nothing follows the title now, so its own gap would sit under it as
+     padding the card has already paid for. */
+  .story-title {
+    margin-bottom: 0;
+  }
+}
+
 /* The zone card blurs itself in over a surface that is already backdrop-blurred,
    over a full-screen canvas. Framer sets `filter` inline, so this has to win. */
 @media (pointer: coarse) {

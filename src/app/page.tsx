@@ -13,6 +13,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
+import { fullPreload, preloadTextures } from "@/components/3d/preload";
 import { journeyProgress, journeySpan, scrollToOffset } from "@/store/scroll-store";
 import { JEWELRY_IMAGES, type JewelryImage } from "@/content/jewelry";
 
@@ -220,6 +221,33 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
+  /**
+   * Hold the canvas back until the procedural surfaces have been drawn.
+   *
+   * Not an optimisation — a race. The rooms draw those textures at module
+   * scope, so importing the 3D chunk draws all of them inside one unbroken
+   * task; the preloader draws the same ones with a paint between each, and
+   * whichever gets there first is what the visitor waits through. Mounting the
+   * canvas afterwards makes the preloader win every time, and its calls then
+   * hit a warm cache. Costs nothing on the network: `preloadTextures` imports
+   * from the same lazy chunk, so three.js is already downloading.
+   *
+   * Off full preload this resolves in the first effect pass, which is where a
+   * `ssr: false` dynamic import would have mounted anyway.
+   */
+  const [showCanvas, setShowCanvas] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    const ready = fullPreload() ? preloadTextures() : Promise.resolve();
+    void ready.then(() => {
+      if (live) setShowCanvas(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
   const zones: Zone[] = [
     {
       title: "Welcome",
@@ -402,7 +430,7 @@ export default function Home() {
       <MouseFollower />
       <Navbar />
 
-      <ShowroomCanvas />
+      {showCanvas && <ShowroomCanvas />}
 
       <div className="absolute inset-x-0 top-0 bottom-10 sm:bottom-12 md:bottom-16 z-20 pointer-events-none">
         <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
@@ -448,7 +476,7 @@ export default function Home() {
             </h3>
 
             {currentZone.chapter && (
-              <div className="hidden sm:flex items-center gap-2 mb-4">
+              <div className="hidden md:flex items-center gap-2 mb-4">
                 <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
                 <span className="h-px w-14 bg-verdant-gold/30" />
                 <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
@@ -459,7 +487,7 @@ export default function Home() {
               {currentZone.desc}
             </p>
 
-            {currentZone.cta && currentZone.cta}
+            {currentZone.cta && <div className="story-cta">{currentZone.cta}</div>}
           </motion.div>
         </AnimatePresence>
       </div>

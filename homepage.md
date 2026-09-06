@@ -15,7 +15,8 @@ This document is the map. It covers what exists today, the numbers that have to 
 | `src/components/3d/StoryRooms.tsx` | The six rooms and every prop in them. Also owns `MAT`, the shared material table. The big file (~2000 lines). |
 | `src/components/3d/EntranceDoor.tsx` | One door leaf — frame, raised panels, hinges, pull handle, kickplate. Mounted twice, mirrored. |
 | `src/components/3d/procedural-textures.ts` | Every texture in the scene, drawn to a canvas at runtime. No image files. |
-| `src/components/3d/quality.ts` | Device tier (`low`/`mid`/`high`) and every performance budget. Force one with `?q=`. |
+| `src/components/3d/quality.ts` | Device tier (`low`/`mid`/`high`), the phone profile, and every performance budget. Force a tier with `?q=`. |
+| `src/components/3d/preload.ts` | Full preload: the progress bus the loading bar reads, the asset and procedural-texture priming, and the `fullPreload()` switch. Force it with `?preload=`. |
 | `src/components/3d/scene-ready.ts` | One-shot signal that the canvas has drawn, so the loading screen can wait on something real. |
 | `src/components/SmoothScroll.tsx` | Creates Lenis and drives it from a plain rAF loop. Wraps the app in `layout.tsx`. |
 | `src/store/scroll-store.ts` | Holds the Lenis instance; exports `scrollToOffset()`. |
@@ -200,25 +201,96 @@ The scene was authored on a desktop with a discrete GPU. On a mid-range phone th
 
 Detection uses `navigator.deviceMemory` (Chromium only — absent on Safari), `hardwareConcurrency` and `(pointer: coarse)`. **Append `?q=low`, `?q=mid` or `?q=high` to force a tier** — that is how you check a real device against a budget it would not otherwise be assigned.
 
-| | low | mid | high |
-| --- | --- | --- | --- |
-| dpr cap | 1.5 | 2 | 1.75 |
-| shadows | off | 1024² | 2048² |
-| texture scale | ½ | ¾ | 1 |
-| foliage | 35% | 60% | 100% |
-| fog / far plane | 28 / 32 | 42 / 46 | 42 / 46 |
-| refraction | fake | fake | real |
-| draw calls | ~310 | ~575 | ~575 |
+| | low | mid | high | **phone** |
+| --- | --- | --- | --- | --- |
+| dpr | 1–1.5 | 1–2 | 1–1.75 | **2–3** (capped at the real ratio) |
+| shadows | off | 1024² | 2048² | off |
+| texture scale | ½ | ¾ | 1 | **1** |
+| framed photos | 192px | 320px | 512px | **512px** |
+| foliage | 35% | 60% | 100% | **100%** |
+| fog / far plane | 28 / 32 | 42 / 46 | 42 / 46 | **42 / 46** |
+| refraction | fake | fake | real | fake |
+| draw calls | ~310 | ~575 | ~575 | ~575 |
 
-The mobile dpr caps read oddly against `high` and are meant to. A phone's device
-pixel ratio is 2.5–3.5, so `low` at a cap of 1 was drawing a third of the panel
-and letting the compositor upscale it — that, not texture resolution, is what
-read as blur. The caps are ceilings, not targets: `AdaptiveResolution` in
-`ShowroomCanvas.tsx` wraps drei's `PerformanceMonitor` and drops back to
-`Q.dpr[0]` on sustained decline, so a device that cannot pay for the ceiling
-never tries to. Shadows are already off on touch, which is where the fill comes
-from. MSAA is on at every tier now: it is comparatively cheap on tile-based
-mobile GPUs and it is what removes the stair-stepping on the door and jamb edges.
+**A touch device now gets its own profile rather than being sorted into `low`
+or `mid`** — `mobilePreset()` in `quality.ts`. It reports its tier as `high`,
+which is the point: every `Q.tier` branch in the scene (mannequin segments and
+clearcoat, ring prongs and facets, necklace beads, bench trim, the picture
+downscale) upgrades from one place. Shadows and `transmission` stay off, because
+neither is a resolution and both are charged every frame for the whole journey
+rather than once at the door — see the two entries below.
+
+The dpr is what actually fixed the blur. A phone's device pixel ratio is
+2.5–3.5, so drawing at 1 or 1.5 was rendering a quarter of the panel and letting
+the compositor upscale it. Both ends of the range matter: `AdaptiveResolution`
+in `ShowroomCanvas.tsx` wraps drei's `PerformanceMonitor` and drops to `Q.dpr[0]`
+on sustained decline, so the floor of 2 is what stops a struggling device
+falling back to mush. `?q=low`, `?q=mid` and `?q=high` still force the graded
+tiers on a phone — that is how you check a real device against a budget it would
+not otherwise be given, and `?q=` also opts out of the phone profile entirely.
+
+MSAA is on at every tier: it is comparatively cheap on tile-based mobile GPUs
+and it is what removes the stair-stepping on the door and jamb edges.
+
+### Full preload
+
+`preload.ts` holds the door until the whole show is resident — the opposite
+trade from the graded tiers: a longer wait at the entrance instead of a soft
+picture that never sharpens, or five unannounced stalls as each room is built
+under the visitor mid-scroll. **On every device**, not just touch; `?preload=off`
+restores the progressive reveal.
+
+It went in for phones, where the blur was the complaint and the phone profile
+is only affordable because of it. The reason it stayed is not a mobile reason:
+one wait at a door that says what it is doing reads as deliberate, and the same
+work spread through the journey reads as a slow site.
+
+Four phases, each reporting to the loading bar. The weights are measured shares,
+not guesses:
+
+| phase | weight | what it does |
+| --- | --- | --- |
+| `assets` | 0.15 | Decodes all 14 photographs and buffers the film. Started from `LoadingScreen`, so it overlaps the three.js chunk download. |
+| `textures` | 0.15 | Draws all eight procedural surfaces, one per task with a paint between. **1.3s** measured, of which the 1024² stone slab is 633ms. |
+| `shaders` | 0.45 | `compileAsync` per room, then once over the whole scene — 11 units, a paint between each. |
+| `warmup` | 0.25 | Flies the camera 76 → 8 over 28 frames so every mesh is really drawn — compilation does not upload vertex buffers, only a draw does. |
+
+#### What the wait is actually made of
+
+Profiled cold on an integrated GPU (headless Edge, Intel UHD), **57% of all CPU
+to first paint is `renderBufferDirect` → `getUniforms`** — one 19.7-second task.
+The scene builds 41 shader programs, and the expensive moment is not linking
+them but three's first uniform-location query on each, which is what makes the
+driver finish compiling. That happens inside the *first ordinary render*, before
+`ScenePrewarm` has mounted, which is why its own `compileAsync` calls come back
+in tens of milliseconds: they are only picking up the rooms that first render
+did not have in frustum. The far plane is 46 and the corridor is 68 deep, so
+that is always the last two.
+
+**A cold visit measured 25.5s; the same page on a second visit was 7.1s.** The
+difference is the browser's on-disk compiled-program cache. That gap is why the
+loading screen's failsafe is 40s and not 30 — 30 cleared the warm case
+comfortably and lost the cold one, and it lost it in the ugliest available way,
+firing mid-warm-up with the bar jumping 30% straight to 100%.
+
+None of this is cost the preload *adds*. It is the same work, moved in front of
+the visitor instead of underneath them. Cutting it down means fewer distinct
+programs, which is a materials job, not a loading one.
+
+Two smaller things that cost more thought than expected:
+
+- **Whoever draws the procedural textures first pays for them.** The rooms build
+  them at module scope, so importing the 3D chunk draws all eight inside one
+  unbroken task. `page.tsx` holds the canvas mount behind `preloadTextures()`
+  so the preloader wins that race and the rooms' own calls hit a warm cache.
+- **The loading bar cannot animate on a blocked main thread.** The longest wait
+  behind the screen is one unbroken task — the 19.7s first render above — and a
+  `width` transition is laid out on that thread. The bar is a
+  `transform: scaleX()` with a long decelerating ease, which the compositor
+  keeps running through the block, the way the spinner above it already did.
+  Splitting that task by mounting rooms one per frame is the remaining fix and
+  has not been done — it would make the bar move through the whole wait, but it
+  puts a re-suspending boundary under the entire scene, so it is not free.
 
 ### What actually cost the frames
 
@@ -236,8 +308,9 @@ Measured, in order of payoff:
 The payload is ~800KB compressed, most of it three.js in a lazily-loaded chunk. On slow 3G that alone is ~9s, so the startup experience matters more than the download:
 
 - The loading screen used to be a **fake timer** that ran to 100% in ~1.7s regardless. On a fast connection that was 1.7s of waiting for nothing; on a slow one it dismissed itself while three.js was still downloading and handed over an empty canvas.
-- It now creeps to 90% and waits for a real signal — `scene-ready.ts`, fired by `ReadySignal` a few frames after the canvas starts drawing (frame one is before textures upload and shaders compile).
-- Both the minimum (900ms) and the failsafe (7s) are measured from **navigation start**, not from mount. On a throttled phone the component does not hydrate for several seconds, so a budget counted from mount lands seconds late.
+- On the desktop it now creeps to 90% and waits for a real signal — `scene-ready.ts`, fired by `ReadySignal` a few frames after the canvas starts drawing (frame one is before textures upload and shaders compile).
+- **Under full preload — the default everywhere — the bar is real**, driven straight from the four phases above, and the screen is dismissed by `onPreloadComplete` rather than by the canvas drawing. The creep-to-90 timer is now only the `?preload=off` path.
+- Both the minimum (900ms) and the failsafe are measured from **navigation start**, not from mount. On a throttled phone the component does not hydrate for several seconds, so a budget counted from mount lands seconds late. The failsafe is 7s on the `?preload=off` path and 40s under full preload, which is loading the entire show rather than waiting for a first frame — see the cold/warm measurements above for why 40.
 - Past the failsafe the page is revealed regardless and the canvas fades in when it arrives. For that to look deliberate the **page root carries the fog colour** (`bg-[#E3D9C6]`) — the canvas paints the same colour but lives in the lazy chunk, so without it the copy sits on bare white.
 
 GSAP and ScrollTrigger were ~130KB of the *initial* bundle on every route, used only to give Lenis a ticker — nothing has ever registered a ScrollTrigger. `SmoothScroll` now uses a plain rAF loop. `@/lib/gsap` still exists if a real timeline is ever wanted.
@@ -272,16 +345,24 @@ No Playwright in the repo. Install `playwright-core` in a scratch directory and 
 chromium.launch({
   channel: "msedge",
   headless: true,
-  args: ["--enable-unsafe-swiftshader", "--hide-scrollbars"],
+  args: ["--hide-scrollbars", "--ignore-gpu-blocklist"],
 });
 ```
 
-`--enable-unsafe-swiftshader` enables software WebGL for the three.js canvas.
+**Headless Edge gets real hardware WebGL here** — ANGLE over D3D11, with
+`KHR_parallel_shader_compile` — so do not reach for
+`--enable-unsafe-swiftshader`. It was in these notes for a while and it forces
+software rasterisation, which is fine for a screenshot and useless for a
+measurement: it made shader compilation look like the dominant cost of startup
+when it is a fifth of it, and it inflated every timing on this page by 2–3x.
+Check what you actually got with `WEBGL_debug_renderer_info` before trusting a
+number.
 
-- `page.emulateMedia({ reducedMotion: "reduce" })` disables Lenis, so plain `window.scrollTo` drives zones. Otherwise Lenis fights programmatic scroll.
+- `page.emulateMedia({ reducedMotion: "reduce" })` disables Lenis, so plain `window.scrollTo` drives zones. Otherwise Lenis fights programmatic scroll. It also suppresses the film in Made for Moments — `filmAllowed()` honours the same preference — so the gold frame shows its still.
+- Emulate a phone with `isMobile: true, hasTouch: true` in the browser context, not just a narrow viewport: everything mobile keys off `(pointer: coarse)`, which a viewport alone does not set.
 - Scroll to zone *n* with `window.scrollTo(0, p * (scrollHeight - innerHeight))` where `p = n / ZONE_COUNT`.
 - **Wait ~4.5s after each scroll.** The camera lerps at `SCROLL_TRACKING`/frame and the entrance doors animate on the same easing — screenshot too early and you catch the doors mid-swing.
-- The loading screen runs ~3s of fake progress; wait ~5s after `networkidle`.
+- The loading screen waits on real work, not a timer. Poll for `Initializing Exhibition` to leave the DOM rather than sleeping. On hardware WebGL, budget ~25s for a cold load and ~7s once the browser's program cache is warm — and note that a fresh `browserContext` is a cold load every time, which is the difference between those two numbers.
 - Viewport ≥ 1024px wide to see the side showcase panel.
 
 ### Known noise, not regressions

@@ -27,6 +27,7 @@ import {
   SLAB_TILE_D,
 } from "./procedural-textures";
 import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
+import { filmAllowed, fullPreload } from "./preload";
 import { journeyProgress } from "@/store/scroll-store";
 import { palette } from "@/theme/palette";
 
@@ -610,71 +611,6 @@ function Stems({
 
   if (stems.length === 0) return null;
   return <instancedMesh ref={ref} args={[geometry, MAT.branch, stems.length]} />;
-}
-
-const FOLIAGE_STEM_GEO = new THREE.CylinderGeometry(0.008, 0.012, 1, 5);
-
-function Foliage({
-  position,
-  count = 12,
-  spread = [0.8, 1.0, 0.5],
-  scale = 1,
-  seed = 7,
-  sway = 0.05,
-  castShadow = false,
-}: {
-  position: [number, number, number];
-  count?: number;
-  spread?: [number, number, number];
-  scale?: number;
-  seed?: number;
-  sway?: number;
-  castShadow?: boolean;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const [sx, sy, sz] = spread;
-
-  const { leaves, stems } = useMemo(() => {
-    const r = rng(seed);
-    const n = Math.max(3, Math.round(count * quality().foliage));
-    const nextLeaves = Array.from({ length: n }, () => ({
-      p: [(r() - 0.5) * sx * 2, (r() - 0.5) * sy * 2, (r() - 0.5) * sz * 2] as [
-        number,
-        number,
-        number,
-      ],
-      rot: [r() * Math.PI, r() * Math.PI, r() * Math.PI] as [number, number, number],
-      s: 0.7 + r() * 0.6,
-      tint: Math.floor(r() * LEAF_TINTS.length),
-    }));
-    const nextStems = Array.from({ length: 2 }, () => ({
-      p: [(r() - 0.5) * sx, (r() - 0.5) * sy * 0.7, (r() - 0.5) * sz] as [
-        number,
-        number,
-        number,
-      ],
-      rot: [(r() - 0.5) * 0.5, (r() - 0.5) * 1.2, (r() - 0.5) * 0.5] as [
-        number,
-        number,
-        number,
-      ],
-      len: Math.min(sy, 0.6) * (0.5 + r() * 0.45),
-    }));
-    return { leaves: nextLeaves, stems: nextStems };
-  }, [count, seed, sx, sy, sz]);
-
-  useFrame((state) => {
-    if (!groupRef.current) return;
-    groupRef.current.rotation.z =
-      Math.sin(state.clock.getElapsedTime() * 0.5 + seed) * sway;
-  });
-
-  return (
-    <group ref={groupRef} position={position} scale={scale}>
-      <Stems stems={stems} geometry={FOLIAGE_STEM_GEO} />
-      <LeafCloud leaves={leaves} castShadow={castShadow} />
-    </group>
-  );
 }
 
 function Vine({
@@ -2813,39 +2749,28 @@ function TheCollection({ z }: { z: number }) {
   );
 }
 
-const MOMENTS_CANDLES = !isTouchDevice();
-
 /**
- * Whether this device gets the film at all.
- *
- * It used to be desktop-on-high only, because the file was 17MB of unencoded
- * 1080x1920 at 50fps — 32 Mbps to decode and eight megabytes of texture to
- * upload every frame, which is what made it stutter. Re-encoded to 720x1280 at
- * 30fps it is 0.29MB, so the only refusals left are the ones a visitor asked
- * for, plus the low tier, which turns everything else off too.
+ * Whether the film's element is built at boot and kept, rather than created on
+ * approach and torn down on the way out. `preload.ts` has already buffered the
+ * file by the time the room mounts, so building it here costs nothing and the
+ * alternative — constructing a `VideoTexture` and starting playback in the
+ * middle of a swipe — is exactly the hitch full preload exists to remove.
  */
-function filmAllowed() {
-  if (QUALITY.tier === "low") return false;
-  if (typeof window === "undefined") return false;
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
-  const link = (navigator as Navigator & { connection?: { saveData?: boolean } })
-    .connection;
-  return !link?.saveData;
-}
+const FILM_ALWAYS_ON = fullPreload();
 
 /**
  * The ring turning, as a texture — the one moving image in the show.
  *
- * Nothing is fetched at boot: the element is not created until the journey is
- * within a zone of the room, and it is torn down again on the way out, so a
- * visitor who never scrolls that far never pays for it.
+ * Off full preload, nothing is fetched at boot: the element is not created
+ * until the journey is within a zone of the room, and it is torn down again on
+ * the way out, so a visitor who never scrolls that far never pays for it.
  */
 function useAtelierFilm() {
-  const [near, setNear] = useState(false);
+  const [near, setNear] = useState(FILM_ALWAYS_ON);
   const [film, setFilm] = useState<THREE.VideoTexture | null>(null);
 
   useEffect(() => {
-    if (!filmAllowed()) return;
+    if (FILM_ALWAYS_ON || !filmAllowed()) return;
     const onScroll = () => {
       const p = journeyProgress();
       setNear(p > 0.58 && p < 0.95);
@@ -2856,7 +2781,9 @@ function useAtelierFilm() {
   }, []);
 
   useEffect(() => {
-    if (!near) return;
+    // `filmAllowed` is re-checked here rather than left to the scroll effect,
+    // which does not run at all when the film is always on.
+    if (!near || !filmAllowed()) return;
     const el = document.createElement("video");
     el.src = ATELIER_FILM;
     el.muted = true;
@@ -2909,96 +2836,6 @@ const MOMENTS_FRAME: [number, number] = [2.62, 3.3];
  * centrepiece rather than competing with it.
  */
 const MOMENTS_WING: [number, number] = [1.7, 2.55];
-
-/**
- * One low sphere, scaled per instance into a garland flower or a fallen petal.
- * Seven segments is enough for something never seen larger than a thumbnail,
- * and it is the same geometry for both so they cost one buffer between them.
- */
-const BLOOM_GEO = new THREE.SphereGeometry(1, 7, 5);
-
-type Speck = {
-  p: [number, number, number];
-  rot?: [number, number, number];
-  /** Uniform, or per-axis where the shape matters — a petal is a flat sphere. */
-  s: number | [number, number, number];
-  tint: number;
-};
-
-/**
- * A cloud of small painted things in one draw call — the garland's flowers and
- * the petals on the floor both go through here.
- *
- * Same instancing rules as `LeafCloud`: colours per instance, and the bounding
- * sphere recomputed after the matrices are written, or the cull test uses the
- * single-flower bounds and the whole garland pops out of view at once.
- */
-function SpeckCloud({
-  specks,
-  tints,
-  material = MAT.bloom,
-}: {
-  specks: Speck[];
-  tints: THREE.Color[];
-  material?: THREE.Material;
-}) {
-  const ref = useRef<THREE.InstancedMesh>(null);
-
-  useLayoutEffect(() => {
-    const mesh = ref.current;
-    if (!mesh) return;
-    for (let i = 0; i < specks.length; i++) {
-      const speck = specks[i];
-      _e.set(speck.rot?.[0] ?? 0, speck.rot?.[1] ?? 0, speck.rot?.[2] ?? 0);
-      _q.setFromEuler(_e);
-      _v.set(speck.p[0], speck.p[1], speck.p[2]);
-      if (typeof speck.s === "number") _s.setScalar(speck.s);
-      else _s.set(speck.s[0], speck.s[1], speck.s[2]);
-      mesh.setMatrixAt(i, _m.compose(_v, _q, _s));
-      mesh.setColorAt(i, tints[speck.tint]);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    mesh.computeBoundingSphere();
-  }, [specks, tints]);
-
-  if (specks.length === 0) return null;
-  return <instancedMesh ref={ref} args={[BLOOM_GEO, material, specks.length]} />;
-}
-
-/**
- * The house's own blossom, silk and gold, rather than a literal petal colour,
- * so the scatter travels with whichever palette is loaded. The scene renders
- * about two and a half times brighter than its colours, which is why none of
- * the three starts pale.
- */
-const PETAL_TINTS = [P.blossom, P.silk, P.gold].map((c) => new THREE.Color(c));
-
-/**
- * Petals on the floor, thickest at the foot of the plinth and thinning as they
- * scatter outward — the room's whole subject is an occasion, and an occasion
- * leaves something behind. Flattened spheres: at this size the silhouette is
- * all that reads, and a flat one reads as a petal where a round one reads as a
- * bead that got away from the garland.
- */
-const MOMENTS_PETALS: Speck[] = (() => {
-  const specks: Speck[] = [];
-  const random = rng(31415);
-  const count = Math.round(52 * QUALITY.foliage + 14);
-  for (let i = 0; i < count; i++) {
-    // Biased towards the plinth: two draws averaged pull the scatter in.
-    const spread = (random() + random()) / 2;
-    const x = (spread - 0.5) * 6.4;
-    const z = -5.1 + ((random() + random()) / 2 - 0.5) * 6.2;
-    specks.push({
-      p: [x, -1.47, z],
-      rot: [random() * 0.5 - 0.25, random() * Math.PI, random() * 0.4 - 0.2],
-      s: [0.07 + random() * 0.05, 0.016, 0.05 + random() * 0.035],
-      tint: random() > 0.82 ? 2 : random() > 0.5 ? 1 : 0,
-    });
-  }
-  return specks;
-})();
 
 /**
  * Where the centrepiece dissolves, and why it has to.
@@ -3203,9 +3040,6 @@ function MadeForMoments({ z }: { z: number }) {
         <planeGeometry args={[2.4, 7.6]} />
       </mesh>
 
-      {/* What the occasion left behind. */}
-      <SpeckCloud specks={MOMENTS_PETALS} tints={PETAL_TINTS} />
-
       {/* Motes in the air over the runner. One GPU-animated point cloud, and
           already off on the tier that cannot afford it. */}
       {QUALITY.sparkles > 0 && (
@@ -3222,50 +3056,8 @@ function MadeForMoments({ z }: { z: number }) {
 
       <MomentsCentrepiece map={film ?? portrait} />
 
-      {/* Candles. Two matched pairs flanking the aisle, each graded
-          tall-then-short and seated on the floor by its own height. */}
-      {MOMENTS_CANDLES &&
-        [-1, 1].map((s) =>
-          [0, 1].map((i) => {
-            const h = 0.8 - i * 0.22;
-            return (
-              <group
-                key={`${s}:${i}`}
-                // Seated on a stand rather than on the floor: a taper standing
-                // straight on stone reads as a bollard, which is what these were.
-                position={[s * (1.74 + i * 0.4), -1.5, -5.55 - i * 0.35]}
-              >
-                <GroundShadow position={[0, 0.03, 0.02]} radius={0.2} stretch={0.9} />
-                <mesh position={[0, 0.03, 0]} material={MAT.goldSoft}>
-                  <cylinderGeometry args={[0.13, 0.16, 0.06, 14]} />
-                </mesh>
-                <mesh position={[0, 0.13, 0]} material={MAT.goldSoft}>
-                  <cylinderGeometry args={[0.045, 0.06, 0.16, 10]} />
-                </mesh>
-                {/* The cup the wax stands in, so the taper has somewhere to end. */}
-                <mesh position={[0, 0.23, 0]} material={MAT.gold}>
-                  <cylinderGeometry args={[0.085, 0.06, 0.05, 12]} />
-                </mesh>
-                <mesh position={[0, 0.26 + h / 2, 0]} material={MAT.blossom}>
-                  <cylinderGeometry args={[0.055, 0.062, h, 12]} />
-                </mesh>
-                {/* Flame, and the light it puts on the air around it. A cone
-                    tapered to a point reads as a flame at any size; the sphere
-                    these had read as a pearl on a stick. */}
-                <mesh position={[0, 0.3 + h + 0.03, 0]} material={MAT.glow}>
-                  <coneGeometry args={[0.028, 0.11, 8]} />
-                </mesh>
-                <mesh
-                  position={[0, 0.3 + h + 0.02, 0.01]}
-                  material={MAT.lightPool}
-                  renderOrder={2}
-                >
-                  <planeGeometry args={[0.62, 0.62]} />
-                </mesh>
-              </group>
-            );
-          })
-        )}
+      {/* The tapers either side of the aisle, and the petals scattered over the
+          runner, were removed by request. The runner is bare on purpose. */}
     </group>
   );
 }
@@ -3313,72 +3105,6 @@ const SANCTUM_GEO = archedWallGeometry(SANCTUM.width, SANCTUM.height, [
 
 /** Where the camera comes to rest, and what the room is composed for. */
 const SANCTUM_PLINTH_Z = -6.6;
-
-/**
- * Petals on the runner, thickest at the foot of the plinth. Same construction
- * as the ones in Made for Moments — the occasion carries through into the room
- * that closes on it.
- */
-const SANCTUM_PETALS: Speck[] = (() => {
-  const specks: Speck[] = [];
-  const random = rng(80231);
-  const count = Math.round(48 * QUALITY.foliage + 14);
-  for (let i = 0; i < count; i++) {
-    const spread = (random() + random()) / 2;
-    specks.push({
-      p: [
-        (spread - 0.5) * 5.8,
-        -1.47,
-        SANCTUM_PLINTH_Z + 0.8 + ((random() + random()) / 2 - 0.5) * 6.4,
-      ],
-      rot: [random() * 0.5 - 0.25, random() * Math.PI, random() * 0.4 - 0.2],
-      s: [0.07 + random() * 0.05, 0.016, 0.05 + random() * 0.035],
-      tint: random() > 0.82 ? 2 : random() > 0.5 ? 1 : 0,
-    });
-  }
-  return specks;
-})();
-
-/**
- * A taper on a gold stand. The pair flanking the apse — the only thing in the
- * room at standing height between the plinth and the side walls, which is what
- * stops the floor running straight out to the corners.
- */
-function Taper({
-  position,
-  height,
-}: {
-  position: [number, number, number];
-  height: number;
-}) {
-  return (
-    <group position={position}>
-      <GroundShadow position={[0, 0.03, 0.02]} radius={0.22} stretch={0.9} />
-      <mesh position={[0, 0.03, 0]} material={MAT.goldSoft}>
-        <cylinderGeometry args={[0.14, 0.17, 0.06, 14]} />
-      </mesh>
-      <mesh position={[0, 0.36, 0]} material={MAT.goldSoft}>
-        <cylinderGeometry args={[0.045, 0.06, 0.62, 10]} />
-      </mesh>
-      <mesh position={[0, 0.7, 0]} material={MAT.gold}>
-        <cylinderGeometry args={[0.09, 0.06, 0.05, 12]} />
-      </mesh>
-      <mesh position={[0, 0.73 + height / 2, 0]} material={MAT.blossom}>
-        <cylinderGeometry args={[0.055, 0.062, height, 12]} />
-      </mesh>
-      <mesh position={[0, 0.79 + height, 0]} material={MAT.glow}>
-        <coneGeometry args={[0.028, 0.11, 8]} />
-      </mesh>
-      <mesh
-        position={[0, 0.78 + height, 0.01]}
-        material={MAT.lightPool}
-        renderOrder={2}
-      >
-        <planeGeometry args={[0.75, 0.75]} />
-      </mesh>
-    </group>
-  );
-}
 
 function YoursForever({ z }: { z: number }) {
   const lidRef = useRef<THREE.Group>(null);
@@ -3571,8 +3297,6 @@ function YoursForever({ z }: { z: number }) {
         <planeGeometry args={[2.64, 9.42]} />
       </mesh>
 
-      <SpeckCloud specks={SANCTUM_PETALS} tints={PETAL_TINTS} />
-
       {/* The two closing photographs. They were bare dark rectangles with a
           picture stuck on each; they now carry the same skirting, picture rail
           and cornice the walls of Made for Moments do, and a light over each
@@ -3706,21 +3430,12 @@ function YoursForever({ z }: { z: number }) {
         </group>
       </group>
 
-      {/* A taper either side of the apse. Graded, so the pair is not a gate. */}
-      {[-1, 1].map((s) =>
-        [0, 1].map((i) => (
-          <Taper
-            key={`${s}:${i}`}
-            position={[s * (2.15 + i * 0.5), -1.5, -7.5 + i * 0.75]}
-            height={0.78 - i * 0.24}
-          />
-        ))
-      )}
-
-      {/* What the occasion left at the foot of it: the gift, the letter, and a
-          little greenery. All three used to be scattered across an empty white
-          rug; they now sit along the runner's edges, where they frame the walk
-          in instead of competing with it. */}
+      {/* What the occasion left at the foot of it: the gift and the letter.
+          Both used to be scattered across an empty white rug; they now sit
+          along the runner's edges, where they frame the walk in instead of
+          competing with it. The greenery, the blossom pieces on the floor, the
+          tapers and the scattered petals that used to keep them company were
+          all removed by request — the floor is bare on purpose. */}
       <group position={[-1.72, -1.16, -4.5]} rotation={[0, 0.45, 0]}>
         <GroundShadow position={[0, -0.33, 0.06]} radius={0.62} stretch={0.85} />
         <mesh material={MAT.silk}>
@@ -3752,29 +3467,6 @@ function YoursForever({ z }: { z: number }) {
         </mesh>
       </group>
 
-      <Foliage
-        position={[1.95, -1.34, -5.6]}
-        seed={181}
-        count={26}
-        spread={[0.55, 0.12, 0.5]}
-        scale={1.1}
-      />
-      {[
-        [-1.95, -1.3, -5.9],
-        [2.25, -1.28, -6.15],
-        [-2.15, -1.32, -5.35],
-        [2.02, -1.31, -5.05],
-      ].map((p, i) => (
-        <group key={i} position={p as [number, number, number]}>
-          <mesh material={MAT.blossom}>
-            <sphereGeometry args={[0.11, 10, 8]} />
-          </mesh>
-          <mesh position={[0, 0.02, 0]} material={MAT.gold}>
-            <sphereGeometry args={[0.035, 8, 6]} />
-          </mesh>
-        </group>
-      ))}
-
       {/* Motes in the shaft. Already off on the tier that cannot afford them. */}
       {QUALITY.sparkles > 0 && (
         <Sparkles
@@ -3791,9 +3483,17 @@ function YoursForever({ z }: { z: number }) {
   );
 }
 
+/**
+ * The name `ScenePrewarm` looks the story group up by, so it can compile the
+ * rooms' shaders one at a time with a paint between rather than in one task
+ * the loading bar cannot animate through. Nothing else depends on it — the
+ * warm-up falls back to compiling the whole scene at once if it is not found.
+ */
+export const STORY_GROUP = "story-rooms";
+
 export default function StorySection() {
   return (
-    <group>
+    <group name={STORY_GROUP}>
 
       <pointLight position={[0, 3.0, 65]} intensity={13} distance={16} decay={2} color="#FFD9A0" />
       <pointLight position={[1.3, 0.7, 42.4]} intensity={9} distance={7} decay={2} color="#FFC98A" />

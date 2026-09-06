@@ -45,6 +45,10 @@ The camera flies straight down the axis, so a room's contents are only ever seen
 
 The scene is draw-call bound, not triangle bound. `src/components/3d/quality.ts` resolves a `low`/`mid`/`high` tier once at startup from device hints, and holds every budget: dpr, shadows, texture resolution, foliage density, fog/far distance, refraction, door detail. **Force a tier with `?q=low`** to test a real device.
 
+**A touch device does not take a graded tier.** `mobilePreset()` gives it the `high` budget at dpr 2–3 with shadows and `transmission` off, because the graded tiers are what read as blur on a phone. It reports `tier: "high"`, so every `Q.tier` branch in the scene upgrades from that one place. `?q=` opts back into the graded tiers.
+
+**Nothing streams in during the journey, on any device.** `src/components/3d/preload.ts` loads, decodes, compiles and draws the entire show behind the loading screen first, which is what makes the phone profile affordable and what stops the desktop building rooms under the visitor mid-scroll. Read `homepage.md` §8 "Full preload" before touching it — in particular, most of the wait is one 19.7s first render doing uniform-location queries for 41 shader programs, not anything the preloader itself does, and a cold visit is ~3.5x a warm one because of the browser's program cache. `?preload=off` restores the old progressive reveal.
+
 Rules that keep it fast — breaking any one of these has cost hundreds of draw calls before:
 
 - **Instance repeated geometry.** Leaves are `InstancedMesh` clouds with per-instance colours (`LeafCloud` in `StoryRooms.tsx`), not one mesh each. Call `computeBoundingSphere()` after writing the matrices or the cull test uses the single-item bounds.

@@ -10,10 +10,18 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 
-import StorySection, { MAT, GALLERY_FLOOR } from "./StoryRooms";
+import StorySection, { MAT, GALLERY_FLOOR, STORY_GROUP } from "./StoryRooms";
 import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
 import { journeyProgress } from "@/store/scroll-store";
 import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
+import {
+  fullPreload,
+  isPreloadComplete,
+  isWarming,
+  markPreloadComplete,
+  reportPreload,
+  setWarming,
+} from "./preload";
 import { palette } from "@/theme/palette";
 // OLD EXHIBITION (disabled) — the original 13-room showroom that ran after the
 // story journey. Commented out while we build out the story rooms one by one;
@@ -35,6 +43,7 @@ import { palette } from "@/theme/palette";
 const Q = quality();
 const P = palette();
 const TOUCH = isTouchDevice();
+const FULL_PRELOAD = fullPreload();
 /**
  * How far the lens tips down on a touch device.
  *
@@ -51,8 +60,179 @@ function ReadySignal() {
   const frames = useRef(0);
   useFrame(() => {
     if (frames.current > 4) return;
-    if (++frames.current > 4) markSceneReady();
+    if (++frames.current > 4) {
+      markSceneReady();
+      // Outside the Suspense boundary, so this fires while photographs may
+      // still be loading — which is exactly what the old progressive reveal
+      // wanted. Under full preload the door is held by `ScenePrewarm` instead,
+      // which cannot mount until every one of them has landed.
+      if (!fullPreload()) markPreloadComplete();
+    }
   });
+  return null;
+}
+
+/**
+ * The warm-up. Mounted inside the Suspense boundary, so reaching this point
+ * already means every photograph and the film have loaded and every room has
+ * been built.
+ *
+ * What is left after that is the work a GPU does the first time it is asked to
+ * draw something. Worth being precise about which part of it lands here,
+ * because it is not the part it looks like:
+ *
+ * 1. **Shader linking.** The scene builds 41 programs, and the expensive moment
+ *    is not the link but three's first `getUniforms` on each — the uniform
+ *    location queries are what make the driver finish compiling. That happens
+ *    inside `renderBufferDirect`, so the *first ordinary render* pays for every
+ *    program it draws with, before this component has even mounted. Profiled
+ *    cold on an integrated GPU it is a single 19.7s task, 57% of all CPU to
+ *    first paint. What is left for `compileAsync` here is the rooms that first
+ *    render never had in frustum — the far plane is 46 and the corridor is 68
+ *    deep, so the last two rooms are always among them — which is why these
+ *    calls come back in tens of milliseconds rather than seconds.
+ * 2. **Geometry and texture upload.** Linking does not upload vertex buffers;
+ *    only a real draw does. So the camera is flown down the whole corridor and
+ *    the ordinary render loop draws each stop.
+ *
+ * None of this is work the preload *adds*. It is work the journey used to do
+ * underneath the visitor, a room at a time, as they scrolled into it.
+ */
+const WARMUP_STOPS = 28;
+
+/** Frames to let React finish committing every room before compiling. */
+const SETTLE_FRAMES = 4;
+
+/**
+ * Every budget here is wall-clock, and that is the point.
+ *
+ * They were frame counts to begin with, which is a unit that means nothing on
+ * the machines the budgets exist for: at roughly a frame a second — which is
+ * where a slow device sits during exactly this pass — a 150-frame cap on one
+ * compile unit is a two-and-a-half minute cap, and 28 stops at one per frame is
+ * half a minute of fly-through. Measured, the pass sailed past the loading
+ * screen's own failsafe and the visitor was let in on a blind timeout, with the
+ * bar jumping 30% straight to 100%.
+ *
+ * So: a cap per compile unit, a budget for the fly-through that it strides to
+ * keep (fewer, further-apart stops rather than more time — the far plane is 46
+ * units and the rooms are 12 apart, so even a handful of stops has every room
+ * in frustum), and a deadline over the whole pass. Overrunning any of them
+ * degrades what is warmed, not whether the door opens, and the door still opens
+ * on `markPreloadComplete` with the bar run properly to 100 rather than on the
+ * failsafe behind it.
+ *
+ * They cannot help against one thing, and it is worth knowing why: a budget is
+ * only checked between frames, and `compileAsync` runs three's synchronous
+ * `compile()` inside before it returns a promise. Nothing here can interrupt a
+ * single long call — only avoid queueing more of them.
+ */
+const COMPILE_TIMEOUT_MS = 2500;
+const FLY_BUDGET_MS = 4000;
+const WARMUP_DEADLINE_MS = 20000;
+
+function ScenePrewarm() {
+  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+
+  const settled = useRef(0);
+  const units = useRef<THREE.Object3D[]>([]);
+  const unit = useRef(0);
+  const unitStartedAt = useRef(0);
+  const pending = useRef(false);
+  const stop = useRef(0);
+  const startedAt = useRef(0);
+  const flyStartedAt = useRef(0);
+  const restoreZ = useRef(76.0);
+  const ended = useRef(false);
+
+  useEffect(() => {
+    setWarming(true);
+    return () => setWarming(false);
+  }, []);
+
+  useFrame(({ camera }) => {
+    /**
+     * Ending the pass has to be idempotent, and it has to work when something
+     * *else* ends it.
+     *
+     * The loading screen's failsafe can fire while the camera is still mid-
+     * corridor. It does not know about this component, so without this the
+     * visitor would be handed a scene with the camera flying away from them
+     * and `CameraController` still standing aside for a warm-up that is no
+     * longer behind a door. Both paths converge here instead: whoever finishes
+     * first snaps the camera back and hands the controls over.
+     */
+    const finish = () => {
+      if (ended.current) return;
+      ended.current = true;
+      camera.position.z = restoreZ.current;
+      setWarming(false);
+      markPreloadComplete();
+    };
+
+    if (isPreloadComplete()) return finish();
+
+    if (settled.current < SETTLE_FRAMES) {
+      settled.current++;
+      restoreZ.current = camera.position.z;
+      return;
+    }
+
+    const now = performance.now();
+    if (startedAt.current === 0) startedAt.current = now;
+
+    if (now - startedAt.current > WARMUP_DEADLINE_MS) return finish();
+
+    /**
+     * A room at a time, then the whole scene.
+     *
+     * One `compileAsync(scene)` over the show is a single unbroken task, and a
+     * loading bar cannot animate through a blocked main thread. Split this way
+     * it is eleven shorter ones with a paint between each, for the same total
+     * work: the closing pass over the whole scene catches the floor, the
+     * sparkles and anything else outside the story group, and re-visiting a
+     * room costs nothing because its materials are already prepared.
+     */
+    if (units.current.length === 0) {
+      const story = scene.getObjectByName(STORY_GROUP);
+      units.current = story ? [...story.children, scene] : [scene];
+    }
+
+    if (unit.current < units.current.length) {
+      const total = units.current.length;
+      if (!pending.current) {
+        pending.current = true;
+        unitStartedAt.current = now;
+        const done = () => {
+          if (!pending.current) return;
+          pending.current = false;
+          reportPreload("shaders", ++unit.current / total);
+        };
+        gl.compileAsync(units.current[unit.current], camera, scene).then(done, done);
+      } else if (now - unitStartedAt.current > COMPILE_TIMEOUT_MS) {
+        pending.current = false;
+        reportPreload("shaders", ++unit.current / total);
+      }
+      return;
+    }
+
+    if (flyStartedAt.current === 0) flyStartedAt.current = now;
+
+    // One stop per frame while there is time for it, striding further when
+    // there is not, so the pass covers the whole corridor either way.
+    const owed = Math.ceil(((now - flyStartedAt.current) / FLY_BUDGET_MS) * WARMUP_STOPS);
+    const step = (stop.current = Math.max(stop.current + 1, owed));
+
+    if (step <= WARMUP_STOPS) {
+      camera.position.z = 76.0 - (step / WARMUP_STOPS) * 68;
+      reportPreload("warmup", step / WARMUP_STOPS);
+      return;
+    }
+
+    finish();
+  });
+
   return null;
 }
 
@@ -141,6 +321,11 @@ const TOUCH_MIN_Z = 10.6;
 
 function CameraController() {
   useFrame((state, delta) => {
+    // `ScenePrewarm` owns the camera during the warm-up fly-through; damping it
+    // back toward the entrance between stops would leave the pass circling the
+    // first room and never reach the other five.
+    if (isWarming()) return;
+
     const step = Math.min(delta, MAX_STEP);
     const travelled = 76.0 - journeyProgress() * 68;
     const targetZ = TOUCH ? Math.max(travelled, TOUCH_MIN_Z) : travelled;
@@ -243,6 +428,10 @@ function ShowroomCanvas() {
           </mesh>
 
           <StorySection />
+
+          {/* Inside the boundary on purpose — it must not start counting until
+              every suspended texture in the six rooms above has resolved. */}
+          {FULL_PRELOAD && <ScenePrewarm />}
 
           {/* --- ORIGINAL EXHIBITION (disabled) ---
               The old 13-room showroom used to mount here, on the Z axis from
