@@ -6,11 +6,12 @@ import * as THREE from "three";
 import { Sparkles, useTexture } from "@react-three/drei";
 import {
   ATELIER_FILM,
-  BENCH_REFERENCE,
+  benchReference,
   BRAND_CREST,
-  FINALE_PICTURES,
-  PLINTH_PICTURES,
-  WALL_PICTURES,
+  finalePictures,
+  momentsPictures,
+  plinthPictures,
+  wallPictures,
 } from "@/content/gallery";
 import { JEWELRY_IMAGES } from "@/content/jewelry";
 import { LuxuryRing } from "./RoomComponents";
@@ -313,6 +314,24 @@ export const MAT = {
     map: lightPoolMap(),
     transparent: true,
     opacity: 0.62,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+  }),
+  /**
+   * The same wash, weak enough to lay over a photograph.
+   *
+   * `lightPool` is sized for a patch of floor or a glow behind a medallion,
+   * where nothing is underneath it to wash out. Its core is opaque white and
+   * it blends additively, so at full strength over a picture it burns the
+   * middle out of anything already light — which is what it did to the pair in
+   * Made for Moments.
+   */
+  pictureWash: new THREE.MeshBasicMaterial({
+    color: P.glow,
+    map: lightPoolMap(),
+    transparent: true,
+    opacity: 0.16,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     toneMapped: false,
@@ -1814,7 +1833,7 @@ function TheCraft({ z }: { z: number }) {
 
   // Already fetched for zone 05's portrait, so this is a cache hit rather
   // than a second request.
-  const reference = useTexture(BENCH_REFERENCE, (tex) => {
+  const reference = useTexture(benchReference(), (tex) => {
     const t = Array.isArray(tex) ? tex[0] : tex;
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 8;
@@ -2069,7 +2088,7 @@ function TheCraft({ z }: { z: number }) {
 
             The photograph has the board to itself now, and the board is cut
             to the photograph's own proportions, so nothing is cropped and
-            nothing is stretched whatever file `BENCH_REFERENCE` points at. */}
+            nothing is stretched whatever file the bench reference points at. */}
         <group position={[-1.3, 0.125, BENCH.standZ]} rotation={[-0.3, 0.2, 0]}>
           <mesh material={MAT.woodDark}>
             <boxGeometry args={[board[0] + 0.09, board[1] + 0.09, 0.025]} />
@@ -2420,7 +2439,7 @@ function downscalePicture(tex: THREE.Texture): THREE.Texture {
 /**
  * Fit a picture inside the mount without distorting it. Textures arrive with
  * their pixel dimensions attached, so the aspect is known at first render and
- * a landscape photo dropped into `WALL_PICTURES` letterboxes rather than
+ * a landscape photo dropped into the wall pictures letterboxes rather than
  * stretching to the portrait frame.
  */
 function fitPicture(tex: THREE.Texture): [number, number] {
@@ -2485,7 +2504,7 @@ function buildPlinthBand(pictures: THREE.Texture[]): THREE.CanvasTexture | null 
     ctx.fillRect(fx + border, fy + border, frameW - border * 2, frameH - border * 2);
 
     // Cover-fit: crop the source rather than squash it, so a landscape shot
-    // dropped into PLINTH_PICTURES centre-crops instead of distorting.
+    // dropped into the plinth pictures centre-crops instead of distorting.
     const iw = frameW - border * 2;
     const ih = frameH - border * 2;
     const scale = Math.max(iw / img.width, ih / img.height);
@@ -2568,8 +2587,8 @@ function TheCollection({ z }: { z: number }) {
 
   // Loaded once for the whole room rather than per niche, and inside
   // ShowroomCanvas' Suspense boundary, so the room appears with its pictures
-  // already on the walls. A shorter WALL_PICTURES repeats from the start.
-  const loaded = useTexture(WALL_PICTURES, (tex) => {
+  // already on the walls. A shorter list repeats from the start.
+  const loaded = useTexture(wallPictures(), (tex) => {
     for (const t of Array.isArray(tex) ? tex : [tex]) {
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = 8;
@@ -2587,9 +2606,9 @@ function TheCollection({ z }: { z: number }) {
   );
   const pictureAt = (i: number) => pictures[i % pictures.length];
 
-  // Same loader, so any file already listed in WALL_PICTURES is a cache hit —
+  // Same loader, so any file already on the walls is a cache hit —
   // no second fetch and no second decode.
-  const plinthSources = useTexture(PLINTH_PICTURES);
+  const plinthSources = useTexture(plinthPictures());
   const plinthBand = useMemo(() => buildPlinthBand(plinthSources), [plinthSources]);
   useEffect(() => () => plinthBand?.dispose(), [plinthBand]);
 
@@ -2634,7 +2653,7 @@ function TheCollection({ z }: { z: number }) {
               position={[s * 2.92, 0.35, nz]}
               rotation={[0, (s * -Math.PI) / 2, 0]}
               // Left wall takes the first three, right wall the next three,
-              // matching the order WALL_PICTURES documents.
+              // matching the order the wall pictures are given in.
               picture={pictureAt(s < 0 ? i : nicheZ.length + i)}
             />
           ))}
@@ -2655,8 +2674,27 @@ function TheCollection({ z }: { z: number }) {
         </mesh>
       ))}
 
+      {/* Hung from the ceiling on two brass rods. It used to sit at this
+          height with nothing holding it: there is no back wall at the end of
+          the room, so the plaque read as a label floating in the doorway. */}
       <group position={[0, 2.5, -6.9]}>
-        <mesh material={MAT.emeraldDeep}>
+        {[-1, 1].map((s) => (
+          <group key={s} position={[s * 1.15, 0, 0]}>
+            <mesh position={[0, 1.085, 0]} material={MAT.gold}>
+              <cylinderGeometry args={[0.075, 0.09, 0.05, 12]} />
+            </mesh>
+            <mesh position={[0, 0.65, 0]} material={MAT.gold}>
+              <cylinderGeometry args={[0.014, 0.014, 0.88, 8]} />
+            </mesh>
+            <mesh position={[0, 0.225, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
+              <torusGeometry args={[0.045, 0.014, 6, 16]} />
+            </mesh>
+          </group>
+        ))}
+        <mesh position={[0, 0, -0.02]} material={MAT.gold}>
+          <boxGeometry args={[2.9, 0.5, 0.05]} />
+        </mesh>
+        <mesh position={[0, 0, 0.015]} material={MAT.emeraldDeep}>
           <boxGeometry args={[2.8, 0.42, 0.06]} />
         </mesh>
         <TextPlane
@@ -2664,7 +2702,7 @@ function TheCollection({ z }: { z: number }) {
           width={2.5}
           height={0.28}
           fontScale={0.55}
-          position={[0, 0, 0.04]}
+          position={[0, 0, 0.055]}
         />
       </group>
 
@@ -2932,7 +2970,7 @@ function MadeForMoments({ z }: { z: number }) {
   // The pair either side. Loaded together so the room never appears with one
   // side dressed and the other bare.
   const wings = useTexture(
-    [JEWELRY_IMAGES.elephantRing.src, JEWELRY_IMAGES.ringInGlass.src],
+    momentsPictures(),
     (tex) => {
       for (const t of Array.isArray(tex) ? tex : [tex]) {
         t.colorSpace = THREE.SRGBColorSpace;
@@ -2987,10 +3025,11 @@ function MadeForMoments({ z }: { z: number }) {
                 toneMapped={false}
               />
             </mesh>
-            {/* The wash over it — the additive quad the whole app lights with.
-                A real light here would cost every material in the scene a
-                fragment, for one picture. */}
-            <mesh position={[0, -0.05, 0.03]} material={MAT.lightPool} renderOrder={2}>
+            {/* The wash over it, thrown by the lamp on the arm above. Weaker
+                than the app's usual pool and pulled up towards the lamp, so it
+                falls off down the picture instead of sitting as a hot core in
+                the middle of it. */}
+            <mesh position={[0, 0.5, 0.03]} material={MAT.pictureWash} renderOrder={2}>
               <planeGeometry args={[2.4, 3.1]} />
             </mesh>
 
@@ -3112,7 +3151,7 @@ function YoursForever({ z }: { z: number }) {
 
   // Both files are already on the page — one is zone 05's own portrait, the
   // other hangs in the gallery — so the loader serves these from cache.
-  const finaleSources = useTexture(FINALE_PICTURES);
+  const finaleSources = useTexture(finalePictures());
   const finale = useMemo(
     () => finaleSources.map(downscalePicture),
     [finaleSources]

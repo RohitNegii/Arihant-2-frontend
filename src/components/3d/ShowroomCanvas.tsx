@@ -147,6 +147,7 @@ function ScenePrewarm() {
   const ended = useRef(false);
 
   useEffect(() => {
+    if (isPreloadComplete()) return;
     setWarming(true);
     return () => setWarming(false);
   }, []);

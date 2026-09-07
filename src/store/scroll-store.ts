@@ -39,7 +39,7 @@ if (typeof window !== "undefined") {
 
 /** Scrollable pixels of journey, above whatever follows it. */
 export function journeySpan(): number {
-  if (!journeyEl) measureJourney();
+  if (!journeyEl || !journeyEl.isConnected) measureJourney();
   return journeySpanPx;
 }
 

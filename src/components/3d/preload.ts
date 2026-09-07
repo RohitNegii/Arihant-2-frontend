@@ -2,13 +2,15 @@
 
 import {
   ATELIER_FILM,
-  BENCH_REFERENCE,
+  benchReference,
   BRAND_CREST,
-  FINALE_PICTURES,
+  finalePictures,
+  momentsPictures,
   MUSE_NECKLACE,
-  PLINTH_PICTURES,
-  WALL_PICTURES,
+  plinthPictures,
+  wallPictures,
 } from "@/content/gallery";
+import { loadHomeMedia } from "@/content/home-media";
 import { JEWELRY_IMAGES } from "@/content/jewelry";
 import { quality } from "./quality";
 
@@ -147,7 +149,7 @@ export function setWarming(value: boolean) {
 }
 
 export function isWarming(): boolean {
-  return warming;
+  return warming && !complete;
 }
 
 /* ------------------------------------------------------------------ *
@@ -161,19 +163,20 @@ export function isWarming(): boolean {
  * panels deliberately share files, and both this and drei's `useTexture` cache
  * by URL — so a repeat costs a `Set` lookup and nothing else.
  */
-export const SCENE_IMAGES: string[] = Array.from(
-  new Set([
-    ...WALL_PICTURES,
-    ...PLINTH_PICTURES,
-    ...FINALE_PICTURES,
-    BENCH_REFERENCE,
-    BRAND_CREST,
-    MUSE_NECKLACE,
-    JEWELRY_IMAGES.emeraldGoddess.src,
-    JEWELRY_IMAGES.elephantRing.src,
-    JEWELRY_IMAGES.ringInGlass.src,
-  ])
-);
+export function sceneImages(): string[] {
+  return Array.from(
+    new Set([
+      ...wallPictures(),
+      ...plinthPictures(),
+      ...finalePictures(),
+      ...momentsPictures(),
+      benchReference(),
+      BRAND_CREST,
+      MUSE_NECKLACE,
+      JEWELRY_IMAGES.emeraldGoddess.src,
+    ])
+  );
+}
 
 /**
  * Whether this device gets the film at all.
@@ -262,7 +265,8 @@ export function preloadAssets(): Promise<void> {
 }
 
 async function runAssetPreload(): Promise<void> {
-  const jobs = [...SCENE_IMAGES.map(decodeImage), bufferFilm()];
+  await loadHomeMedia();
+  const jobs = [...sceneImages().map(decodeImage), bufferFilm()];
   let done = 0;
   const tick = () => reportPreload("assets", ++done / jobs.length);
 

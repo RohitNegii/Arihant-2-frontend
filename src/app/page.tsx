@@ -14,6 +14,7 @@ import MouseFollower from "@/components/MouseFollower";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
 import { fullPreload, preloadTextures } from "@/components/3d/preload";
+import { loadHomeMedia } from "@/content/home-media";
 import { journeyProgress, journeySpan, scrollToOffset } from "@/store/scroll-store";
 import { JEWELRY_IMAGES, type JewelryImage } from "@/content/jewelry";
 
@@ -239,7 +240,10 @@ export default function Home() {
 
   useEffect(() => {
     let live = true;
-    const ready = fullPreload() ? preloadTextures() : Promise.resolve();
+    const ready = Promise.all([
+      loadHomeMedia(),
+      fullPreload() ? preloadTextures() : Promise.resolve(),
+    ]);
     void ready.then(() => {
       if (live) setShowCanvas(true);
     });
