@@ -159,7 +159,7 @@ export function isWarming(): boolean {
 /**
  * Every image the six rooms hang, in one list.
  *
- * Deduplicated because the wall niches, the plinth frieze and the closing
+ * Deduplicated because the wall niches, the collection lookbook and the closing
  * panels deliberately share files, and both this and drei's `useTexture` cache
  * by URL — so a repeat costs a `Set` lookup and nothing else.
  */

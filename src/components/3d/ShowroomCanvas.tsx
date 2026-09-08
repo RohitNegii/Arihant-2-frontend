@@ -12,7 +12,7 @@ import * as THREE from "three";
 
 import StorySection, { MAT, GALLERY_FLOOR, STORY_GROUP } from "./StoryRooms";
 import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
-import { journeyProgress } from "@/store/scroll-store";
+import { journeyProgress, sceneInteraction } from "@/store/scroll-store";
 import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
 import {
   fullPreload,
@@ -337,6 +337,8 @@ function CameraController() {
       SCROLL_DAMP,
       step
     );
+
+    if (sceneInteraction.hovered || sceneInteraction.focused) return;
 
     if (TOUCH) {
       state.camera.position.x = 0;

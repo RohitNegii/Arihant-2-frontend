@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import type Lenis from "lenis";
 
+/** Keep controls attached to the scene still while they are being used. */
+export const sceneInteraction = { hovered: false, focused: false };
+
 interface ScrollStore {
   lenis: Lenis | null;
   setLenis: (lenis: Lenis | null) => void;

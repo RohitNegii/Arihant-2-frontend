@@ -3,16 +3,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { Sparkles, useTexture } from "@react-three/drei";
+import { Html, Sparkles, useTexture } from "@react-three/drei";
 import {
   ATELIER_FILM,
   benchReference,
   BRAND_CREST,
   finalePictures,
   momentsPictures,
-  plinthPictures,
+  plinthItems,
   wallPictures,
 } from "@/content/gallery";
+import type { HomeMediaItem } from "@/content/home-media";
 import { JEWELRY_IMAGES } from "@/content/jewelry";
 import { LuxuryRing } from "./RoomComponents";
 import DoorLeaf, { DOOR_FOOT } from "./EntranceDoor";
@@ -29,7 +30,7 @@ import {
 } from "./procedural-textures";
 import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
 import { filmAllowed, fullPreload } from "./preload";
-import { journeyProgress } from "@/store/scroll-store";
+import { journeyProgress, sceneInteraction } from "@/store/scroll-store";
 import { palette } from "@/theme/palette";
 
 export const STORY_ROOM_Z = [72, 60, 48, 36, 24, 12] as const;
@@ -2450,83 +2451,166 @@ function fitPicture(tex: THREE.Texture): [number, number] {
   return [w, w / aspect];
 }
 
-/** The frieze around the plinth: band height and drum radii, in world units. */
-const PLINTH_BAND = {
-  y: -0.97,
-  height: 0.7,
-  /** The drum is tapered, so the band has to be too or it will cut into it. */
-  radiusTop: 1.468,
-  radiusBottom: 1.538,
-} as const;
+/** An open catalogue gives this room a different silhouette from the
+ * standing portrait panels in Moments and the finale. */
+function CollectionLookbook({
+  pictures,
+  items,
+}: {
+  pictures: THREE.Texture[];
+  items: HomeMediaItem[];
+}) {
+  const [spread, setSpread] = useState(0);
+  const [active, setActive] = useState(false);
+  const spreads = Math.ceil(items.length / 2);
+  const first = spread * 2;
+  const currentItems = items.slice(first, first + 2);
 
-/**
- * Bakes the plinth frieze — every picture, every frame — into a single band
- * texture.
- *
- * The obvious build is a mesh per picture standing off the drum: that is one
- * draw call and one material each, for a frieze the camera only ever sees the
- * front third of. Drawn into one texture instead, the whole thing is a single
- * cylinder however many pictures the config lists, and the gaps between the
- * frames are left transparent so the marble shows through them.
- */
-function buildPlinthBand(pictures: THREE.Texture[]): THREE.CanvasTexture | null {
-  if (typeof document === "undefined" || pictures.length === 0) return null;
+  useEffect(() => () => {
+    sceneInteraction.hovered = false;
+    sceneInteraction.focused = false;
+  }, [active]);
 
-  const circumference = Math.PI * (PLINTH_BAND.radiusTop + PLINTH_BAND.radiusBottom);
-  const H = Math.max(96, Math.round(224 * quality().texture));
-  const W = Math.round((H * circumference) / PLINTH_BAND.height);
+  useEffect(() => {
+    const onScroll = () => {
+      const progress = journeyProgress();
+      setActive(progress >= 0.5 && progress < 2 / 3);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
+  if (!items.length) return null;
 
-  const n = pictures.length;
-  const cell = W / n;
-  const frameH = H * 0.86;
-  const frameW = Math.min(cell * 0.72, frameH * 0.8);
-  const border = Math.max(2, Math.round(H * 0.035));
-
-  for (let i = 0; i < n; i++) {
-    const img = pictures[i].image as
-      | (CanvasImageSource & { width: number; height: number })
-      | undefined;
-    if (!img?.width) continue;
-
-    const cx = (i + 0.5) * cell;
-    const fx = cx - frameW / 2;
-    const fy = (H - frameH) / 2;
-
-    ctx.fillStyle = P.gold;
-    ctx.fillRect(fx, fy, frameW, frameH);
-    ctx.fillStyle = P.brandDeep;
-    ctx.fillRect(fx + border, fy + border, frameW - border * 2, frameH - border * 2);
-
-    // Cover-fit: crop the source rather than squash it, so a landscape shot
-    // dropped into the plinth pictures centre-crops instead of distorting.
-    const iw = frameW - border * 2;
-    const ih = frameH - border * 2;
-    const scale = Math.max(iw / img.width, ih / img.height);
-    const sw = iw / scale;
-    const sh = ih / scale;
-    ctx.drawImage(
-      img,
-      (img.width - sw) / 2,
-      (img.height - sh) / 2,
-      sw,
-      sh,
-      fx + border,
-      fy + border,
-      iw,
-      ih
-    );
-  }
-
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
-  return tex;
+  return (
+    <group>
+      {/* The sloping book rests on a low velvet support. */}
+      <mesh position={[0, -0.18, -0.32]} material={MAT.emeraldDeep}>
+        <boxGeometry args={[1.85, 0.5, 0.5]} />
+      </mesh>
+      <group position={[0, 0.36, 0.08]} rotation={[-0.52, 0, 0]}>
+        <mesh position={[0, 0, -0.065]} material={MAT.emeraldDeep}>
+          <boxGeometry args={[3.12, 1.84, 0.1]} />
+        </mesh>
+        {[-1, 1].map((side, page) => {
+          const index = first + page;
+          const picture = pictures[index];
+          const item = items[index];
+          const img = picture?.image as { width?: number; height?: number } | undefined;
+          const aspect = img?.width && img?.height ? img.width / img.height : 1;
+          // Full contain-fit for every upload; never alter the cached texture.
+          const width = Math.min(1.28, 1.35 * aspect);
+          const height = width / aspect;
+          return (
+            <group key={side} position={[side * 0.76, 0, 0]} rotation={[0, side * 0.035, 0]}>
+              <mesh position={[0, 0, -0.005]}>
+                <boxGeometry args={[1.47, 1.76, 0.065]} />
+                <meshBasicMaterial color={P.paper} toneMapped={false} />
+              </mesh>
+              {/* Layered page edges and a narrow cloth binding make this a book. */}
+              {[-0.021, -0.007].map((z) => (
+                <mesh key={z} position={[0, -0.87, z]} material={MAT.goldSoft}>
+                  <boxGeometry args={[1.44, 0.008, 0.006]} />
+                </mesh>
+              ))}
+              {picture && item ? (
+                <>
+                  <mesh position={[0, 0.055, 0.034]}>
+                    <planeGeometry args={[width, height]} />
+                    <meshBasicMaterial map={picture} toneMapped={false} />
+                  </mesh>
+                  {item.title && (
+                    <TextPlane
+                      text={item.title}
+                      width={1.28}
+                      height={0.16}
+                      color={P.brandDeep}
+                      fontScale={0.76}
+                      letterSpacing="0.015em"
+                      weight="600"
+                      position={[0, -0.715, 0.038]}
+                    />
+                  )}
+                  <TextPlane
+                    text={String(index + 1).padStart(2, "0")}
+                    width={0.2}
+                    height={0.09}
+                    color={P.brand}
+                    letterSpacing="0.08em"
+                    weight="600"
+                    position={[side * 0.59, -0.82, 0.038]}
+                  />
+                </>
+              ) : (
+                <>
+                  <CrestMark height={0.54} position={[0, 0.18, 0.034]} />
+                  <TextPlane
+                    text="GEETEJ VIRAASAT"
+                    width={1.24}
+                    height={0.2}
+                    color={P.brandDeep}
+                    weight="600"
+                    position={[0, -0.27, 0.038]}
+                  />
+                </>
+              )}
+            </group>
+          );
+        })}
+        <mesh position={[0, 0, 0.026]} material={MAT.emeraldDeep}>
+          <boxGeometry args={[0.035, 1.77, 0.016]} />
+        </mesh>
+        <mesh position={[0.05, -0.66, 0.045]} material={MAT.goldSoft}>
+          <boxGeometry args={[0.025, 0.62, 0.006]} />
+        </mesh>
+      </group>
+      {active && (
+        <Html center position={[0, -1.0, 1.58]} zIndexRange={[10, 0]}>
+          <div
+            role="group"
+            aria-label="Collection lookbook"
+            className="pointer-events-auto flex w-[204px] items-center justify-between rounded-full border border-verdant-gold/60 bg-[var(--color-primary)] px-1 text-[var(--color-shell)] shadow-md"
+            onPointerDown={(event) => event.stopPropagation()}
+            onPointerEnter={() => { sceneInteraction.hovered = true; }}
+            onPointerLeave={() => { sceneInteraction.hovered = false; }}
+            onFocusCapture={() => { sceneInteraction.focused = true; }}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                sceneInteraction.focused = false;
+              }
+            }}
+          >
+            <button
+              type="button"
+              aria-label="Previous collection pages"
+              disabled={spreads <= 1}
+              onClick={() => setSpread((value) => (value - 1 + spreads) % spreads)}
+              className="h-11 w-11 shrink-0 cursor-pointer rounded-full text-xl hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current disabled:invisible"
+            >
+              &lsaquo;
+            </button>
+            <span className="text-center text-[10px] tracking-[0.14em]" aria-live="polite" aria-atomic="true">
+              <span aria-hidden="true">{first + 1}{currentItems.length > 1 ? `\u2013${first + 2}` : ""} / {items.length}</span>
+              <span className="sr-only">
+                {currentItems.map((item, i) => `${item.title || `Piece ${first + i + 1}`}. ${item.alt}`).join(" ")}
+                {` Showing ${first + 1} to ${first + currentItems.length} of ${items.length}.`}
+              </span>
+            </span>
+            <button
+              type="button"
+              aria-label="Next collection pages"
+              disabled={spreads <= 1}
+              onClick={() => setSpread((value) => (value + 1) % spreads)}
+              className="h-11 w-11 shrink-0 cursor-pointer rounded-full text-xl hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current disabled:invisible"
+            >
+              &rsaquo;
+            </button>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
 }
 
 function DisplayNiche({
@@ -2583,8 +2667,6 @@ function DisplayNiche({
 }
 
 function TheCollection({ z }: { z: number }) {
-  const carouselRef = useRef<THREE.Group>(null);
-
   // Loaded once for the whole room rather than per niche, and inside
   // ShowroomCanvas' Suspense boundary, so the room appears with its pictures
   // already on the walls. A shorter list repeats from the start.
@@ -2608,13 +2690,12 @@ function TheCollection({ z }: { z: number }) {
 
   // Same loader, so any file already on the walls is a cache hit —
   // no second fetch and no second decode.
-  const plinthSources = useTexture(plinthPictures());
-  const plinthBand = useMemo(() => buildPlinthBand(plinthSources), [plinthSources]);
-  useEffect(() => () => plinthBand?.dispose(), [plinthBand]);
-
-  useFrame((state) => {
-    if (!carouselRef.current) return;
-    carouselRef.current.rotation.y = state.clock.getElapsedTime() * 0.18;
+  const plinthEntries = useMemo(() => plinthItems(), []);
+  const plinthSources = useTexture(plinthEntries.map((item) => item.url), (textures) => {
+    for (const texture of Array.isArray(textures) ? textures : [textures]) {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = 8;
+    }
   });
 
   const nicheZ = [0.5, -3, -6.5];
@@ -2674,114 +2755,88 @@ function TheCollection({ z }: { z: number }) {
         </mesh>
       ))}
 
-      {/* Hung from the ceiling on two brass rods. It used to sit at this
-          height with nothing holding it: there is no back wall at the end of
-          the room, so the plaque read as a label floating in the doorway. */}
-      <group position={[0, 2.5, -6.9]}>
+      {/* A deeper, double-framed plaque with illuminated lettering stays
+          legible from the entrance. The unlit face preserves its contrast
+          under the room's bright lighting while still receiving scene fog. */}
+      <group position={[0, 2.45, -6.9]}>
         {[-1, 1].map((s) => (
-          <group key={s} position={[s * 1.15, 0, 0]}>
-            <mesh position={[0, 1.085, 0]} material={MAT.gold}>
+          <group key={s} position={[s * 1.42, 0, 0]}>
+            <mesh position={[0, 1.135, 0]} material={MAT.gold}>
               <cylinderGeometry args={[0.075, 0.09, 0.05, 12]} />
             </mesh>
-            <mesh position={[0, 0.65, 0]} material={MAT.gold}>
-              <cylinderGeometry args={[0.014, 0.014, 0.88, 8]} />
+            <mesh position={[0, 0.75, 0]} material={MAT.gold}>
+              <cylinderGeometry args={[0.022, 0.022, 0.76, 8]} />
             </mesh>
-            <mesh position={[0, 0.225, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
+            <mesh position={[0, 0.38, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
               <torusGeometry args={[0.045, 0.014, 6, 16]} />
             </mesh>
           </group>
         ))}
-        <mesh position={[0, 0, -0.02]} material={MAT.gold}>
-          <boxGeometry args={[2.9, 0.5, 0.05]} />
+        <mesh position={[0, 0, -0.025]} material={MAT.gold}>
+          <boxGeometry args={[3.65, 0.78, 0.14]} />
         </mesh>
-        <mesh position={[0, 0, 0.015]} material={MAT.emeraldDeep}>
-          <boxGeometry args={[2.8, 0.42, 0.06]} />
+        <mesh position={[0, 0, 0.055]}>
+          <boxGeometry args={[3.51, 0.64, 0.06]} />
+          <meshBasicMaterial color={P.brandDeep} toneMapped={false} />
         </mesh>
+        <mesh position={[0, 0, 0.09]}>
+          <planeGeometry args={[3.39, 0.53]} />
+          <meshBasicMaterial color={P.goldSoft} toneMapped={false} />
+        </mesh>
+        <mesh position={[0, 0, 0.095]}>
+          <planeGeometry args={[3.365, 0.505]} />
+          <meshBasicMaterial color={P.brandDeep} toneMapped={false} />
+        </mesh>
+        {/* The entrance's elephant crest crowns the frame like a house seal.
+            Its lower rim overlaps the brass edge, leaving the title clear. */}
+        <group position={[0, 0.64, 0.105]}>
+          <CrestMedallion radius={0.34} markY={0.015} />
+        </group>
         <TextPlane
           text="THE COLLECTION"
-          width={2.5}
-          height={0.28}
-          fontScale={0.55}
-          position={[0, 0, 0.055]}
+          width={3.22}
+          height={0.46}
+          fontScale={0.8}
+          letterSpacing="0.1em"
+          weight="600"
+          color={P.signText}
+          position={[0, 0, 0.105]}
         />
       </group>
 
       <group position={[0, 0, -5]}>
         <GroundShadow position={[0, -1.47, 0]} radius={1.7} />
-        {/* Marble, not the brown wood it was: a chocolate drum was the one
-            warm mass in a room of emerald, gold and stone, and it read as
-            furniture borrowed from another set. */}
         <mesh position={[0, -1.0, 0]} material={MAT.marble}>
-          <cylinderGeometry args={[1.45, 1.55, 1.0, 32]} />
+          <cylinderGeometry args={[1.45, 1.55, 1.0, 64]} />
         </mesh>
         <mesh position={[0, -1.46, 0]} material={MAT.emeraldDeep}>
-          <cylinderGeometry args={[1.62, 1.62, 0.09, 32]} />
+          <cylinderGeometry args={[1.62, 1.62, 0.09, 64]} />
         </mesh>
-
-        {/* The frieze — one cylinder wearing the whole baked band. Unlit, like
-            the niche pictures, so the photographs stay readable in a recess
-            the key light never reaches. */}
-        {plinthBand && (
-          <mesh position={[0, PLINTH_BAND.y, 0]}>
-            <cylinderGeometry
-              args={[
-                PLINTH_BAND.radiusTop,
-                PLINTH_BAND.radiusBottom,
-                PLINTH_BAND.height,
-                48,
-                1,
-                true,
-              ]}
-            />
-            <meshBasicMaterial
-              map={plinthBand}
-              transparent
-              alphaTest={0.02}
-              toneMapped={false}
-            />
+        {[-1.38, -0.56].map((y) => (
+          <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
+            <torusGeometry args={[y < -1 ? 1.55 : 1.46, 0.018, 8, 64]} />
           </mesh>
-        )}
-        <mesh position={[0, -0.48, 0]} material={MAT.velvet}>
-          <cylinderGeometry args={[1.5, 1.5, 0.08, 32]} />
+        ))}
+        <mesh position={[0, -0.48, 0]}>
+          <cylinderGeometry args={[1.5, 1.5, 0.08, 64]} />
+          <meshStandardMaterial color={P.velvet} roughness={0.96} envMapIntensity={0.18} />
         </mesh>
         <mesh position={[0, -0.44, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
-          <torusGeometry args={[1.48, 0.04, 8, 40]} />
+          <torusGeometry args={[1.48, 0.025, 8, 64]} />
         </mesh>
 
-        <group ref={carouselRef} position={[0, -0.3, 0]}>
-          {[0, 1, 2, 3, 4].map((i) => {
-            const a = (i / 5) * Math.PI * 2;
-            return (
-              <group key={i} position={[Math.cos(a) * 0.85, 0, Math.sin(a) * 0.85]}>
-                <mesh position={[0, -0.04, 0]} material={MAT.marble}>
-                  <cylinderGeometry args={[0.16, 0.18, 0.06, 16]} />
-                </mesh>
-                <mesh position={[0, 0.11, 0]} material={MAT.gold}>
-                  <torusGeometry args={[0.1, 0.024, 10, 24]} />
-                </mesh>
-                <mesh
-                  position={[0, 0.23, 0]}
-                  material={i % 2 === 0 ? MAT.gemGreen : MAT.gemPearl}
-                >
-                  <octahedronGeometry args={[0.05, 0]} />
-                </mesh>
-              </group>
-            );
-          })}
-        </group>
-        {/* Vitrine. This was a hemisphere squashed to 0.55 — a soap bubble over
-            the rings, and on the mid and low tiers, where transmission is off,
-            just a grey film across them. A straight glass cylinder with a
-            brass collar top and bottom reads as a case instead. */}
-        <mesh position={[0, 0.135, 0]} material={MAT.glass}>
-          <cylinderGeometry args={[1.2, 1.2, 1.15, 28, 1, true]} />
-        </mesh>
-        <mesh position={[0, 0.745, 0]} material={MAT.gold}>
-          <cylinderGeometry args={[1.24, 1.24, 0.07, 28]} />
-        </mesh>
-        <mesh position={[0, -0.4, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.gold}>
-          <torusGeometry args={[1.21, 0.03, 6, 32]} />
-        </mesh>
+        <CollectionLookbook pictures={plinthSources} items={plinthEntries} />
+        <TextPlane
+          text="THE JEWELLERY LOOKBOOK"
+          width={2.12}
+          height={0.18}
+          color={P.brandDeep}
+          fontScale={0.75}
+          letterSpacing="0.13em"
+          weight="600"
+          position={[0, -0.70, 1.56]}
+        />
+        <CrestMark height={0.18} position={[0, -1.36, 1.565]} />
       </group>
     </group>
   );
@@ -2832,8 +2887,8 @@ function useAtelierFilm() {
     const tex = new THREE.VideoTexture(el);
     tex.colorSpace = THREE.SRGBColorSpace;
 
-    // Cover-fit, exactly as the plinth band crops its photographs: the film is
-    // 9:16 and the frame is 4:5, so it is matched on width and trimmed top and
+    // Cover-fit: the film is 9:16 and the frame is 4:5, so it is matched
+    // on width and trimmed top and
     // bottom rather than squashed.
     const onMeta = () => {
       const shot = el.videoWidth / el.videoHeight;

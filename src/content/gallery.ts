@@ -1,5 +1,5 @@
 import { JEWELRY_IMAGES } from "./jewelry";
-import { homeMediaSources } from "./home-media";
+import { homeMedia, homeMediaSources, type HomeMediaItem } from "./home-media";
 
 /**
  * Bundled fallbacks. What the showroom hangs when the admin panel has nothing
@@ -35,9 +35,8 @@ export const DEFAULT_FINALE_PICTURES: string[] = [
 export const DEFAULT_BENCH_REFERENCE = JEWELRY_IMAGES.emeraldGoddess.src;
 
 /**
- * Photographs set into the base of the display plinth, running right round it.
- * They are spaced evenly around the drum, so the count sets how big each one
- * is. Six to ten reads well; past about twelve they get too narrow to make out.
+ * Photographs for the collection lookbook. Every active item is browsable,
+ * in backend order, two per spread.
  *
  * Listing the same files as the wall costs nothing extra: the loader caches by
  * URL, so they are fetched and decoded once for both.
@@ -108,6 +107,16 @@ export function wallPictures(): string[] {
 export function plinthPictures(): string[] {
   const live = homeMediaSources("plinth");
   return live.length ? live : DEFAULT_PLINTH_PICTURES;
+}
+
+/** Keep captions and alt text paired with their backend image and ordering. */
+export function plinthItems(): HomeMediaItem[] {
+  const live = homeMedia("plinth");
+  if (live.length) return live;
+  return DEFAULT_PLINTH_PICTURES.map((url) => {
+    const image = Object.values(JEWELRY_IMAGES).find((item) => item.src === url);
+    return { url, title: image?.name ?? "", alt: image?.alt ?? "Jewellery collection" };
+  });
 }
 
 /**
