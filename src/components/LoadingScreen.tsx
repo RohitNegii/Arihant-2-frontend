@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CrestMark from "@/components/global/CrestMark";
+import { setSceneRevealed } from "@/components/3d/scene-ready";
 import {
   fullPreload,
   markPreloadComplete,
@@ -42,10 +43,12 @@ export default function LoadingScreen() {
   const [isDone, setIsDone] = useState(false);
 
   useEffect(() => {
+    setSceneRevealed(false);
     document.body.style.overflow = "hidden";
     const sinceNav = () => performance.now();
     const full = fullPreload();
     let finishing = false;
+    let finishTimer: ReturnType<typeof setTimeout> | undefined;
 
     /**
      * Off full preload there is nothing real to report, so the bar creeps
@@ -66,7 +69,7 @@ export default function LoadingScreen() {
       clearInterval(interval);
       setProgress(100);
       const wait = Math.max(0, MIN_MS - sinceNav());
-      setTimeout(() => {
+      finishTimer = setTimeout(() => {
         setIsDone(true);
         document.body.style.overflow = "unset";
       }, wait + 250);
@@ -105,12 +108,13 @@ export default function LoadingScreen() {
       unsubscribeProgress();
       clearInterval(interval);
       clearTimeout(failsafe);
+      clearTimeout(finishTimer);
       document.body.style.overflow = "unset";
     };
   }, []);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={() => setSceneRevealed(true)}>
       {!isDone && (
         <motion.div
           exit={{

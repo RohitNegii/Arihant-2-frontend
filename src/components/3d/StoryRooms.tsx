@@ -30,6 +30,7 @@ import {
 } from "./procedural-textures";
 import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
 import { filmAllowed, fullPreload } from "./preload";
+import { isSceneRevealed } from "./scene-ready";
 import { journeyProgress, sceneInteraction } from "@/store/scroll-store";
 import { palette } from "@/theme/palette";
 
@@ -1101,9 +1102,12 @@ function EntranceLight() {
 }
 
 const DOOR_SWING: readonly [number, number] = isTouchDevice()
-  ? [0.57, 1.02]
-  : [1.1, 1.95];
+  ? [0, 0.51]
+  : [0, 0.98];
 
+const ENTRANCE_TRIM = { stoneInnerX: 1.94, goldWidth: 0.06, gap: 0.01 } as const;
+// Keep the gold outside the stone's volume so their top corners cannot intersect.
+const GOLD_TRIM_X = ENTRANCE_TRIM.stoneInnerX - ENTRANCE_TRIM.goldWidth / 2 - ENTRANCE_TRIM.gap;
 
 /**
  * The crest medallion: the house mark on a dark roundel with a gold rim.
@@ -1234,20 +1238,11 @@ function CrestMark({
 function GrandEntrance({ z }: { z: number }) {
   const leftHinge = useRef<THREE.Group>(null);
   const rightHinge = useRef<THREE.Group>(null);
-  const openTarget = useRef(0);
-
-  useEffect(() => {
-    const onScroll = () => {
-      openTarget.current = Math.min(journeyProgress() / 0.05, 1);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useFrame((_, delta) => {
     const step = Math.min(delta, MAX_STEP);
-    const angle = THREE.MathUtils.lerp(DOOR_SWING[0], DOOR_SWING[1], openTarget.current);
+    // Wait for the loader's exit so the opening is visible, even at scroll zero.
+    const angle = DOOR_SWING[isSceneRevealed() ? 1 : 0];
     if (leftHinge.current) {
       leftHinge.current.rotation.y = THREE.MathUtils.damp(
         leftHinge.current.rotation.y,
@@ -1308,7 +1303,7 @@ function GrandEntrance({ z }: { z: number }) {
           [-1, 1].map((s) => (
             <mesh
               key={`${i}${s}`}
-              position={[s * (1.94 + band.w / 2), 0.5, band.z + band.d / 2]}
+              position={[s * (ENTRANCE_TRIM.stoneInnerX + band.w / 2), 0.5, band.z + band.d / 2]}
               material={MAT.stoneWarm}
               castShadow
               receiveShadow
@@ -1318,8 +1313,8 @@ function GrandEntrance({ z }: { z: number }) {
           ))
         )}
         {[-1, 1].map((s) => (
-          <mesh key={s} position={[s * 1.95, 0.5, 0.5]} material={MAT.gold} castShadow>
-            <boxGeometry args={[0.14, 4.16, 0.1]} />
+          <mesh key={s} position={[s * GOLD_TRIM_X, 0.5, 0.5]} material={MAT.gold} castShadow>
+            <boxGeometry args={[ENTRANCE_TRIM.goldWidth, 4.16, 0.1]} />
           </mesh>
         ))}
         <Doorstep />

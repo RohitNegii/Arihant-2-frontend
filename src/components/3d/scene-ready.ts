@@ -2,6 +2,16 @@
 
 let ready = false;
 let waiters: (() => void)[] = [];
+let revealed = false;
+
+/** The loader has finished exiting, so entrance animations are now visible. */
+export function isSceneRevealed() {
+  return revealed;
+}
+
+export function setSceneRevealed(value: boolean) {
+  revealed = value;
+}
 
 export function markSceneReady() {
   if (ready) return;
