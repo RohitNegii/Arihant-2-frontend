@@ -63,6 +63,7 @@ export default function Navbar() {
     setIsOpen(false);
   };
 
+  const isHomeActive = pathname === "/";
   const isCollectionsActive = pathname === "/products" || pathname.startsWith("/products/");
   const isOrdersActive = pathname === "/orders" || pathname.startsWith("/orders/");
   const isContactActive = pathname === "/contact";
@@ -109,6 +110,20 @@ export default function Navbar() {
 
           {/* Desktop Navigation Links (Clean and spacious) */}
           <div className="hidden md:flex items-center gap-6 lg:gap-10">
+            <Link
+              href="/"
+              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isHomeActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+                }`}
+            >
+              Home
+              {isHomeActive && (
+                <motion.span
+                  layoutId="activeNavIndicator"
+                  className="absolute bottom-0 left-[15%] right-[15%] h-[2px] bg-verdant-gold rounded-full"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+            </Link>
             <Link
               href="/products"
               className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isCollectionsActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
@@ -307,6 +322,14 @@ export default function Navbar() {
 
               {/* Drawer Navigation Links */}
               <div className="flex flex-col gap-6 text-sm">
+                <Link
+                  href="/"
+                  onClick={() => setIsOpen(false)}
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isHomeActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                    }`}
+                >
+                  Home
+                </Link>
                 <Link
                   href="/products"
                   onClick={() => setIsOpen(false)}
