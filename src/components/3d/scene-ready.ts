@@ -13,6 +13,12 @@ export function setSceneRevealed(value: boolean) {
   revealed = value;
 }
 
+/** A return visit must wait for the new canvas to draw, too. */
+export function resetSceneReady() {
+  ready = false;
+  revealed = false;
+}
+
 export function markSceneReady() {
   if (ready) return;
   ready = true;

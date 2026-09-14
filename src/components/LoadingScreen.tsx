@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CrestMark from "@/components/global/CrestMark";
-import { setSceneRevealed } from "@/components/3d/scene-ready";
+import { isSceneReady, onSceneReady, resetSceneReady, setSceneRevealed } from "@/components/3d/scene-ready";
 import {
   fullPreload,
+  isPreloadComplete,
   markPreloadComplete,
   onPreloadComplete,
   onPreloadProgress,
@@ -16,7 +17,7 @@ import {
 const MIN_MS = 900;
 
 /**
- * How long the door may be held, from navigation start.
+ * How long the door may be held, from this loader's mount.
  *
  * The progressive path — `?preload=off` — waits only for the canvas to start
  * drawing, so seven seconds is already generous. Full preload is loading every
@@ -43,9 +44,10 @@ export default function LoadingScreen() {
   const [isDone, setIsDone] = useState(false);
 
   useEffect(() => {
-    setSceneRevealed(false);
+    resetSceneReady();
     document.body.style.overflow = "hidden";
-    const sinceNav = () => performance.now();
+    const startedAt = performance.now();
+    const elapsed = () => performance.now() - startedAt;
     const full = fullPreload();
     let finishing = false;
     let finishTimer: ReturnType<typeof setTimeout> | undefined;
@@ -64,11 +66,11 @@ export default function LoadingScreen() {
     }
 
     const finish = () => {
-      if (finishing) return;
+      if (finishing || !isPreloadComplete() || !isSceneReady()) return;
       finishing = true;
       clearInterval(interval);
       setProgress(100);
-      const wait = Math.max(0, MIN_MS - sinceNav());
+      const wait = Math.max(0, MIN_MS - elapsed());
       finishTimer = setTimeout(() => {
         setIsDone(true);
         document.body.style.overflow = "unset";
@@ -86,6 +88,7 @@ export default function LoadingScreen() {
     }
 
     const unsubscribe = onPreloadComplete(finish);
+    const unsubscribeReady = onSceneReady(finish);
     const budget = full ? MAX_MS.full : MAX_MS.progressive;
 
     /**
@@ -100,11 +103,12 @@ export default function LoadingScreen() {
      */
     const failsafe = setTimeout(
       () => markPreloadComplete(),
-      Math.max(300, budget - sinceNav())
+      Math.max(300, budget - elapsed())
     );
 
     return () => {
       unsubscribe();
+      unsubscribeReady();
       unsubscribeProgress();
       clearInterval(interval);
       clearTimeout(failsafe);
@@ -119,9 +123,7 @@ export default function LoadingScreen() {
         <motion.div
           exit={{
             opacity: 0,
-            y: "-100%",
-            filter: "blur(20px)",
-            transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
+            transition: { duration: 0.6, ease: "easeOut" },
           }}
           className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-verdant-cream select-none"
         >

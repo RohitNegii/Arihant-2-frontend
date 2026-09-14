@@ -13,7 +13,7 @@ import * as THREE from "three";
 import StorySection, { MAT, GALLERY_FLOOR, STORY_GROUP } from "./StoryRooms";
 import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
 import { journeyProgress, sceneInteraction } from "@/store/scroll-store";
-import { isSceneReady, markSceneReady, onSceneReady } from "./scene-ready";
+import { isSceneReady, isSceneRevealed, markSceneReady, onSceneReady } from "./scene-ready";
 import {
   fullPreload,
   isPreloadComplete,
@@ -59,14 +59,13 @@ const MOBILE_PITCH = -0.13;
 function ReadySignal() {
   const frames = useRef(0);
   useFrame(() => {
+    // Inside Suspense: count real scene frames, after the warm-up has restored
+    // the entrance camera. An empty canvas is not ready to reveal.
+    if (FULL_PRELOAD && !isPreloadComplete()) return;
     if (frames.current > 4) return;
     if (++frames.current > 4) {
       markSceneReady();
-      // Outside the Suspense boundary, so this fires while photographs may
-      // still be loading — which is exactly what the old progressive reveal
-      // wanted. Under full preload the door is held by `ScenePrewarm` instead,
-      // which cannot mount until every one of them has landed.
-      if (!fullPreload()) markPreloadComplete();
+      if (!FULL_PRELOAD) markPreloadComplete();
     }
   });
   return null;
@@ -205,8 +204,10 @@ function ScenePrewarm() {
       if (!pending.current) {
         pending.current = true;
         unitStartedAt.current = now;
+        const compilingUnit = unit.current;
         const done = () => {
-          if (!pending.current) return;
+          // A timed-out compile can resolve while the next unit is pending.
+          if (ended.current || unit.current !== compilingUnit || !pending.current) return;
           pending.current = false;
           reportPreload("shaders", ++unit.current / total);
         };
@@ -287,22 +288,19 @@ function ResponsiveLens() {
 }
 
 /**
- * Holds the dpr ceiling only while the device can pay for it.
- *
- * The mobile tiers now ask for more pixels than they used to: a phone drawing
- * at dpr 1 into a 3x screen was rendering a third of the panel and letting the
- * compositor upscale it, which is what read as blur. That ceiling is not safe
- * on hardware we cannot test, so the frame rate decides — sustained decline
- * drops back to `Q.dpr[0]`, and after `flipflops` reversals it stays there.
+ * Choose a sustainable resolution behind the loader, then keep it fixed.
+ * Changing DPR resizes and clears the drawing buffer; repeated up/down changes
+ * make the visible scene flash and alternate between sharp and soft edges.
  */
-function AdaptiveResolution() {
-  const setDpr = useThree((state) => state.setDpr);
+function AdaptiveResolution({ onDecline }: { onDecline: () => void }) {
+  const reduceResolution = () => {
+    if (!isPreloadComplete()) onDecline();
+  };
   return (
     <PerformanceMonitor
-      flipflops={3}
-      onIncline={() => setDpr(Q.dpr[1])}
-      onDecline={() => setDpr(Q.dpr[0])}
-      onFallback={() => setDpr(Q.dpr[0])}
+      flipflops={1}
+      onDecline={reduceResolution}
+      onFallback={reduceResolution}
     />
   );
 }
@@ -319,6 +317,7 @@ function AdaptiveResolution() {
  * place is what the scroll is for anyway.
  */
 const TOUCH_MIN_Z = 10.6;
+const POINTER_TILT = 0.025;
 
 function CameraController() {
   useFrame((state, delta) => {
@@ -338,24 +337,27 @@ function CameraController() {
       step
     );
 
+    // A fixed viewpoint keeps stone, foliage and metal edges stable at rest.
+    state.camera.position.x = 0;
+    state.camera.position.y = 0.5;
+    if (!isSceneRevealed()) {
+      state.camera.rotation.set(TOUCH ? MOBILE_PITCH : 0, 0, 0);
+      return;
+    }
+
     if (sceneInteraction.hovered || sceneInteraction.focused) return;
 
     if (TOUCH) {
-      state.camera.position.x = 0;
-      state.camera.position.y = 0.5;
       state.camera.rotation.set(MOBILE_PITCH, 0, 0);
       return;
     }
 
-    const time = state.clock.getElapsedTime();
-    state.camera.position.y = 0.5 + Math.sin(time * 0.8) * 0.04;
-    state.camera.position.x = Math.cos(time * 0.4) * 0.02;
-
-    const targetMouseX = (state.pointer.x * Math.PI) / 14;
-    const targetMouseY = (state.pointer.y * Math.PI) / 14;
-
-    state.camera.rotation.y = THREE.MathUtils.lerp(state.camera.rotation.y, -targetMouseX, 0.05);
-    state.camera.rotation.x = THREE.MathUtils.lerp(state.camera.rotation.x, targetMouseY, 0.05);
+    const targetYaw = -state.pointer.x * POINTER_TILT;
+    const targetPitch = state.pointer.y * POINTER_TILT;
+    state.camera.rotation.y = Math.abs(state.camera.rotation.y - targetYaw) < 0.00001
+      ? targetYaw : THREE.MathUtils.damp(state.camera.rotation.y, targetYaw, 4, step);
+    state.camera.rotation.x = Math.abs(state.camera.rotation.x - targetPitch) < 0.00001
+      ? targetPitch : THREE.MathUtils.damp(state.camera.rotation.x, targetPitch, 4, step);
   });
 
   return null;
@@ -363,6 +365,8 @@ function CameraController() {
 
 function ShowroomCanvas() {
   const [shown, setShown] = useState(isSceneReady);
+  // Keep the selected DPR in Canvas props so a React render cannot reset it.
+  const [dpr, setDpr] = useState<number | [number, number]>(Q.dpr);
   useEffect(() => onSceneReady(() => setShown(true)), []);
 
   return (
@@ -370,10 +374,9 @@ function ShowroomCanvas() {
       <Canvas
         style={{
           opacity: shown ? 1 : 0,
-          transition: "opacity 700ms ease-out",
         }}
         camera={{ position: [0, 0.5, 76.0], fov: 45, near: 0.5, far: Q.far }}
-        dpr={Q.dpr}
+        dpr={dpr}
         gl={{
           antialias: true,
           alpha: true,
@@ -382,9 +385,8 @@ function ShowroomCanvas() {
         shadows={Q.shadows ? "percentage" : false}
       >
         <ResponsiveLens />
-        <AdaptiveResolution />
+        {!shown && <AdaptiveResolution onDecline={() => setDpr(Q.dpr[0])} />}
         <CameraController />
-        <ReadySignal />
 
         <fog attach="fog" args={[P.shell, 8, Q.fogFar]} />
 
@@ -435,6 +437,7 @@ function ShowroomCanvas() {
           {/* Inside the boundary on purpose — it must not start counting until
               every suspended texture in the six rooms above has resolved. */}
           {FULL_PRELOAD && <ScenePrewarm />}
+          <ReadySignal />
 
           {/* --- ORIGINAL EXHIBITION (disabled) ---
               The old 13-room showroom used to mount here, on the Z axis from
