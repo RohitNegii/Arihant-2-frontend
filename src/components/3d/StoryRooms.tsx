@@ -28,7 +28,7 @@ import {
   SLAB_TILE_W,
   SLAB_TILE_D,
 } from "./procedural-textures";
-import { MAX_STEP, SCROLL_DAMP, isTouchDevice, quality } from "./quality";
+import { MAX_STEP, quality } from "./quality";
 import { filmAllowed, fullPreload } from "./preload";
 import { isSceneRevealed } from "./scene-ready";
 import { journeyProgress, sceneInteraction } from "@/store/scroll-store";
@@ -388,6 +388,7 @@ function TextPlane({
   weight = "400",
   position,
   rotation,
+  renderOrder = 0,
   materialRef,
 }: {
   text: string;
@@ -399,6 +400,7 @@ function TextPlane({
   weight?: string;
   position?: [number, number, number];
   rotation?: [number, number, number];
+  renderOrder?: number;
   /** For a caller that fades the plane along with whatever it is captioning. */
   materialRef?: React.Ref<THREE.MeshBasicMaterial>;
 }) {
@@ -467,7 +469,7 @@ function TextPlane({
   useEffect(() => () => texture.dispose(), [texture]);
 
   return (
-    <mesh position={position} rotation={rotation}>
+    <mesh position={position} rotation={rotation} renderOrder={renderOrder}>
       <planeGeometry args={[width, height]} />
       <meshBasicMaterial ref={materialRef} map={texture} transparent toneMapped={false} />
     </mesh>
@@ -492,7 +494,8 @@ function GroundShadow({
       scale={[1, stretch, 1]}
       material={MAT.contact}
     >
-      <planeGeometry args={[radius * 2, radius * 2]} />
+      {/* Match the radial mask so a shadow has no rectangular corner geometry. */}
+      <circleGeometry args={[radius, 48]} />
     </mesh>
   );
 }
@@ -1101,9 +1104,10 @@ function EntranceLight() {
   );
 }
 
-const DOOR_SWING: readonly [number, number] = isTouchDevice()
-  ? [0, 0.51]
-  : [0, 0.98];
+// The welcome animation has the same width and pace on phones and desktops.
+// Keep it independent of the faster touch-camera damping used while scrolling.
+const DOOR_SWING: readonly [number, number] = [0, 0.98];
+const DOOR_OPEN_DAMP = 3.1;
 
 const ENTRANCE_TRIM = { stoneInnerX: 1.94, goldWidth: 0.06, gap: 0.01 } as const;
 // Keep the gold outside the stone's volume so their top corners cannot intersect.
@@ -1247,7 +1251,7 @@ function GrandEntrance({ z }: { z: number }) {
       leftHinge.current.rotation.y = THREE.MathUtils.damp(
         leftHinge.current.rotation.y,
         -angle,
-        SCROLL_DAMP,
+        DOOR_OPEN_DAMP,
         step
       );
     }
@@ -1255,7 +1259,7 @@ function GrandEntrance({ z }: { z: number }) {
       rightHinge.current.rotation.y = THREE.MathUtils.damp(
         rightHinge.current.rotation.y,
         angle,
-        SCROLL_DAMP,
+        DOOR_OPEN_DAMP,
         step
       );
     }
@@ -2967,7 +2971,8 @@ const MOMENTS_MAT = (() => {
 
 function MomentsCentrepiece({ map }: { map: THREE.Texture }) {
   const picture = useRef<THREE.MeshBasicMaterial>(null);
-  const caption = useRef<THREE.MeshBasicMaterial>(null);
+  const captionEyebrow = useRef<THREE.MeshBasicMaterial>(null);
+  const captionTitle = useRef<THREE.MeshBasicMaterial>(null);
   const group = useRef<THREE.Group>(null);
 
   useFrame(() => {
@@ -2977,9 +2982,14 @@ function MomentsCentrepiece({ map }: { map: THREE.Texture }) {
     if (group.current) group.current.visible = k > 0.002;
     MOMENTS_MAT.gold.opacity = k;
     MOMENTS_MAT.marble.opacity = k;
-    MOMENTS_MAT.vignette.opacity = k * 0.85;
+    // Keep the caption ground solid until the centrepiece is nearly gone. If
+    // it fades at the same rate as the picture, the film shows through behind
+    // the still-readable title during the approach to the next room.
+    MOMENTS_MAT.vignette.opacity =
+      THREE.MathUtils.smoothstep(k, 0, 0.35) * 0.94;
     if (picture.current) picture.current.opacity = k;
-    if (caption.current) caption.current.opacity = k;
+    if (captionEyebrow.current) captionEyebrow.current.opacity = k;
+    if (captionTitle.current) captionTitle.current.opacity = k;
   });
 
   return (
@@ -2992,21 +3002,43 @@ function MomentsCentrepiece({ map }: { map: THREE.Texture }) {
       <mesh position={[0, 0, -0.05]} material={MOMENTS_MAT.gold}>
         <boxGeometry args={[2.85, 3.55, 0.08]} />
       </mesh>
-      <mesh>
+      <mesh renderOrder={1}>
         <planeGeometry args={MOMENTS_FRAME} />
         <meshBasicMaterial ref={picture} map={map} transparent toneMapped={false} />
       </mesh>
-      <mesh position={[0, -1.4, 0.02]} material={MOMENTS_MAT.vignette}>
+      <mesh
+        position={[0, -1.4, 0.02]}
+        material={MOMENTS_MAT.vignette}
+        renderOrder={2}
+      >
         <planeGeometry args={[2.62, 0.9]} />
       </mesh>
+      {/* A two-level title holds up at room distance. The old single line used
+          wide tracking inside a 0.2-high texture, so shrink-to-fit reduced the
+          glyphs to a faint hairline against the dark vignette. */}
       <TextPlane
-        text="MADE FOR MOMENTS"
-        width={2.0}
-        height={0.2}
-        fontScale={0.6}
-        letterSpacing="0.35em"
-        position={[0, -1.45, 0.04]}
-        materialRef={caption}
+        text="MADE FOR"
+        width={1.55}
+        height={0.22}
+        color={P.signText}
+        fontScale={0.8}
+        letterSpacing="0.18em"
+        weight="600"
+        position={[0, -1.18, 0.04]}
+        renderOrder={3}
+        materialRef={captionEyebrow}
+      />
+      <TextPlane
+        text="MOMENTS"
+        width={2.12}
+        height={0.34}
+        color={P.signText}
+        fontScale={0.76}
+        letterSpacing="0.1em"
+        weight="600"
+        position={[0, -1.5, 0.04]}
+        renderOrder={3}
+        materialRef={captionTitle}
       />
     </group>
   );
@@ -3194,6 +3226,100 @@ const SANCTUM_GEO = archedWallGeometry(SANCTUM.width, SANCTUM.height, [
 
 /** Where the camera comes to rest, and what the room is composed for. */
 const SANCTUM_PLINTH_Z = -6.6;
+
+// Built once, like the room's other static props. All paper layers are in XY;
+// the enclosing group lays them flat on the floor without intersecting it.
+const LETTER_SHAPES = (() => {
+  const rectangle = (w: number, h: number, r: number) => {
+    const s = new THREE.Shape();
+    s.moveTo(-w / 2 + r, -h / 2);
+    s.lineTo(w / 2 - r, -h / 2);
+    s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+    s.lineTo(w / 2, h / 2 - r);
+    s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+    s.lineTo(-w / 2 + r, h / 2);
+    s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+    s.lineTo(-w / 2, -h / 2 + r);
+    s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+    return s;
+  };
+  const border = rectangle(1.09, 0.65, 0.018);
+  border.holes.push(new THREE.Path(rectangle(1.078, 0.638, 0.015).getPoints().reverse()));
+
+  const flap = new THREE.Shape();
+  flap.moveTo(-0.57, 0.34);
+  flap.lineTo(0.57, 0.34);
+  flap.lineTo(0.055, -0.055);
+  flap.quadraticCurveTo(0, -0.098, -0.055, -0.055);
+  flap.closePath();
+
+  const folds = new THREE.Shape();
+  folds.moveTo(-0.57, -0.35);
+  folds.lineTo(0.57, -0.35);
+  folds.lineTo(0, 0.065);
+  folds.closePath();
+
+  // A gently uneven edge gives the wax the character of a pressed seal.
+  const wax = new THREE.Shape();
+  for (let i = 0; i <= 48; i++) {
+    const a = (i / 48) * Math.PI * 2;
+    const r = 0.092 + Math.sin(a * 7) * 0.003 + Math.cos(a * 5) * 0.002;
+    if (i === 0) wax.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    else wax.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  wax.closePath();
+  return { body: rectangle(1.18, 0.74, 0.025), border, flap, folds, wax };
+})();
+
+function KeepsakeLetter() {
+  return (
+    <group position={[1.66, -1.5, -4.3]} rotation={[0, -0.22, 0]}>
+      {/* Above both runner layers (0.008 gold / 0.012 fabric), below the
+          envelope's underside (0.019). Coplanar gold and shadow flicker. */}
+      <GroundShadow position={[0, 0.017, 0]} radius={0.72} stretch={0.65} />
+      <group position={[0, 0.022, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh>
+          <extrudeGeometry args={[LETTER_SHAPES.body, {
+            depth: 0.014, bevelEnabled: true, bevelThickness: 0.003,
+            bevelSize: 0.003, bevelSegments: 1, steps: 1, curveSegments: 8,
+          }]} />
+          <meshStandardMaterial color={P.paper} roughness={0.95} />
+        </mesh>
+        <mesh position={[0, 0, 0.019]}>
+          <shapeGeometry args={[LETTER_SHAPES.folds]} />
+          <meshStandardMaterial color={P.silk} roughness={0.95} />
+        </mesh>
+        <mesh position={[0, 0, 0.021]}>
+          <shapeGeometry args={[LETTER_SHAPES.border]} />
+          <meshStandardMaterial color={P.goldSoft} metalness={0.45} roughness={0.5} />
+        </mesh>
+        {/* A narrow crease under the flap gives it depth without coplanar faces. */}
+        <mesh position={[0, -0.009, 0.023]}>
+          <shapeGeometry args={[LETTER_SHAPES.flap]} />
+          <meshStandardMaterial color={P.stoneWarm} roughness={1} />
+        </mesh>
+        <mesh position={[0, 0, 0.026]}>
+          <shapeGeometry args={[LETTER_SHAPES.flap]} />
+          <meshStandardMaterial color={P.paper} roughness={0.95} />
+        </mesh>
+        <group position={[0, -0.055, 0.03]}>
+          <mesh>
+            <extrudeGeometry args={[LETTER_SHAPES.wax, {
+              depth: 0.012, bevelEnabled: true, bevelThickness: 0.004,
+              bevelSize: 0.004, bevelSegments: 2, steps: 1,
+            }]} />
+            <meshStandardMaterial color={P.leather} roughness={0.42} />
+          </mesh>
+          <mesh position={[0, 0, 0.018]}>
+            <torusGeometry args={[0.069, 0.003, 6, 32]} />
+            <meshStandardMaterial color={P.gold} metalness={0.5} roughness={0.45} />
+          </mesh>
+          <CrestMark height={0.098} position={[0, 0, 0.02]} />
+        </group>
+      </group>
+    </group>
+  );
+}
 
 function YoursForever({ z }: { z: number }) {
   const lidRef = useRef<THREE.Group>(null);
@@ -3541,20 +3667,7 @@ function YoursForever({ z }: { z: number }) {
         </mesh>
       </group>
 
-      <group position={[1.66, -1.44, -4.3]} rotation={[-1.35, -0.3, 0.06]}>
-        <mesh material={MAT.paper}>
-          <planeGeometry args={[1.1, 0.82]} />
-        </mesh>
-        <mesh position={[0, 0, 0.004]} material={MAT.goldSoft}>
-          <ringGeometry args={[0.44, 0.455, 4, 1]} />
-        </mesh>
-        <mesh position={[0, -0.02, 0.02]} rotation={[Math.PI / 2, 0, 0]} material={MAT.wax}>
-          <cylinderGeometry args={[0.1, 0.1, 0.03, 16]} />
-        </mesh>
-        <mesh position={[0, -0.02, 0.04]} material={MAT.gold}>
-          <torusGeometry args={[0.06, 0.008, 6, 18]} />
-        </mesh>
-      </group>
+      <KeepsakeLetter />
 
       {/* Motes in the shaft. Already off on the tier that cannot afford them. */}
       {QUALITY.sparkles > 0 && (

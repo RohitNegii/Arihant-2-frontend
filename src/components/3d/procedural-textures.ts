@@ -216,11 +216,15 @@ export function contactShadowMap(): THREE.Texture | null {
   const canvas = makeCanvas(S);
   const ctx = canvas.getContext("2d")!;
   const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
-  g.addColorStop(0, "rgba(255,255,255,1)");
-  g.addColorStop(0.3, "rgba(255,255,255,0.92)");
-  g.addColorStop(0.62, "rgba(255,255,255,0.42)");
-  g.addColorStop(0.85, "rgba(255,255,255,0.11)");
-  g.addColorStop(1, "rgba(255,255,255,0)");
+  // Three's alphaMap samples green, not alpha. A transparent white gradient
+  // leaves green near 255 across the mask and produces hard, patchy shadows
+  // whose edges vary with canvas unpremultiplication on different devices.
+  // Opaque grayscale stores the falloff in the channel the shader reads.
+  g.addColorStop(0, "rgb(255,255,255)");
+  g.addColorStop(0.3, "rgb(235,235,235)");
+  g.addColorStop(0.62, "rgb(107,107,107)");
+  g.addColorStop(0.85, "rgb(28,28,28)");
+  g.addColorStop(1, "rgb(0,0,0)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, S, S);
 

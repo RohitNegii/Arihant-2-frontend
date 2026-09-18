@@ -13,6 +13,11 @@ import { useCartStore } from "../../store/cartStore";
 import CartDrawer from "../global/CartDrawer";
 import { useScrollStore } from "../../store/scroll-store";
 
+// Darken the existing gold with the brand ink for readable active/hover text.
+const navigationColor = (active: boolean) => active
+  ? "text-[var(--nav-accent)]"
+  : "text-verdant-emerald hover:text-[var(--nav-accent)]";
+
 export default function Navbar() {
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
@@ -69,7 +74,7 @@ export default function Navbar() {
   const isContactActive = pathname === "/contact";
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top)] transition-all duration-300">
+    <header className="fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top)] transition-all duration-300 [--nav-accent:color-mix(in_srgb,var(--color-secondary)_45%,var(--color-primary))]">
       <motion.nav
         aria-label="Main"
         // `initial` must not depend on prefersReducedMotion: the hook reports
@@ -82,8 +87,8 @@ export default function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.8, ease: "easeOut" }}
         className={`w-full transition-all duration-500 ${isScrolled
-          ? "py-3 bg-[var(--color-background)]/60 backdrop-blur-xl border-b border-verdant-gold/15 shadow-[0_8px_32px_rgba(var(--color-primary-rgb),0.04)]"
-          : "py-5 bg-[var(--color-background)]/20 backdrop-blur-md border-b border-verdant-gold/5"
+          ? "py-3 bg-verdant-cream/95 backdrop-blur-xl border-b border-verdant-gold/20 shadow-[0_8px_32px_rgba(var(--color-primary-rgb),0.04)]"
+          : "py-5 bg-verdant-cream/95 backdrop-blur-md border-b border-verdant-gold/15"
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 flex justify-between items-center">
@@ -102,17 +107,17 @@ export default function Navbar() {
                 scale down with the viewport now, and it may not wrap in any
                 case: a house name that breaks mid-word is worse than a small
                 one. */}
-            <span className="font-serif text-[13px] sm:text-base md:text-lg tracking-wide whitespace-nowrap font-light text-verdant-emerald group-hover:text-verdant-gold transition-colors duration-300">
+            <span className="font-serif text-sm sm:text-lg lg:text-xl tracking-wide whitespace-nowrap font-bold text-verdant-emerald group-hover:text-[var(--nav-accent)] transition-colors duration-300">
               GEETEJ VIRAASAT
 
             </span>
           </Link>
 
           {/* Desktop Navigation Links (Clean and spacious) */}
-          <div className="hidden md:flex items-center gap-6 lg:gap-10">
+          <div className="hidden md:flex items-center gap-4 lg:gap-8">
             <Link
               href="/"
-              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isHomeActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+              className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isHomeActive)
                 }`}
             >
               Home
@@ -126,7 +131,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/products"
-              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isCollectionsActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+              className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isCollectionsActive)
                 }`}
             >
               Collections
@@ -141,7 +146,7 @@ export default function Navbar() {
             {user && (
               <Link
                 href="/orders"
-                className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isOrdersActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+                className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isOrdersActive)
                   }`}
               >
                 Orders
@@ -156,7 +161,7 @@ export default function Navbar() {
             )}
             <Link
               href="/contact"
-              className={`hover-target relative text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold py-2 ${isContactActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+              className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isContactActive)
                 }`}
             >
               Contact
@@ -171,9 +176,7 @@ export default function Navbar() {
             {/* Legal Dropdown */}
             <div className="relative group/dropdown py-2">
               <button
-                className={`hover-target flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase transition-all duration-300 font-bold cursor-pointer ${pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy"
-                  ? "text-verdant-gold"
-                  : "text-verdant-emerald/75 hover:text-verdant-gold"
+                className={`hover-target flex items-center gap-1 text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold cursor-pointer ${navigationColor(pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy")
                   }`}
               >
                 Legal
@@ -182,21 +185,21 @@ export default function Navbar() {
               <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 bg-[var(--color-background)]/95 backdrop-blur-xl border border-verdant-gold/15 rounded-xl shadow-xl py-2 opacity-0 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:pointer-events-auto transition-all duration-300 transform scale-95 group-hover/dropdown:scale-100 origin-top">
                 <Link
                   href="/privacy-policy"
-                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${pathname === "/privacy-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                  className={`block px-4 py-2.5 text-[11px] tracking-[0.1em] uppercase font-bold hover:bg-verdant-gold/10 transition-colors ${navigationColor(pathname === "/privacy-policy")
                     }`}
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   href="/terms-of-use"
-                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${pathname === "/terms-of-use" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                  className={`block px-4 py-2.5 text-[11px] tracking-[0.1em] uppercase font-bold hover:bg-verdant-gold/10 transition-colors ${navigationColor(pathname === "/terms-of-use")
                     }`}
                 >
                   Terms of Use
                 </Link>
                 <Link
                   href="/refund-policy"
-                  className={`block px-4 py-2.5 text-[9px] tracking-[0.15em] uppercase font-bold hover:bg-verdant-gold/10 hover:text-verdant-gold transition-colors ${pathname === "/refund-policy" ? "text-verdant-gold bg-verdant-gold/5" : "text-verdant-emerald/75"
+                  className={`block px-4 py-2.5 text-[11px] tracking-[0.1em] uppercase font-bold hover:bg-verdant-gold/10 transition-colors ${navigationColor(pathname === "/refund-policy")
                     }`}
                 >
                   Refund Policy
@@ -273,7 +276,7 @@ export default function Navbar() {
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
               aria-label={isOpen ? "Close menu" : "Open menu"}
-              className="hover-target flex items-center justify-center w-11 h-11 text-verdant-emerald/80 hover:text-verdant-emerald transition-colors"
+              className="hover-target flex items-center justify-center w-11 h-11 text-verdant-emerald hover:text-[var(--nav-accent)] transition-colors"
             >
               {isOpen ? (
                 <X aria-hidden className="w-6 h-6" />
@@ -325,7 +328,7 @@ export default function Navbar() {
                 <Link
                   href="/"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isHomeActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isHomeActive)
                     }`}
                 >
                   Home
@@ -333,7 +336,7 @@ export default function Navbar() {
                 <Link
                   href="/products"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isCollectionsActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isCollectionsActive)
                     }`}
                 >
                   Collections
@@ -342,7 +345,7 @@ export default function Navbar() {
                   <Link
                     href="/orders"
                     onClick={() => setIsOpen(false)}
-                    className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isOrdersActive ? "text-verdant-gold" : "text-verdant-emerald/75 hover:text-verdant-gold"
+                    className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isOrdersActive)
                       }`}
                   >
                     Orders
@@ -351,7 +354,7 @@ export default function Navbar() {
                 <Link
                   href="/contact"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${isContactActive ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isContactActive)
                     }`}
                 >
                   Contact
@@ -359,7 +362,7 @@ export default function Navbar() {
                 <Link
                   href="/privacy-policy"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${pathname === "/privacy-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(pathname === "/privacy-policy")
                     }`}
                 >
                   Privacy Policy
@@ -367,7 +370,7 @@ export default function Navbar() {
                 <Link
                   href="/terms-of-use"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${pathname === "/terms-of-use" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(pathname === "/terms-of-use")
                     }`}
                 >
                   Terms of Use
@@ -375,7 +378,7 @@ export default function Navbar() {
                 <Link
                   href="/refund-policy"
                   onClick={() => setIsOpen(false)}
-                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${pathname === "/refund-policy" ? "text-verdant-gold" : "text-verdant-emerald/70 hover:text-verdant-gold"
+                  className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(pathname === "/refund-policy")
                     }`}
                 >
                   Refund Policy
