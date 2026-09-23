@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useShowroomStore } from "@/store/showroom-store";
 import { Menu, X, ArrowRight, User, LogOut, ShoppingBag } from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -63,6 +64,16 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    useShowroomStore.getState().setMenuOpen(isOpen);
+    return () => useShowroomStore.getState().setMenuOpen(false);
+  }, [isOpen]);
+
+  const handleNavigate = (href: string) => {
+    setIsOpen(false);
+    if (href !== pathname) useShowroomStore.getState().beginNavigation(pathname);
+  };
+
   const handleSignOut = () => {
     logout();
     setIsOpen(false);
@@ -74,7 +85,7 @@ export default function Navbar() {
   const isContactActive = pathname === "/contact";
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top)] transition-all duration-300 [--nav-accent:color-mix(in_srgb,var(--color-secondary)_45%,var(--color-primary))]">
+    <header className="pointer-events-auto fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top)] transition-all duration-300 [--nav-accent:color-mix(in_srgb,var(--color-secondary)_45%,var(--color-primary))]">
       <motion.nav
         aria-label="Main"
         // `initial` must not depend on prefersReducedMotion: the hook reports
@@ -93,7 +104,7 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 flex justify-between items-center">
           {/* Logo */}
-          <Link href="/" className="hover-target flex items-center gap-2 group">
+          <Link href="/" onNavigate={() => handleNavigate("/")} className="hover-target flex items-center gap-2 group">
             {/* The house mark. The pale gradient this used to sit in had to
                 go with the sparkle: the crest is ivory and gold and would have
                 vanished into it. */}
@@ -116,7 +127,7 @@ export default function Navbar() {
           {/* Desktop Navigation Links (Clean and spacious) */}
           <div className="hidden md:flex items-center gap-4 lg:gap-8">
             <Link
-              href="/"
+              href="/" onNavigate={() => handleNavigate("/")}
               className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isHomeActive)
                 }`}
             >
@@ -130,7 +141,7 @@ export default function Navbar() {
               )}
             </Link>
             <Link
-              href="/products"
+              href="/products" onNavigate={() => handleNavigate("/products")}
               className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isCollectionsActive)
                 }`}
             >
@@ -145,7 +156,7 @@ export default function Navbar() {
             </Link>
             {user && (
               <Link
-                href="/orders"
+                href="/orders" onNavigate={() => handleNavigate("/orders")}
                 className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isOrdersActive)
                   }`}
               >
@@ -160,7 +171,7 @@ export default function Navbar() {
               </Link>
             )}
             <Link
-              href="/contact"
+              href="/contact" onNavigate={() => handleNavigate("/contact")}
               className={`hover-target relative text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold py-2 ${navigationColor(isContactActive)
                 }`}
             >
@@ -184,21 +195,21 @@ export default function Navbar() {
               </button>
               <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 bg-[var(--color-background)]/95 backdrop-blur-xl border border-verdant-gold/15 rounded-xl shadow-xl py-2 opacity-0 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:pointer-events-auto transition-all duration-300 transform scale-95 group-hover/dropdown:scale-100 origin-top">
                 <Link
-                  href="/privacy-policy"
+                  href="/privacy-policy" onNavigate={() => handleNavigate("/privacy-policy")}
                   className={`block px-4 py-2.5 text-[11px] tracking-[0.1em] uppercase font-bold hover:bg-verdant-gold/10 transition-colors ${navigationColor(pathname === "/privacy-policy")
                     }`}
                 >
                   Privacy Policy
                 </Link>
                 <Link
-                  href="/terms-of-use"
+                  href="/terms-of-use" onNavigate={() => handleNavigate("/terms-of-use")}
                   className={`block px-4 py-2.5 text-[11px] tracking-[0.1em] uppercase font-bold hover:bg-verdant-gold/10 transition-colors ${navigationColor(pathname === "/terms-of-use")
                     }`}
                 >
                   Terms of Use
                 </Link>
                 <Link
-                  href="/refund-policy"
+                  href="/refund-policy" onNavigate={() => handleNavigate("/refund-policy")}
                   className={`block px-4 py-2.5 text-[11px] tracking-[0.1em] uppercase font-bold hover:bg-verdant-gold/10 transition-colors ${navigationColor(pathname === "/refund-policy")
                     }`}
                 >
@@ -317,6 +328,7 @@ export default function Navbar() {
                 </span>
                 <button
                   onClick={() => setIsOpen(false)}
+                  aria-label="Close menu"
                   className="w-10 h-10 flex items-center justify-center rounded-full border border-verdant-emerald/10 text-verdant-emerald/70 hover:text-verdant-emerald hover:bg-verdant-emerald/5 transition-all cursor-pointer"
                 >
                   <X className="w-5 h-5" />
@@ -326,7 +338,7 @@ export default function Navbar() {
               {/* Drawer Navigation Links */}
               <div className="flex flex-col gap-6 text-sm">
                 <Link
-                  href="/"
+                  href="/" onNavigate={() => handleNavigate("/")}
                   onClick={() => setIsOpen(false)}
                   className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isHomeActive)
                     }`}
@@ -334,7 +346,7 @@ export default function Navbar() {
                   Home
                 </Link>
                 <Link
-                  href="/products"
+                  href="/products" onNavigate={() => handleNavigate("/products")}
                   onClick={() => setIsOpen(false)}
                   className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isCollectionsActive)
                     }`}
@@ -343,7 +355,7 @@ export default function Navbar() {
                 </Link>
                 {user && (
                   <Link
-                    href="/orders"
+                    href="/orders" onNavigate={() => handleNavigate("/orders")}
                     onClick={() => setIsOpen(false)}
                     className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isOrdersActive)
                       }`}
@@ -352,7 +364,7 @@ export default function Navbar() {
                   </Link>
                 )}
                 <Link
-                  href="/contact"
+                  href="/contact" onNavigate={() => handleNavigate("/contact")}
                   onClick={() => setIsOpen(false)}
                   className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(isContactActive)
                     }`}
@@ -360,7 +372,7 @@ export default function Navbar() {
                   Contact
                 </Link>
                 <Link
-                  href="/privacy-policy"
+                  href="/privacy-policy" onNavigate={() => handleNavigate("/privacy-policy")}
                   onClick={() => setIsOpen(false)}
                   className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(pathname === "/privacy-policy")
                     }`}
@@ -368,7 +380,7 @@ export default function Navbar() {
                   Privacy Policy
                 </Link>
                 <Link
-                  href="/terms-of-use"
+                  href="/terms-of-use" onNavigate={() => handleNavigate("/terms-of-use")}
                   onClick={() => setIsOpen(false)}
                   className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(pathname === "/terms-of-use")
                     }`}
@@ -376,7 +388,7 @@ export default function Navbar() {
                   Terms of Use
                 </Link>
                 <Link
-                  href="/refund-policy"
+                  href="/refund-policy" onNavigate={() => handleNavigate("/refund-policy")}
                   onClick={() => setIsOpen(false)}
                   className={`tracking-[0.15em] uppercase font-bold transition-all py-1.5 border-b border-verdant-emerald/5 ${navigationColor(pathname === "/refund-policy")
                     }`}

@@ -32,6 +32,7 @@ import { MAX_STEP, quality } from "./quality";
 import { filmAllowed, fullPreload } from "./preload";
 import { isSceneRevealed } from "./scene-ready";
 import { journeyProgress, sceneInteraction } from "@/store/scroll-store";
+import { useShowroomStore } from "@/store/showroom-store";
 import { palette } from "@/theme/palette";
 
 export const STORY_ROOM_Z = [72, 60, 48, 36, 24, 12] as const;
@@ -2860,6 +2861,8 @@ const FILM_ALWAYS_ON = fullPreload();
 function useAtelierFilm() {
   const [near, setNear] = useState(FILM_ALWAYS_ON);
   const [film, setFilm] = useState<THREE.VideoTexture | null>(null);
+  const video = useRef<HTMLVideoElement | null>(null);
+  const running = useShowroomStore((state) => state.running);
 
   useEffect(() => {
     if (FILM_ALWAYS_ON || !filmAllowed()) return;
@@ -2877,6 +2880,7 @@ function useAtelierFilm() {
     // which does not run at all when the film is always on.
     if (!near || !filmAllowed()) return;
     const el = document.createElement("video");
+    video.current = el;
     el.src = ATELIER_FILM;
     el.muted = true;
     el.loop = true;
@@ -2904,17 +2908,25 @@ function useAtelierFilm() {
     el.addEventListener("loadedmetadata", onMeta, { once: true });
     // Muted and inline, so autoplay is allowed; if a browser refuses anyway the
     // still is already on the frame and stays there.
-    void el.play().catch(() => {});
+    if (useShowroomStore.getState().running) void el.play().catch(() => {});
 
     return () => {
       el.removeEventListener("loadedmetadata", onMeta);
       el.pause();
+      video.current = null;
       el.removeAttribute("src");
       el.load();
       tex.dispose();
       setFilm(null);
     };
   }, [near]);
+
+  useEffect(() => {
+    const el = video.current;
+    if (!el) return;
+    if (running) void el.play().catch(() => {});
+    else el.pause();
+  }, [running, near]);
 
   return film;
 }

@@ -319,7 +319,11 @@ function AdaptiveResolution({ onDecline }: { onDecline: () => void }) {
 const TOUCH_MIN_Z = 10.6;
 const POINTER_TILT = 0.025;
 
-function CameraController() {
+function CameraController({ active }: { active: boolean }) {
+  const needsSnap = useRef(false);
+  useEffect(() => {
+    if (!active) needsSnap.current = true;
+  }, [active]);
   useFrame((state, delta) => {
     // `ScenePrewarm` owns the camera during the warm-up fly-through; damping it
     // back toward the entrance between stops would leave the pass circling the
@@ -330,12 +334,13 @@ function CameraController() {
     const travelled = 76.0 - journeyProgress() * 68;
     const targetZ = TOUCH ? Math.max(travelled, TOUCH_MIN_Z) : travelled;
 
-    state.camera.position.z = THREE.MathUtils.damp(
+    state.camera.position.z = needsSnap.current ? targetZ : THREE.MathUtils.damp(
       state.camera.position.z,
       targetZ,
       SCROLL_DAMP,
       step
     );
+    needsSnap.current = false;
 
     // A fixed viewpoint keeps stone, foliage and metal edges stable at rest.
     state.camera.position.x = 0;
@@ -363,15 +368,18 @@ function CameraController() {
   return null;
 }
 
-function ShowroomCanvas() {
+function ShowroomCanvas({ active, running }: { active: boolean; running: boolean }) {
   const [shown, setShown] = useState(isSceneReady);
-  // Keep the selected DPR in Canvas props so a React render cannot reset it.
-  const [dpr, setDpr] = useState<number | [number, number]>(Q.dpr);
+  // Allocate the sustainable Retina buffer up front on phones. Resizing an
+  // already-rendering WebGL buffer can leave WebKit's compositor blank, and
+  // starting at 3x only to drop to 2x adds avoidable GPU work during navigation.
+  const [dpr, setDpr] = useState<number | [number, number]>(TOUCH ? Q.dpr[0] : Q.dpr);
   useEffect(() => onSceneReady(() => setShown(true)), []);
 
   return (
     <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[var(--color-shell)]">
       <Canvas
+        frameloop={running ? "always" : "never"}
         style={{
           opacity: shown ? 1 : 0,
         }}
@@ -385,8 +393,8 @@ function ShowroomCanvas() {
         shadows={Q.shadows ? "percentage" : false}
       >
         <ResponsiveLens />
-        {!shown && <AdaptiveResolution onDecline={() => setDpr(Q.dpr[0])} />}
-        <CameraController />
+        {!TOUCH && !shown && <AdaptiveResolution onDecline={() => setDpr(Q.dpr[0])} />}
+        <CameraController active={active} />
 
         <fog attach="fog" args={[P.shell, 8, Q.fogFar]} />
 

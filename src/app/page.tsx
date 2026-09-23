@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
 // Only the disabled floating product card and the disabled thirteen-zone cards
 // used it — uncomment along with either of them.
 // import Image from "next/image";
@@ -13,8 +12,6 @@ import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
-import { fullPreload, preloadTextures } from "@/components/3d/preload";
-import { loadHomeMedia } from "@/content/home-media";
 import { journeyProgress, journeySpan, scrollToOffset } from "@/store/scroll-store";
 import { JEWELRY_IMAGES, type JewelryImage } from "@/content/jewelry";
 
@@ -47,10 +44,6 @@ const CATEGORIES = [
   { label: "For Her", gender: "Women", note: "Chandbalis, drops, medallions" },
   { label: "Unisex", gender: "Unisex", note: "Bands, studs, everyday pieces" },
 ] as const;
-
-const ShowroomCanvas = dynamic(() => import("@/components/3d/ShowroomCanvas"), {
-  ssr: false,
-});
 
 function goToZone(zone: number) {
   scrollToOffset(((zone + 0.25) / ZONE_COUNT) * journeySpan());
@@ -220,36 +213,6 @@ export default function Home() {
       setShowEntranceCTA(true);
     }, 2000);
     return () => clearTimeout(timer);
-  }, []);
-
-  /**
-   * Hold the canvas back until the procedural surfaces have been drawn.
-   *
-   * Not an optimisation — a race. The rooms draw those textures at module
-   * scope, so importing the 3D chunk draws all of them inside one unbroken
-   * task; the preloader draws the same ones with a paint between each, and
-   * whichever gets there first is what the visitor waits through. Mounting the
-   * canvas afterwards makes the preloader win every time, and its calls then
-   * hit a warm cache. Costs nothing on the network: `preloadTextures` imports
-   * from the same lazy chunk, so three.js is already downloading.
-   *
-   * Off full preload this resolves in the first effect pass, which is where a
-   * `ssr: false` dynamic import would have mounted anyway.
-   */
-  const [showCanvas, setShowCanvas] = useState(false);
-
-  useEffect(() => {
-    let live = true;
-    const ready = Promise.all([
-      loadHomeMedia(),
-      fullPreload() ? preloadTextures() : Promise.resolve(),
-    ]);
-    void ready.then(() => {
-      if (live) setShowCanvas(true);
-    });
-    return () => {
-      live = false;
-    };
   }, []);
 
   const zones: Zone[] = [
@@ -428,13 +391,11 @@ export default function Home() {
     <>
       <div
         data-journey
-        className="journey relative bg-[var(--color-shell)] overflow-x-clip select-none"
+        className="journey relative overflow-x-clip select-none pointer-events-none"
       >
       <LoadingScreen />
       <MouseFollower />
       <Navbar />
-
-      {showCanvas && <ShowroomCanvas />}
 
       <div className="absolute inset-x-0 top-0 bottom-10 sm:bottom-12 md:bottom-16 z-20 pointer-events-none">
         <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>

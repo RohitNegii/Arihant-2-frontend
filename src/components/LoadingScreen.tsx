@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CrestMark from "@/components/global/CrestMark";
-import { isSceneReady, onSceneReady, resetSceneReady, setSceneRevealed } from "@/components/3d/scene-ready";
+import { isSceneReady, onSceneReady, setSceneRevealed } from "@/components/3d/scene-ready";
 import {
   fullPreload,
   isPreloadComplete,
@@ -41,10 +41,12 @@ const MAX_MS = { full: 40000, progressive: 7000 };
 
 export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
-  const [isDone, setIsDone] = useState(false);
+  const [isDone, setIsDone] = useState(() => isSceneReady() && isPreloadComplete());
 
   useEffect(() => {
-    resetSceneReady();
+    // The layout retains the warmed canvas between routes. Returning home
+    // must not reset its ready signal or put another loading veil over it.
+    if (isSceneReady() && isPreloadComplete()) return;
     document.body.style.overflow = "hidden";
     const startedAt = performance.now();
     const elapsed = () => performance.now() - startedAt;
@@ -125,7 +127,7 @@ export default function LoadingScreen() {
             opacity: 0,
             transition: { duration: 0.6, ease: "easeOut" },
           }}
-          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-verdant-cream select-none"
+          className="pointer-events-auto fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-verdant-cream select-none"
         >
           <div className="flex flex-col items-center gap-8 max-w-xs w-full">
             <motion.div

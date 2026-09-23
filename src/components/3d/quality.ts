@@ -172,8 +172,8 @@ export function isTouchDevice(): boolean {
  * now, and the stutter that read as "the scene is lagging behind my finger"
  * was that difference.
  *
- * Touch runs much tighter. Lenis now synchronises touch input, but this second,
- * frame-rate-independent pass keeps the camera attached to that eased signal
+ * Touch runs much tighter. This frame-rate-independent pass keeps the camera
+ * attached to native touch scrolling
  * without making it feel delayed behind the visitor's finger.
  */
 export const SCROLL_DAMP = isTouchDevice() ? 11 : 3.1;

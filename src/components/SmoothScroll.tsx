@@ -7,18 +7,15 @@ import { useScrollStore } from "@/store/scroll-store";
 
 export default function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      window.matchMedia("(pointer: coarse)").matches
+    ) return;
 
-    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
     const lenis = new Lenis({
       duration: 0.9,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      // Native touch scrolling updates in larger steps than a wheel. Syncing
-      // touch through Lenis gives the fixed 3D camera a continuous signal while
-      // keeping direct manipulation and inertial flicks feeling responsive.
-      syncTouch: isTouchDevice,
-      syncTouchLerp: 0.075,
-      touchInertiaExponent: 1.7,
+      // Phones use native scrolling; the scene already damps camera movement.
     });
     useScrollStore.getState().setLenis(lenis);
 

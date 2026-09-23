@@ -13,7 +13,7 @@ export function setSceneRevealed(value: boolean) {
   revealed = value;
 }
 
-/** A return visit must wait for the new canvas to draw, too. */
+/** Reset only when replacing the canvas; route changes retain the ready scene. */
 export function resetSceneReady() {
   ready = false;
   revealed = false;

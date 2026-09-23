@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
+import ShowroomHost from "@/components/ShowroomHost";
 import DevConsoleFilter from "@/components/DevConsoleFilter";
 import AuthInitializer from "@/components/AuthInitializer";
 import { Toaster } from "sonner";
@@ -71,7 +72,10 @@ export default function RootLayout({
         <DevConsoleFilter />
         <AuthInitializer />
         <Toaster position="top-right" richColors />
-        <SmoothScroll>{children}</SmoothScroll>
+        <SmoothScroll>
+          <ShowroomHost />
+          {children}
+        </SmoothScroll>
       </body>
     </html>
   );
