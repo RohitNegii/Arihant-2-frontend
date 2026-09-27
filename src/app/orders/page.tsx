@@ -7,7 +7,7 @@ import { Loader2, Package, ArrowLeft, ArrowRight, X, MapPin, Truck, Calendar, Cr
 import CrestMark from "@/components/global/CrestMark";
 import { getMyOrdersApi } from "../../services/checkout";
 import { useAuthStore } from "../../store/authStore";
-import { useScrollStore } from "../../store/scroll-store";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { getImageUrl } from "../../utils/api";
 
 const isVideoUrl = (url: string) => {
@@ -21,7 +21,6 @@ import Footer from "@/components/sections/Footer";
 export default function MyOrdersPage() {
   const router = useRouter();
   const { user, isAuthenticated, isInitialized } = useAuthStore();
-  const { lenis } = useScrollStore();
   const authLoading = !isInitialized;
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,20 +36,7 @@ export default function MyOrdersPage() {
     }
   }, [isAuthenticated, authLoading]);
 
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (selectedOrder) {
-      document.body.style.overflow = "hidden";
-      lenis?.stop();
-    } else {
-      document.body.style.overflow = "unset";
-      lenis?.start();
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-      lenis?.start();
-    };
-  }, [selectedOrder, lenis]);
+  useScrollLock(selectedOrder !== null);
 
   const fetchOrders = async () => {
     setLoading(true);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CrestMark from "@/components/global/CrestMark";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { isSceneReady, onSceneReady, setSceneRevealed } from "@/components/3d/scene-ready";
 import {
   fullPreload,
@@ -42,12 +43,12 @@ const MAX_MS = { full: 40000, progressive: 7000 };
 export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [isDone, setIsDone] = useState(() => isSceneReady() && isPreloadComplete());
+  useScrollLock(!isDone);
 
   useEffect(() => {
-    // The layout retains the warmed canvas between routes. Returning home
-    // must not reset its ready signal or put another loading veil over it.
-    if (isSceneReady() && isPreloadComplete()) return;
-    document.body.style.overflow = "hidden";
+    // Readiness can change between render and this effect, or while the
+    // route is hidden. Always settle local state, even for a warmed canvas.
+    const alreadyReady = isSceneReady() && isPreloadComplete();
     const startedAt = performance.now();
     const elapsed = () => performance.now() - startedAt;
     const full = fullPreload();
@@ -67,16 +68,15 @@ export default function LoadingScreen() {
       }, 90);
     }
 
-    const finish = () => {
-      if (finishing || !isPreloadComplete() || !isSceneReady()) return;
+    const finish = (force = false) => {
+      if (finishing || (!force && (!isPreloadComplete() || !isSceneReady()))) return;
       finishing = true;
       clearInterval(interval);
       setProgress(100);
-      const wait = Math.max(0, MIN_MS - elapsed());
+      const wait = alreadyReady ? 0 : Math.max(0, MIN_MS - elapsed()) + 250;
       finishTimer = setTimeout(() => {
         setIsDone(true);
-        document.body.style.overflow = "unset";
-      }, wait + 250);
+      }, wait);
     };
 
     // Started here rather than from the canvas so the photographs download
@@ -104,7 +104,12 @@ export default function LoadingScreen() {
      * reached from the same subscription as a real completion.
      */
     const failsafe = setTimeout(
-      () => markPreloadComplete(),
+      () => {
+        markPreloadComplete();
+        // A suspended/lost WebGL context may never produce ReadySignal.
+        // Keep navigation usable even when the scene cannot finish drawing.
+        finish(true);
+      },
       Math.max(300, budget - elapsed())
     );
 
@@ -115,7 +120,6 @@ export default function LoadingScreen() {
       clearInterval(interval);
       clearTimeout(failsafe);
       clearTimeout(finishTimer);
-      document.body.style.overflow = "unset";
     };
   }, []);
 

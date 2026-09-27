@@ -11,9 +11,9 @@ const isVideoUrl = (url: string) => {
   const ext = url.split(".").pop()?.toLowerCase();
   return ["mp4", "webm", "ogg", "mov"].includes(ext || "");
 };
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useScrollStore } from "../../store/scroll-store";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 export default function CartDrawer() {
   const router = useRouter();
@@ -34,22 +34,7 @@ export default function CartDrawer() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
 
-  const { lenis } = useScrollStore();
-
-  // Lock body scroll when cart drawer is open to prevent parent page scroll bleed
-  useEffect(() => {
-    if (isCartOpen) {
-      document.body.style.overflow = "hidden";
-      lenis?.stop();
-    } else {
-      document.body.style.overflow = "unset";
-      lenis?.start();
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-      lenis?.start();
-    };
-  }, [isCartOpen, lenis]);
+  useScrollLock(isCartOpen);
 
   const formatPrice = (val: number) => {
     return `₹${val.toLocaleString("en-IN")}`;

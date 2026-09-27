@@ -12,7 +12,7 @@ import SignupForm from "../global/SignupForm";
 import { useAuthStore } from "../../store/authStore";
 import { useCartStore } from "../../store/cartStore";
 import CartDrawer from "../global/CartDrawer";
-import { useScrollStore } from "../../store/scroll-store";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 // Darken the existing gold with the brand ink for readable active/hover text.
 const navigationColor = (active: boolean) => active
@@ -40,22 +40,7 @@ export default function Navbar() {
   // Cart Context State
   const { cartCount, setCartOpen } = useCartStore();
 
-  const { lenis } = useScrollStore();
-
-  // Lock body scroll when mobile menu or auth modal is open to prevent parent page scroll bleed
-  useEffect(() => {
-    if (isOpen || showAuthModal) {
-      document.body.style.overflow = "hidden";
-      lenis?.stop();
-    } else {
-      document.body.style.overflow = "unset";
-      lenis?.start();
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-      lenis?.start();
-    };
-  }, [isOpen, showAuthModal, lenis]);
+  useScrollLock(isOpen || showAuthModal);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);

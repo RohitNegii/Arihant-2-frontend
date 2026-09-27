@@ -55,7 +55,9 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
-  overflow-x: hidden;
+  /* Clip horizontal decoration without creating another scroll container.
+     Native iOS scrolling and the camera both use the document scroll offset. */
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

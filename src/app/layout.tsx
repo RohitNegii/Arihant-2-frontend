@@ -22,7 +22,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://geetviraasat.com"),
+  metadataBase: new URL("https://geetejviraasat.com"),
   title: {
     default: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
     template: "%s | GEETEJ VIRAASAT",
@@ -61,9 +61,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans overflow-x-hidden`}
+      className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans`}
     >
-      <body className="min-h-full flex flex-col bg-verdant-cream text-verdant-emerald overflow-x-hidden">
+      <body className="min-h-full flex flex-col bg-verdant-cream text-verdant-emerald">
 
         <style href="palette" precedence="high">
           {paletteCss()}
