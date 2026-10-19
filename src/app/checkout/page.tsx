@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Truck, Loader2, CreditCard, ArrowLeft, AlertCircle } from "lucide-react";
+import { ShieldCheck, Truck, Loader2, ArrowLeft, AlertCircle, MessageCircle } from "lucide-react";
 import { useCartStore } from "../../store/cartStore";
 import { useAuthStore } from "../../store/authStore";
 import { createCheckoutOrderApi, AddressDetails } from "../../services/checkout";
@@ -141,7 +141,7 @@ function CheckoutPageContent() {
     setLoading(true);
 
     try {
-      // 1. Call backend to create Order & Pending Payment
+      // 1. Call backend to create Order under Pending Confirmation & generate WhatsApp message
       const shippingAddress: AddressDetails = {
         name,
         addressLine1,
@@ -155,33 +155,27 @@ function CheckoutPageContent() {
 
       const checkoutRes = await createCheckoutOrderApi(shippingAddress);
 
-      if (!checkoutRes.success || !checkoutRes.ccavenueData) {
-        setError("Failed to initialize order payment. Please try again.");
+      if (!checkoutRes.success || !checkoutRes.order) {
+        setError("Failed to create order. Please check your details and try again.");
         setLoading(false);
         return;
       }
 
-      // 2. Submit hidden form to CCAvenue gateway for redirection
-      const { paymentUrl, encRequest, accessCode } = checkoutRes.ccavenueData;
+      // 2. Clear frontend cart
+      useCartStore.getState().clearCart();
 
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = paymentUrl;
+      // 3. Open WhatsApp link if available
+      if (checkoutRes.whatsappUrl) {
+        try {
+          window.open(checkoutRes.whatsappUrl, "_blank", "noopener,noreferrer");
+        } catch (e) {
+          console.warn("Could not open WhatsApp automatically:", e);
+        }
+      }
 
-      const encRequestInput = document.createElement("input");
-      encRequestInput.type = "hidden";
-      encRequestInput.name = "encRequest";
-      encRequestInput.value = encRequest;
-      form.appendChild(encRequestInput);
-
-      const accessCodeInput = document.createElement("input");
-      accessCodeInput.type = "hidden";
-      accessCodeInput.name = "access_code";
-      accessCodeInput.value = accessCode;
-      form.appendChild(accessCodeInput);
-
-      document.body.appendChild(form);
-      form.submit();
+      // 4. Navigate to order-success page with orderId & waUrl
+      const successUrl = `/order-success?orderId=${checkoutRes.order.id}&waUrl=${encodeURIComponent(checkoutRes.whatsappUrl || "")}`;
+      router.push(successUrl);
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || err.message || "Checkout initiation failed. Please try again.");
@@ -396,12 +390,12 @@ function CheckoutPageContent() {
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Initiating Payment...
+                      Creating Order & Opening WhatsApp...
                     </>
                   ) : (
                     <>
-                      <ShieldCheck className="w-4.5 h-4.5" />
-                      Proceed to Pay {`₹${grandTotal.toLocaleString("en-IN")}`}
+                      <MessageCircle className="w-4.5 h-4.5" />
+                      Confirm & Send via WhatsApp {`₹${grandTotal.toLocaleString("en-IN")}`}
                     </>
                   )}
                 </button>
@@ -525,7 +519,7 @@ function CheckoutPageContent() {
               {/* Checkout features badge */}
               <div className="flex items-center gap-2 justify-center mt-6 pt-6 border-t border-verdant-emerald/10 text-[9px] uppercase tracking-wider font-bold text-verdant-emerald/50">
                 <ShieldCheck className="w-4 h-4 text-verdant-gold" />
-                <span>256-bit Secure SSL Connection via CCAvenue</span>
+                <span>Order Registration & WhatsApp Direct Confirmation</span>
               </div>
             </div>
           </div>

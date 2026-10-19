@@ -18,14 +18,15 @@ export interface CheckoutResponse {
     orderNumber: string;
     grandTotal: number;
     subtotal: number;
-    taxAmount: number;
-    shippingAmount: number;
+    discountAmount: number;
+    orderStatus: string;
+    items: any[];
+    shippingAddress: AddressDetails;
+    createdAt?: string;
   };
-  ccavenueData?: {
-    encRequest: string;
-    accessCode: string;
-    paymentUrl: string;
-  };
+  whatsappNumber: string;
+  whatsappUrl: string;
+  messageText: string;
 }
 
 export const createCheckoutOrderApi = async (shippingAddress: AddressDetails): Promise<CheckoutResponse> => {

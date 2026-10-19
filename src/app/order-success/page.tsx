@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, ShoppingBag, Loader2, ArrowRight, Home, Calendar, Truck } from "lucide-react";
+import { Check, ShoppingBag, Loader2, ArrowRight, MessageCircle, ExternalLink, ShieldCheck } from "lucide-react";
 import { getOrderDetailsApi } from "../../services/checkout";
 import { getImageUrl } from "../../utils/api";
 import Navbar from "@/components/sections/Navbar";
@@ -19,6 +19,7 @@ function OrderSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
+  const queryWaUrl = searchParams.get("waUrl");
 
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,6 +50,14 @@ function OrderSuccessContent() {
     }
   };
 
+  const whatsappUrl = queryWaUrl ? decodeURIComponent(queryWaUrl) : (order?.whatsappUrl || "");
+
+  const handleOpenWhatsApp = () => {
+    if (whatsappUrl) {
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-verdant-cream py-20 flex flex-col items-center justify-center gap-3">
@@ -74,13 +83,42 @@ function OrderSuccessContent() {
           <Check className="w-7 h-7" />
         </motion.div>
 
-        <span className="text-[9px] tracking-[0.3em] uppercase text-verdant-gold font-bold font-mono">transaction complete</span>
+        <span className="text-[9px] tracking-[0.3em] uppercase text-verdant-gold font-bold font-mono">
+          Order Created &bull; Awaiting WhatsApp Confirmation
+        </span>
         <h1 className="font-serif text-3xl md:text-5xl font-light tracking-wide mt-2 mb-4">
           Order Placed Successfully
         </h1>
-        <p className="text-xs text-verdant-emerald/60 max-w-md mx-auto mb-10 leading-relaxed font-sans">
-          Thank you for choosing Geetej Viraasat. Your payment has been securely verified, and our master artisans have begun preparing your selection.
+        <p className="text-xs text-verdant-emerald/75 max-w-lg mx-auto mb-6 leading-relaxed font-sans">
+          Thank you for choosing Geetej Viraasat. Your order is registered in our database under{" "}
+          <strong className="text-verdant-emerald font-semibold">Pending Confirmation</strong>. Please ensure the pre-filled message is sent to our atelier via WhatsApp to confirm your bespoke order.
         </p>
+
+        {/* Prominent WhatsApp Confirmation Card */}
+        {whatsappUrl && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="p-6 rounded-3xl bg-gradient-to-br from-emerald-900/10 via-emerald-800/5 to-transparent border border-emerald-600/25 mb-8 text-left shadow-sm flex flex-col sm:flex-row items-center justify-between gap-5"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider">
+                <MessageCircle className="w-4.5 h-4.5 text-emerald-600" />
+                <span>Confirm Order via WhatsApp</span>
+              </div>
+              <p className="text-xs text-verdant-emerald/80 max-w-md font-sans">
+                If WhatsApp did not open automatically, click the button to send the pre-filled message with your order ID and items.
+              </p>
+            </div>
+            <button
+              onClick={handleOpenWhatsApp}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-lg active:scale-97 text-[10px] tracking-widest uppercase font-bold px-7 py-3.5 rounded-full transition-all duration-300 flex items-center gap-2 shrink-0 cursor-pointer shadow-md font-mono"
+            >
+              <span>Open WhatsApp</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
 
         {order ? (
           <motion.div
@@ -95,19 +133,23 @@ function OrderSuccessContent() {
                 <span className="font-bold text-verdant-emerald text-xs font-sans">#{order.orderNumber}</span>
               </div>
               <div>
-                <span className="text-verdant-emerald/50 block uppercase">Estimate Courier dispatch</span>
-                <span className="font-bold text-verdant-emerald text-xs font-sans">2-3 Business Days</span>
+                <span className="text-verdant-emerald/50 block uppercase">Status</span>
+                <span className="font-bold text-amber-700 bg-amber-500/10 border border-amber-500/30 text-[9px] uppercase tracking-wider px-2.5 py-0.5 rounded-full inline-block mt-0.5 font-sans">
+                  {order.orderStatus || "Pending Confirmation"}
+                </span>
               </div>
               <div className="sm:text-right">
-                <span className="text-verdant-emerald/50 block uppercase">Total Paid</span>
+                <span className="text-verdant-emerald/50 block uppercase">Total Amount</span>
                 <span className="font-bold text-verdant-emerald text-xs font-sans">₹{order.grandTotal.toLocaleString("en-IN")}</span>
               </div>
             </div>
 
             {/* Purchased Items List */}
             <div className="space-y-4 mb-8">
-              <span className="text-[9px] tracking-wider uppercase text-verdant-gold font-bold font-mono block mb-2 border-b border-verdant-emerald/5 pb-1">Items in Shipment</span>
-              {order.items.map((item: any, idx: number) => (
+              <span className="text-[9px] tracking-wider uppercase text-verdant-gold font-bold font-mono block mb-2 border-b border-verdant-emerald/5 pb-1">
+                Items in Order ({order.items?.length || 0})
+              </span>
+              {order.items?.map((item: any, idx: number) => (
                 <div key={idx} className="flex gap-4 items-center">
                   <div className="w-12 h-12 rounded-lg bg-verdant-emerald/5 flex items-center justify-center p-1 shrink-0 overflow-hidden">
                     {isVideoUrl(item.image) ? (
@@ -129,7 +171,9 @@ function OrderSuccessContent() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-serif text-xs font-medium text-verdant-emerald truncate">{item.name}</h4>
-                    <p className="text-[9px] text-verdant-emerald/50 mt-0.5 font-mono">Quantity: {item.quantity}</p>
+                    <p className="text-[9px] text-verdant-emerald/50 mt-0.5 font-mono">
+                      Quantity: {item.quantity} {item.size && `&bull; Size: ${item.size}`} {item.variant && `&bull; Option: ${item.variant}`}
+                    </p>
                   </div>
                   <span className="font-serif text-xs font-semibold shrink-0 text-right">
                     ₹{(item.price * item.quantity).toLocaleString("en-IN")}
@@ -139,20 +183,20 @@ function OrderSuccessContent() {
             </div>
 
             {/* Shipment details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono text-[9px] uppercase tracking-wider text-verdant-emerald/75">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono text-[9px] uppercase tracking-wider text-verdant-emerald/75 border-t border-verdant-emerald/5 pt-4">
               <div>
-                <span className="text-verdant-gold font-bold block mb-1">Shipping Details</span>
-                <span className="text-verdant-emerald font-semibold font-sans">{order.shippingAddress.name}</span><br />
-                <span>{order.shippingAddress.addressLine1}</span><br />
-                <span>{order.shippingAddress.city}, {order.shippingAddress.state}</span><br />
-                <span>PIN: {order.shippingAddress.postalCode}</span>
+                <span className="text-verdant-gold font-bold block mb-1">Delivery Destination</span>
+                <span className="text-verdant-emerald font-semibold font-sans">{order.shippingAddress?.name}</span><br />
+                <span>{order.shippingAddress?.addressLine1}</span><br />
+                {order.shippingAddress?.addressLine2 && <span>{order.shippingAddress.addressLine2}<br /></span>}
+                <span>{order.shippingAddress?.city}, {order.shippingAddress?.state}</span><br />
+                <span>PIN: {order.shippingAddress?.postalCode}</span>
               </div>
               <div>
-                <span className="text-verdant-gold font-bold block mb-1">Billing Details</span>
-                <span className="text-verdant-emerald font-semibold font-sans">{order.billingAddress.name}</span><br />
-                <span>{order.billingAddress.addressLine1}</span><br />
-                <span>{order.billingAddress.city}, {order.billingAddress.state}</span><br />
-                <span>PIN: {order.billingAddress.postalCode}</span>
+                <span className="text-verdant-gold font-bold block mb-1">Confirmation Details</span>
+                <span className="text-verdant-emerald font-semibold font-sans">WhatsApp Direct Ordering</span><br />
+                <span>Recipient: {order.shippingAddress?.phone}</span><br />
+                <span className="text-emerald-700 font-bold block mt-1">Status: Pending Manual Confirmation</span>
               </div>
             </div>
           </motion.div>
@@ -170,7 +214,7 @@ function OrderSuccessContent() {
             onClick={() => router.push("/orders")}
             className="border border-verdant-emerald text-verdant-emerald hover:bg-verdant-emerald/5 text-[10px] tracking-widest uppercase font-bold px-8 py-3.5 rounded-full transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            Track Orders <ArrowRight className="w-4 h-4" />
+            Track in My Orders <ArrowRight className="w-4 h-4" />
           </button>
 
           <button
