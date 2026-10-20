@@ -8,7 +8,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
-import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
@@ -182,7 +181,7 @@ function ChapterDot({
 
 export default function Home() {
   const [activeZone, setActiveZone] = useState(0);
-  const [showEntranceCTA, setShowEntranceCTA] = useState(false);
+  const [showEntranceCTA] = useState(true);
   const [atFinale, setAtFinale] = useState(false);
   const [inFooter, setInFooter] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -206,13 +205,6 @@ export default function Home() {
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowEntranceCTA(true);
-    }, 2000);
-    return () => clearTimeout(timer);
   }, []);
 
   const zones: Zone[] = [
@@ -393,7 +385,6 @@ export default function Home() {
         data-journey
         className="journey relative overflow-x-clip select-none pointer-events-none"
       >
-      <LoadingScreen />
       <MouseFollower />
       <Navbar />
 

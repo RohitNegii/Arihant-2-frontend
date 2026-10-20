@@ -34,7 +34,7 @@ function Counter({ value, suffix = "" }: CounterProps) {
 
 export default function Stats() {
   const stats = [
-    { value: 5000, suffix: "+", label: "Happy Clients" },
+    { value: 5001, suffix: "+", label: "Happy Clients" },
     { value: 120, suffix: "+", label: "Exclusive Designs" },
     { value: 25, suffix: " Years", label: "Craftsmanship" },
     { value: 98, suffix: "%", label: "Customer Satisfaction" },

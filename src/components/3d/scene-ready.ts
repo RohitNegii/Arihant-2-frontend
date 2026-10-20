@@ -1,8 +1,8 @@
 "use client";
 
-let ready = false;
+let ready = true;
 let waiters: (() => void)[] = [];
-let revealed = false;
+let revealed = true;
 
 /** The loader has finished exiting, so entrance animations are now visible. */
 export function isSceneRevealed() {

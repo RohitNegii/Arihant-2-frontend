@@ -10,7 +10,11 @@ let restoreOverflow: (() => void) | undefined;
 export function acquireScrollLock(): () => void {
   const token = Symbol("scroll-lock");
   if (locks.size === 0) {
-    const elements = [document.documentElement, document.body];
+    const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    // On iOS Safari / touch devices, setting overflow: hidden on documentElement
+    // triggers an expensive full-page layout reflow and scroll metrics reset.
+    // Lock body only on touch devices so the layer tree is preserved.
+    const elements = isTouch ? [document.body] : [document.documentElement, document.body];
     const previous = elements.map((element) => ({
       value: element.style.getPropertyValue("overflow-y"),
       priority: element.style.getPropertyPriority("overflow-y"),

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star, MessageSquare, Send, Check, ShieldAlert } from "lucide-react";
+import { Star, MessageSquare, Check, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/authStore";
 import { getRequest, postRequest } from "../../utils/api";
@@ -13,7 +13,11 @@ interface ProductReviewsProps {
   initialReviews: ReviewData[];
 }
 
-export default function ProductReviews({ productId, productName, initialReviews }: ProductReviewsProps) {
+export default function ProductReviews({
+  productId,
+  productName,
+  initialReviews,
+}: ProductReviewsProps) {
   const [reviews, setReviews] = useState<ReviewData[]>(initialReviews);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
@@ -27,56 +31,63 @@ export default function ProductReviews({ productId, productName, initialReviews 
   const [canReview, setCanReview] = useState(false);
   const [checkMessage, setCheckMessage] = useState("");
 
-  // Default mock reviews matching the premium tone to act as fallback if no critiques exist yet
   const mockReviews: ReviewData[] = [
     {
       user: "mock1",
       name: "Aria Thorne",
       rating: 5,
-      comment: `Absolutely spectacular craftsmanship. The geometry of this piece catches the light in a way standard rings never do. Truly a signature addition to my jewelry collection.`,
+      comment:
+        "Absolutely spectacular craftsmanship. The geometry of this piece catches the light in a way standard jewelry never does. Truly a signature addition to my collection.",
       createdAt: "2026-05-14T00:00:00.000Z",
     },
     {
       user: "mock2",
       name: "Devon Vance",
       rating: 5,
-      comment: `Commissioned this for a bespoke wedding gift. The purity is immaculate, and the weight feels solid and rich. The packaging and delivery was perfectly secured. Excellent boutique service.`,
+      comment:
+        "Commissioned this for a bespoke wedding gift. The purity is immaculate, and the weight feels solid and rich. The packaging and delivery was perfectly secured.",
       createdAt: "2026-05-10T00:00:00.000Z",
     },
   ];
 
-  // Sync reviews when initialReviews prop changes
   useEffect(() => {
     setReviews(initialReviews);
   }, [initialReviews]);
 
-  // Check if authenticated user can write a review for this product
   useEffect(() => {
+    let mounted = true;
     const checkReviewStatus = async () => {
       if (!isAuthenticated) {
-        setCanReview(false);
-        setCheckMessage("Please log in to share your experience.");
+        if (mounted) {
+          setCanReview(false);
+          setCheckMessage("Please log in to share your experience.");
+        }
         return;
       }
       try {
         const res = await getRequest<{ success: boolean; canReview: boolean; message?: string }>(
           `/products/${productId}/can-review`
         );
-        if (res.success) {
+        if (res.success && mounted) {
           setCanReview(res.canReview);
           if (res.message) {
             setCheckMessage(res.message);
           }
         }
-      } catch (err: any) {
-        setCanReview(false);
-        setCheckMessage("Could not verify purchase status.");
+      } catch {
+        if (mounted) {
+          setCanReview(false);
+          setCheckMessage("Could not verify purchase status.");
+        }
       }
     };
 
     if (productId) {
       checkReviewStatus();
     }
+    return () => {
+      mounted = false;
+    };
   }, [productId, isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,7 +109,7 @@ export default function ProductReviews({ productId, productName, initialReviews 
         setRating(5);
         setShowForm(false);
         setSuccessMsg(true);
-        setCanReview(false); // Can't review again
+        setCanReview(false);
         setCheckMessage("You have already reviewed this product.");
         setTimeout(() => {
           setSuccessMsg(false);
@@ -107,7 +118,9 @@ export default function ProductReviews({ productId, productName, initialReviews 
         setFormError(res.message || "Failed to submit critique.");
       }
     } catch (err: any) {
-      setFormError(err.response?.data?.message || err.message || "Could not publish your critique. Please try again.");
+      setFormError(
+        err.response?.data?.message || err.message || "Could not publish your critique. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -115,48 +128,55 @@ export default function ProductReviews({ productId, productName, initialReviews 
 
   const displayReviews = reviews.length > 0 ? reviews : mockReviews;
 
-  const avgRating = displayReviews.length > 0
-    ? (displayReviews.reduce((sum, r) => sum + r.rating, 0) / displayReviews.length).toFixed(1)
-    : "5.0";
+  const avgRating =
+    displayReviews.length > 0
+      ? (displayReviews.reduce((sum, r) => sum + r.rating, 0) / displayReviews.length).toFixed(1)
+      : "5.0";
 
   return (
-    <div className="glass-card rounded-3xl p-6 md:p-8 border border-verdant-emerald/5 text-left select-none max-w-3xl mx-auto w-full">
-      <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-2">patron testimonials</span>
-      
+    <div className="glass-card rounded-3xl p-6 sm:p-8 md:p-10 border border-verdant-emerald/10 text-left select-none max-w-4xl mx-auto w-full shadow-[0_4px_25px_rgba(var(--color-primary-rgb),0.02)]">
+      <span className="text-[8px] uppercase tracking-[0.25em] text-verdant-gold font-bold font-mono block mb-2">
+        Patron Testimonials
+      </span>
+
       {/* Review summary header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-verdant-emerald/5 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 pb-6 border-b border-verdant-emerald/10 mb-8">
         <div>
-          <h3 className="font-serif text-xl md:text-2xl text-verdant-emerald font-light">
-            Customer Critiques
+          <h3 className="font-serif text-2xl md:text-3xl text-verdant-emerald font-light">
+            Customer Critiques & Ratings
           </h3>
-          <div className="flex items-center gap-2 mt-2 font-mono text-[10px]">
+          <div className="flex items-center gap-3 mt-2.5 font-mono text-[10px]">
             <div className="flex text-verdant-gold">
               {Array.from({ length: 5 }).map((_, idx) => (
                 <Star
                   key={idx}
-                  className={`w-3.5 h-3.5 ${
-                    idx < Math.round(parseFloat(avgRating)) ? "fill-verdant-gold text-verdant-gold" : "text-verdant-emerald/10"
+                  className={`w-4 h-4 ${
+                    idx < Math.round(parseFloat(avgRating))
+                      ? "fill-verdant-gold text-verdant-gold"
+                      : "text-verdant-emerald/15"
                   }`}
                 />
               ))}
             </div>
             <span className="text-xs font-bold text-verdant-emerald font-sans">
-              {avgRating} Stars ({displayReviews.length} {displayReviews.length === 1 ? "review" : "reviews"})
+              {avgRating} / 5.0 ({displayReviews.length} {displayReviews.length === 1 ? "review" : "reviews"})
             </span>
           </div>
         </div>
 
         {canReview ? (
           <button
+            type="button"
             onClick={() => setShowForm(!showForm)}
-            className="gold-gradient-bg text-black hover:scale-103 active:scale-95 text-[9px] tracking-widest uppercase font-bold px-6 py-3 rounded-full flex items-center gap-1.5 shadow-xs transition-all duration-300 cursor-pointer"
+            className="gold-gradient-bg text-black hover:scale-102 active:scale-95 text-[9px] tracking-widest uppercase font-bold px-6 py-3 rounded-full flex items-center gap-2 shadow-xs transition-all cursor-pointer"
           >
-            <MessageSquare className="w-3.5 h-3.5" /> {showForm ? "Cancel Critique" : "Submit Critique"}
+            <MessageSquare className="w-3.5 h-3.5" />
+            {showForm ? "Cancel Critique" : "Submit Critique"}
           </button>
         ) : (
-          <div className="text-[9px] tracking-wider uppercase font-bold text-verdant-emerald/40 border border-verdant-emerald/10 rounded-full px-5 py-2.5 bg-verdant-emerald/[0.02] flex items-center gap-1.5 select-none font-mono">
+          <div className="text-[9px] tracking-wider uppercase font-bold text-verdant-emerald/50 border border-verdant-emerald/10 rounded-full px-4 py-2 bg-white/40 flex items-center gap-1.5 select-none font-mono">
             <ShieldAlert className="w-3.5 h-3.5 text-verdant-gold" />
-            {isAuthenticated ? "Verified Buyers Only" : "Log In to Critiques"}
+            {isAuthenticated ? "Verified Buyers Only" : "Log In to Critique"}
           </div>
         )}
       </div>
@@ -168,7 +188,7 @@ export default function ProductReviews({ productId, productName, initialReviews 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-6 bg-verdant-success/5 border border-verdant-success/10 text-verdant-success p-4 rounded-2xl flex items-center gap-2 text-xs font-semibold"
+            className="mb-6 bg-verdant-success/10 border border-verdant-success/20 text-verdant-success p-4 rounded-2xl flex items-center gap-2 text-xs font-semibold"
           >
             <Check className="w-4 h-4 text-verdant-success shrink-0" />
             Your review has been published successfully! Thank you for sharing your feedback.
@@ -184,22 +204,22 @@ export default function ProductReviews({ productId, productName, initialReviews 
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             onSubmit={handleSubmit}
-            className="mb-8 border border-verdant-emerald/10 bg-verdant-emerald/5 p-6 rounded-2xl flex flex-col gap-4 overflow-hidden"
+            className="mb-8 border border-verdant-emerald/10 bg-white/60 p-6 sm:p-7 rounded-2xl flex flex-col gap-4 overflow-hidden shadow-xs"
           >
-            <h4 className="font-serif text-sm text-verdant-emerald uppercase tracking-wider">
-              Share Your Collection Experience
+            <h4 className="font-serif text-base text-verdant-emerald uppercase tracking-wider font-light">
+              Share Your Collection Experience with {productName}
             </h4>
 
             {formError && (
-              <div className="p-3.5 rounded-xl bg-verdant-danger/5 border border-verdant-danger/10 text-verdant-danger text-[9px] uppercase tracking-wider font-semibold font-mono">
+              <div className="p-3.5 rounded-xl bg-verdant-danger/10 border border-verdant-danger/20 text-verdant-danger text-[10px] uppercase tracking-wider font-semibold font-mono">
                 {formError}
               </div>
             )}
 
             {/* Rating Stars Input Selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] tracking-widest text-verdant-emerald/60 uppercase font-bold">
-                your rating:
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] tracking-widest text-verdant-emerald/70 uppercase font-bold font-mono">
+                Your Rating:
               </span>
               <div className="flex text-verdant-gold">
                 {Array.from({ length: 5 }).map((_, idx) => {
@@ -211,14 +231,14 @@ export default function ProductReviews({ productId, productName, initialReviews 
                       onClick={() => setRating(starVal)}
                       onMouseEnter={() => setHoverRating(starVal)}
                       onMouseLeave={() => setHoverRating(null)}
-                      className="p-0.5 hover:scale-110 transition-transform cursor-pointer"
+                      className="p-1 hover:scale-115 transition-transform cursor-pointer"
                       aria-label={`Rate ${starVal} stars`}
                     >
                       <Star
                         className={`w-5 h-5 ${
                           starVal <= (hoverRating ?? rating)
                             ? "fill-verdant-gold text-verdant-gold"
-                            : "text-verdant-emerald/10"
+                            : "text-verdant-emerald/20"
                         }`}
                       />
                     </button>
@@ -229,24 +249,27 @@ export default function ProductReviews({ productId, productName, initialReviews 
 
             {/* Display Author Moniker */}
             <div className="text-left font-mono text-[9px] uppercase tracking-widest text-verdant-emerald/60">
-              Posting As: <span className="font-sans font-bold text-verdant-emerald text-xs tracking-normal">{user?.name || "Bespoke Patron"}</span>
+              Posting As:{" "}
+              <span className="font-sans font-bold text-verdant-emerald text-xs tracking-normal">
+                {user?.name || "Bespoke Patron"}
+              </span>
             </div>
 
             <div className="flex flex-col gap-1.5 mt-1">
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="WRITE YOUR DETAILED EXPERIENTIAL REVIEW..."
+                placeholder="Share details on the finishing, diamond brilliance, weight, and presentation..."
                 required
                 rows={4}
-                className="w-full text-xs text-verdant-emerald bg-white/60 border border-verdant-emerald/10 rounded-xl px-4 py-3 focus:outline-hidden focus:border-verdant-gold focus:bg-white transition-all font-semibold tracking-wide"
+                className="w-full text-xs text-verdant-emerald bg-white/80 border border-verdant-emerald/15 rounded-xl px-4 py-3 focus:outline-hidden focus:border-verdant-gold focus:bg-white transition-all font-medium leading-relaxed placeholder:text-verdant-emerald/40"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="gold-gradient-bg text-black hover:scale-102 active:scale-95 text-[9px] tracking-widest uppercase font-bold py-3.5 rounded-full flex items-center justify-center gap-1.5 shadow-md transition-all duration-300 w-full cursor-pointer mt-2 disabled:opacity-50"
+              className="gold-gradient-bg text-black hover:scale-102 active:scale-95 text-[9px] tracking-[0.2em] uppercase font-bold py-3.5 rounded-full flex items-center justify-center gap-1.5 shadow-md transition-all duration-300 w-full cursor-pointer mt-1 disabled:opacity-50"
             >
               {submitting ? "Publishing Critique..." : "Publish Critique"}
             </button>
@@ -278,12 +301,14 @@ export default function ProductReviews({ productId, productName, initialReviews 
                   })}
                 </span>
               </div>
-              <div className="flex text-verdant-gold mb-3">
+              <div className="flex text-verdant-gold mb-2.5">
                 {Array.from({ length: 5 }).map((_, sIdx) => (
                   <Star
                     key={sIdx}
-                    className={`w-3 h-3 ${
-                      sIdx < rev.rating ? "fill-verdant-gold text-verdant-gold" : "text-verdant-emerald/10"
+                    className={`w-3.5 h-3.5 ${
+                      sIdx < rev.rating
+                        ? "fill-verdant-gold text-verdant-gold"
+                        : "text-verdant-emerald/10"
                     }`}
                   />
                 ))}
@@ -295,11 +320,12 @@ export default function ProductReviews({ productId, productName, initialReviews 
           ))
         )}
       </div>
-      
+
       {/* Notice info banner */}
       {!canReview && (
-        <div className="text-[9.5px] uppercase tracking-wider font-mono text-verdant-emerald/40 text-center mt-6 pt-4 border-t border-verdant-emerald/5 leading-relaxed">
-          {checkMessage || "Only patrons who have purchased this masterpiece are eligible to leave critiques."}
+        <div className="text-[9px] uppercase tracking-wider font-mono text-verdant-emerald/45 text-center mt-6 pt-4 border-t border-verdant-emerald/5 leading-relaxed">
+          {checkMessage ||
+            "Only patrons who have purchased this masterpiece are eligible to leave critiques."}
         </div>
       )}
     </div>

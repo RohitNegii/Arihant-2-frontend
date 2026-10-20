@@ -59,13 +59,10 @@ const MOBILE_PITCH = -0.13;
 function ReadySignal() {
   const frames = useRef(0);
   useFrame(() => {
-    // Inside Suspense: count real scene frames, after the warm-up has restored
-    // the entrance camera. An empty canvas is not ready to reveal.
-    if (FULL_PRELOAD && !isPreloadComplete()) return;
-    if (frames.current > 4) return;
-    if (++frames.current > 4) {
+    if (frames.current > 1) return;
+    if (++frames.current > 1) {
       markSceneReady();
-      if (!FULL_PRELOAD) markPreloadComplete();
+      markPreloadComplete();
     }
   });
   return null;
@@ -369,20 +366,13 @@ function CameraController({ active }: { active: boolean }) {
 }
 
 function ShowroomCanvas({ active, running }: { active: boolean; running: boolean }) {
-  const [shown, setShown] = useState(isSceneReady);
-  // Allocate the sustainable Retina buffer up front on phones. Resizing an
-  // already-rendering WebGL buffer can leave WebKit's compositor blank, and
-  // starting at 3x only to drop to 2x adds avoidable GPU work during navigation.
+  // Allocate the sustainable Retina buffer up front on phones.
   const [dpr, setDpr] = useState<number | [number, number]>(TOUCH ? Q.dpr[0] : Q.dpr);
-  useEffect(() => onSceneReady(() => setShown(true)), []);
 
   return (
     <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[var(--color-shell)]">
       <Canvas
         frameloop={running ? "always" : "never"}
-        style={{
-          opacity: shown ? 1 : 0,
-        }}
         camera={{ position: [0, 0.5, 76.0], fov: 45, near: 0.5, far: Q.far }}
         dpr={dpr}
         gl={{
@@ -393,7 +383,7 @@ function ShowroomCanvas({ active, running }: { active: boolean; running: boolean
         shadows={Q.shadows ? "percentage" : false}
       >
         <ResponsiveLens />
-        {!TOUCH && !shown && <AdaptiveResolution onDecline={() => setDpr(Q.dpr[0])} />}
+        {!TOUCH && <AdaptiveResolution onDecline={() => setDpr(Q.dpr[0])} />}
         <CameraController active={active} />
 
         <fog attach="fog" args={[P.shell, 8, Q.fogFar]} />
@@ -442,9 +432,6 @@ function ShowroomCanvas({ active, running }: { active: boolean; running: boolean
 
           <StorySection />
 
-          {/* Inside the boundary on purpose — it must not start counting until
-              every suspended texture in the six rooms above has resolved. */}
-          {FULL_PRELOAD && <ScenePrewarm />}
           <ReadySignal />
 
           {/* --- ORIGINAL EXHIBITION (disabled) ---

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Maximize2, X, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImageUrl } from "../../utils/api";
 
@@ -28,8 +28,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isZoomed, setIsZoomed] = useState(false);
 
-  // Reset to the first slide when a different image set arrives. Adjusted during
-  // render rather than in an effect, so it costs no extra commit.
+  // Reset to the first slide when a different image set arrives
   const [prevImages, setPrevImages] = useState(images);
   if (prevImages !== images) {
     setPrevImages(images);
@@ -59,26 +58,36 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
   return (
     <div className="flex flex-col gap-4 select-none">
       {/* Active Main Image Display */}
-      <div className="relative w-full aspect-square rounded-3xl border border-verdant-emerald/5 bg-verdant-emerald/5 flex items-center justify-center p-6 overflow-hidden group">
+      <div className="relative w-full aspect-square rounded-3xl border border-verdant-emerald/10 bg-gradient-to-b from-white/90 via-verdant-cream/50 to-verdant-emerald/[0.03] flex items-center justify-center p-6 sm:p-8 overflow-hidden group shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.03)]">
+        {/* Subtle premium shimmer line */}
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none z-10" />
+
+        {/* Counter Badge */}
+        {galleryImages.length > 1 && (
+          <div className="absolute top-4 left-4 z-20 bg-white/80 backdrop-blur-md border border-verdant-emerald/10 text-verdant-emerald font-mono text-[9px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full shadow-xs">
+            {activeIdx + 1} / {galleryImages.length}
+          </div>
+        )}
+
         {/* Zoomable Image/Video Window */}
         <div
-          className="w-full h-full relative"
+          className="w-full h-full relative flex items-center justify-center"
           onClick={() => setShowLightbox(true)}
         >
           {isVideoUrl(galleryImages[activeIdx]) ? (
             <video
               src={activeImage}
-              className="w-full h-full object-cover cursor-zoom-in"
+              className="w-full h-full object-cover rounded-2xl cursor-zoom-in"
               controls
               autoPlay
               muted
               loop
               playsInline
-              onClick={(e) => e.stopPropagation()} // Prevent clicking video controls from triggering lightbox
+              onClick={(e) => e.stopPropagation()}
             />
           ) : (
             <div
-              className="w-full h-full relative cursor-zoom-in"
+              className="w-full h-full relative cursor-zoom-in flex items-center justify-center"
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsZoomed(true)}
               onMouseLeave={() => setIsZoomed(false)}
@@ -88,10 +97,10 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                 src={activeImage}
                 alt={`${name} - Active view`}
                 fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                sizes="(max-width: 1024px) 100vw, 55vw"
                 priority
                 unoptimized={isRemote(activeImage)}
-                className={`w-full h-full object-cover transition-transform duration-200 ${
+                className={`w-full h-full object-cover rounded-2xl transition-transform duration-200 ${
                   isZoomed ? "scale-200" : "scale-100"
                 }`}
                 style={
@@ -104,10 +113,39 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
           )}
         </div>
 
+        {/* Navigation Chevrons on Main Frame */}
+        {galleryImages.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                prevSlide();
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-verdant-emerald hover:text-black border border-verdant-emerald/10 flex items-center justify-center shadow-md backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer"
+              aria-label="Previous Image"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                nextSlide();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/80 hover:bg-white text-verdant-emerald hover:text-black border border-verdant-emerald/10 flex items-center justify-center shadow-md backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer"
+              aria-label="Next Image"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
+
         {/* Maximize Icon Overlay */}
         <button
+          type="button"
           onClick={() => setShowLightbox(true)}
-          className="absolute bottom-4 right-4 bg-verdant-cream/80 hover:bg-verdant-cream text-verdant-emerald hover:text-verdant-gold p-2.5 rounded-full shadow-md backdrop-blur-xs transition-all active:scale-95 z-10"
+          className="absolute bottom-4 right-4 bg-white/80 hover:bg-white text-verdant-emerald hover:text-verdant-gold p-2.5 rounded-full shadow-md backdrop-blur-xs transition-all active:scale-95 z-20 border border-verdant-emerald/10 cursor-pointer"
           aria-label="Enlarge Image"
         >
           <Maximize2 className="w-4 h-4" />
@@ -116,34 +154,41 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
 
       {/* Thumbnails list */}
       {galleryImages.length > 1 && (
-        <div className="flex gap-3 justify-center overflow-x-auto py-1">
+        <div className="flex gap-3 justify-center sm:justify-start overflow-x-auto py-2 scrollbar-none">
           {galleryImages.map((img, idx) => (
             <button
               key={idx}
+              type="button"
               onClick={() => setActiveIdx(idx)}
-              className={`w-16 h-16 rounded-2xl overflow-hidden p-1.5 border transition-all bg-verdant-emerald/5 flex items-center justify-center ${
+              className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden p-1 border transition-all cursor-pointer shrink-0 bg-white/60 ${
                 activeIdx === idx
-                  ? "border-verdant-gold ring-1 ring-verdant-gold/30 scale-102"
-                  : "border-verdant-emerald/5 hover:border-verdant-emerald/20 opacity-70 hover:opacity-100"
+                  ? "border-verdant-gold ring-1 ring-verdant-gold/50 shadow-xs scale-102"
+                  : "border-verdant-emerald/10 opacity-70 hover:opacity-100 hover:border-verdant-emerald/30"
               }`}
             >
               {isVideoUrl(img) ? (
-                <video
-                  src={getImageUrl(img)}
-                  className="object-cover w-full h-full"
-                  muted
-                  playsInline
-                />
+                <div className="relative w-full h-full flex items-center justify-center bg-black/5 rounded-xl overflow-hidden">
+                  <video
+                    src={getImageUrl(img)}
+                    className="object-cover w-full h-full"
+                    muted
+                    playsInline
+                  />
+                  <span className="absolute inset-0 bg-black/20 flex items-center justify-center text-white">
+                    <Play className="w-3.5 h-3.5 fill-white" />
+                  </span>
+                </div>
               ) : (
-                <Image
-                  src={getImageUrl(img)}
-                  alt={`${name} - Thumb ${idx + 1}`}
-                  width={64}
-                  height={64}
-                  sizes="64px"
-                  unoptimized={isRemote(getImageUrl(img))}
-                  className="object-cover w-full h-full"
-                />
+                <div className="relative w-full h-full rounded-xl overflow-hidden">
+                  <Image
+                    src={getImageUrl(img)}
+                    alt={`${name} - Thumb ${idx + 1}`}
+                    fill
+                    sizes="80px"
+                    unoptimized={isRemote(getImageUrl(img))}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
               )}
             </button>
           ))}
@@ -157,12 +202,13 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 flex flex-col items-center justify-center p-6 md:p-12 select-none"
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 md:p-12 select-none"
           >
             {/* Close button */}
             <button
+              type="button"
               onClick={() => setShowLightbox(false)}
-              className="absolute top-6 right-6 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-colors z-[210] cursor-pointer"
+              className="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors z-[210] cursor-pointer shadow-lg"
               aria-label="Close Lightbox"
             >
               <X className="w-5 h-5" />
@@ -172,11 +218,12 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
             <div className="relative max-w-4xl w-full aspect-square flex items-center justify-center">
               {galleryImages.length > 1 && (
                 <button
+                  type="button"
                   onClick={prevSlide}
-                  className="absolute left-0 bg-white/10 hover:bg-white/20 hover:text-white text-white/70 p-3 rounded-full transition-all cursor-pointer z-10"
+                  className="absolute left-2 sm:left-4 bg-white/10 hover:bg-white/25 text-white p-3 rounded-full transition-all cursor-pointer z-10 shadow-lg"
                   aria-label="Previous Slide"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-6 h-6" />
                 </button>
               )}
 
@@ -188,7 +235,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
                   src={activeImage}
-                  className="max-h-[80vh] max-w-[85vw] object-contain"
+                  className="max-h-[80vh] max-w-[85vw] object-contain rounded-2xl"
                   controls
                   autoPlay
                   loop
@@ -202,23 +249,24 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                   transition={{ duration: 0.3 }}
                   src={activeImage}
                   alt={`${name} - Enlarged`}
-                  className="max-h-[80vh] max-w-[85vw] object-contain"
+                  className="max-h-[80vh] max-w-[85vw] object-contain rounded-2xl"
                 />
               )}
 
               {galleryImages.length > 1 && (
                 <button
+                  type="button"
                   onClick={nextSlide}
-                  className="absolute right-0 bg-white/10 hover:bg-white/20 hover:text-white text-white/70 p-3 rounded-full transition-all cursor-pointer z-10"
+                  className="absolute right-2 sm:right-4 bg-white/10 hover:bg-white/25 text-white p-3 rounded-full transition-all cursor-pointer z-10 shadow-lg"
                   aria-label="Next Slide"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-6 h-6" />
                 </button>
               )}
             </div>
 
             {/* Index label indicator */}
-            <span className="text-white/40 text-[10px] tracking-[0.25em] font-bold font-mono mt-6">
+            <span className="text-white/60 text-[10px] tracking-[0.25em] font-bold font-mono mt-6">
               EXHIBIT {activeIdx + 1} OF {galleryImages.length}
             </span>
           </motion.div>

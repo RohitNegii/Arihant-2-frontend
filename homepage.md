@@ -324,7 +324,7 @@ Draw calls: wrap `drawElements`/`drawArrays` on both `WebGLRenderingContext` and
 ## 9. Running and verifying
 
 ```
-npm run dev      # http://localhost:3000 (in my system this can be 5000 also, i have also changed this sometimes in package.json like -p 5000)
+npm run dev      # http://localhost:3000 (in my system this can be 5001 also, i have also changed this sometimes in package.json like -p 5001)
 npm run build
 npm run lint     # flat config in eslint.config.mjs
 ```

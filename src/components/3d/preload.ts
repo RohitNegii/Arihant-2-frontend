@@ -44,17 +44,8 @@ import { quality } from "./quality";
  * `?preload=off` restores the progressive reveal; `?preload=full` is now a
  * no-op kept for symmetry.
  */
-let full: boolean | null = null;
-
 export function fullPreload(): boolean {
-  if (full === null) {
-    if (typeof window === "undefined") {
-      full = false;
-    } else {
-      full = new URLSearchParams(window.location.search).get("preload") !== "off";
-    }
-  }
-  return full;
+  return false;
 }
 
 /* ------------------------------------------------------------------ *
@@ -82,7 +73,7 @@ const reached: Record<PreloadPhase, number> = {
 };
 
 let listeners: ((progress: number) => void)[] = [];
-let complete = false;
+let complete = true;
 let completeWaiters: (() => void)[] = [];
 
 /** Monotonic — a phase never reports backwards, so the bar never retreats. */

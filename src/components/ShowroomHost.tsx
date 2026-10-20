@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { fullPreload, preloadTextures } from "./3d/preload";
 import { loadHomeMedia } from "@/content/home-media";
 import { useShowroomStore } from "@/store/showroom-store";
 import { useAuthStore } from "@/store/authStore";
@@ -16,7 +15,6 @@ const ShowroomCanvas = dynamic(() => import("./3d/ShowroomCanvas"), { ssr: false
 export default function ShowroomHost() {
   const pathname = usePathname();
   const active = pathname === "/";
-  const [initialized, setInitialized] = useState(false);
   const [visible, setVisible] = useState(true);
   const menuOpen = useShowroomStore((state) => state.menuOpen);
   const navigationFrom = useShowroomStore((state) => state.navigationFrom);
@@ -25,18 +23,9 @@ export default function ShowroomHost() {
   const running = active && visible && !menuOpen && !authOpen && !cartOpen && navigationFrom !== pathname;
 
   useEffect(() => {
-    if (!active || initialized) return;
-    let live = true;
-    // Prime procedural surfaces before importing the scene, just as on the
-    // original homepage, yielding between the expensive texture generators.
-    void Promise.all([
-      loadHomeMedia(),
-      fullPreload() ? preloadTextures() : Promise.resolve(),
-    ]).then(() => {
-      if (live) setInitialized(true);
-    });
-    return () => { live = false; };
-  }, [active, initialized]);
+    if (!active) return;
+    void loadHomeMedia();
+  }, [active]);
 
   useEffect(() => {
     useShowroomStore.getState().endNavigation();
@@ -62,8 +51,6 @@ export default function ShowroomHost() {
     useShowroomStore.getState().setRunning(running);
     return () => useShowroomStore.getState().setRunning(false);
   }, [running]);
-
-  if (!initialized) return null;
 
   return (
     <div

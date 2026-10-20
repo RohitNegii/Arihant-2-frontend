@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Sparkles } from "lucide-react";
 import { ProductData } from "../../services/productListing";
 import { fetchRelatedProducts } from "../../services/productDetails";
 import ProductCard from "../product-listing/ProductCard";
@@ -15,40 +16,55 @@ export default function RelatedProducts({ productId }: RelatedProductsProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     const loadRelated = async () => {
       setLoading(true);
       try {
         const res = await fetchRelatedProducts(productId);
-        if (res.success) {
+        if (res.success && mounted) {
           setProducts(res.products);
         }
-      } catch (err) {
+      } catch {
         // Ignored
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
     loadRelated();
+    return () => {
+      mounted = false;
+    };
   }, [productId]);
 
   if (!loading && products.length === 0) {
-    return null; // hide section if no related items
+    return null;
   }
 
   return (
-    <div className="text-left select-none max-w-7xl mx-auto w-full my-12">
-      <span className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-2">curated recommendations</span>
-      <h3 className="font-serif text-2xl md:text-3xl text-verdant-emerald font-light mb-8">
-        Related Masterpieces
-      </h3>
+    <section className="text-left select-none max-w-7xl mx-auto w-full mt-20 mb-12">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles className="w-3.5 h-3.5 text-verdant-gold" />
+        <span className="text-[9px] uppercase tracking-[0.25em] text-verdant-gold font-bold font-mono">
+          Curated Recommendations
+        </span>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-8">
+        <h3 className="font-serif text-2xl sm:text-3xl md:text-4xl text-verdant-emerald font-light">
+          Complementary Masterpieces
+        </h3>
+        <p className="text-xs text-verdant-emerald/60 font-light">
+          Handpicked exhibits sharing architectural geometry and hallmark purity
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
         {loading
           ? Array.from({ length: 4 }).map((_, idx) => <CardSkeleton key={idx} />)
           : products.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
       </div>
-    </div>
+    </section>
   );
 }
