@@ -32,13 +32,13 @@ const calculateTotals = (items: CartItem[]) => {
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = items.reduce(
     (sum, item) => {
-      let price = item.product?.discountPrice !== undefined ? item.product.discountPrice : (item.product?.price || 0);
+      let price = item.product?.price || 0;
       if (item.product?.hasVariants && item.variant) {
         const variant = item.product.variants?.find(
           (v: any) => v.name.toLowerCase() === item.variant?.toLowerCase()
         );
         if (variant) {
-          price = variant.discountPrice !== undefined ? variant.discountPrice : variant.price;
+          price = variant.price;
         }
       }
       return sum + price * item.quantity;

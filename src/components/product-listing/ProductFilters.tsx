@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchCategories, CategoryData } from "../../services/productListing";
-import { Filter, RotateCcw } from "lucide-react";
+import { Filter, RotateCcw, Crown, TrendingUp, Sparkles } from "lucide-react";
 
 interface FilterState {
   category: string;
@@ -11,6 +11,7 @@ interface FilterState {
   minPrice: string;
   maxPrice: string;
   availability: string;
+  highlight?: string;
 }
 
 interface ProductFiltersProps {
@@ -58,6 +59,39 @@ export default function ProductFilters({ filters, onChange, onClear }: ProductFi
         >
           <RotateCcw className="w-3 h-3" /> Reset
         </button>
+      </div>
+
+      {/* Curated Exhibits / Highlights Section */}
+      <div>
+        <label className="text-[8px] uppercase tracking-widest text-verdant-gold font-bold font-mono block mb-3">
+          curated exhibits
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "All Works", value: "", icon: null },
+            { label: "Featured", value: "featured", icon: Crown },
+            { label: "Trending", value: "trending", icon: TrendingUp },
+            { label: "Best Sellers", value: "bestseller", icon: Sparkles }
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = (filters.highlight || "") === item.value;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => onChange({ highlight: item.value })}
+                className={`text-[9px] tracking-widest uppercase font-bold px-3 py-2 border rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${
+                  isActive
+                    ? "bg-verdant-emerald border-verdant-emerald text-white shadow-md scale-102"
+                    : "border-verdant-emerald/10 text-verdant-emerald/70 hover:bg-verdant-emerald/5 hover:text-verdant-emerald bg-white/20"
+                }`}
+              >
+                {Icon && <Icon className="w-2.5 h-2.5 text-verdant-gold" />}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Category Section */}

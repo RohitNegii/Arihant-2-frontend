@@ -575,46 +575,7 @@ export default function MyOrdersPage() {
                       </div>
                     )}
 
-                    {/* Shipment Details */}
-                    <div>
-                      <span className="text-[10px] tracking-widest uppercase text-verdant-gold font-bold font-sans block mb-4 border-b border-verdant-emerald/5 pb-2">
-                        Shipment & Tracking
-                      </span>
-                      {selectedOrder.trackingUrl ? (
-                        <div className="bg-white/60 border border-verdant-emerald/5 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
-                          <div className="flex items-start gap-3.5">
-                            <div className="p-2.5 bg-verdant-emerald/5 rounded-xl border border-verdant-emerald/10 text-verdant-gold shrink-0">
-                              <Truck className="w-5 h-5" />
-                            </div>
-                            <div className="text-xs leading-relaxed text-left">
-                              <p className="font-semibold text-verdant-emerald text-sm">Shipment Dispatched</p>
-                              <p className="text-verdant-emerald/60 mt-0.5 font-sans tracking-wide">
-                                Your collection is in transit. Click below to view live tracking.
-                              </p>
-                            </div>
-                          </div>
-                          <a
-                            href={selectedOrder.trackingUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="gold-gradient-bg text-black text-[10px] font-bold tracking-widest uppercase px-6 py-3 rounded-full shadow-xs hover:scale-105 active:scale-95 transition-all select-none whitespace-nowrap inline-flex items-center gap-1.5 justify-center cursor-pointer font-sans"
-                          >
-                            Track Package <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="bg-white/30 border border-verdant-emerald/5 rounded-2xl p-4 flex items-center gap-3">
-                          <div className="p-2 bg-verdant-emerald/5 rounded-lg border border-verdant-emerald/10 text-verdant-emerald/40 shrink-0">
-                            <Truck className="w-4 h-4" />
-                          </div>
-                          <p className="text-[10px] text-verdant-emerald/50 italic font-mono uppercase tracking-wide">
-                            {selectedOrder.orderStatus === "Shipped" || selectedOrder.orderStatus === "Delivered"
-                              ? "Dispatched via private courier."
-                              : "Tracking details will be posted once your package is dispatched."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+
                   </div>
 
                   {/* Right Column: Address & Details */}
@@ -684,18 +645,10 @@ export default function MyOrdersPage() {
                   <span className="text-[9px] tracking-widest uppercase text-verdant-emerald/40 block font-bold">
                     Order Breakdown
                   </span>
-                  {selectedOrder.discountAmount > 0 && (
-                    <>
-                      <div className="flex justify-between gap-4 text-verdant-emerald/60">
-                        <span>Original Subtotal:</span>
-                        <span>₹{(selectedOrder.subtotal || 0).toLocaleString("en-IN")}</span>
-                      </div>
-                      <div className="flex justify-between gap-4 text-verdant-success font-bold">
-                        <span>Storewide Discount:</span>
-                        <span>-₹{selectedOrder.discountAmount.toLocaleString("en-IN")}</span>
-                      </div>
-                    </>
-                  )}
+                  <div className="flex justify-between gap-4 text-verdant-emerald/60">
+                    <span>Subtotal:</span>
+                    <span>₹{(selectedOrder.subtotal || selectedOrder.grandTotal || 0).toLocaleString("en-IN")}</span>
+                  </div>
                   <div className="flex items-baseline justify-between gap-4 pt-1 font-sans border-t border-verdant-emerald/10">
                     <span className="text-xs font-semibold text-verdant-emerald">Grand Total:</span>
                     <span className="font-bold text-lg text-verdant-emerald">

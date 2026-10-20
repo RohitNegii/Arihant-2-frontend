@@ -5,7 +5,6 @@ export interface CartProduct {
   _id: string;
   name: string;
   price: number;
-  discountPrice?: number;
   stock: number;
   images: string[];
   thumbnail: string;

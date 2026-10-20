@@ -57,18 +57,24 @@ export default function ProductListingPage() {
     minPrice: "",
     maxPrice: "",
     availability: "",
+    highlight: "",
   });
 
-  // Deep link from the showroom finale (/products?gender=Men). Applied on mount
-  // rather than as the initial state: this page is prerendered, and seeding the
-  // filter from the URL up front makes the client markup disagree with the
-  // server's. The alternative — useSearchParams — needs a Suspense boundary
-  // that would drop this page's static HTML, which is a worse trade for one
-  // optional query param.
+  // Deep link from showroom finale or curated links (/products?gender=Men, /products?highlight=trending).
+  // Applied on mount rather than as the initial state for prerendering parity.
   useEffect(() => {
-    const gender = new URLSearchParams(window.location.search).get("gender");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (gender) setFilters((f) => ({ ...f, gender }));
+    const params = new URLSearchParams(window.location.search);
+    const gender = params.get("gender");
+    const highlight = params.get("highlight");
+    const category = params.get("category");
+    if (gender || highlight || category) {
+      setFilters((f) => ({
+        ...f,
+        ...(gender ? { gender } : {}),
+        ...(highlight ? { highlight } : {}),
+        ...(category ? { category } : {}),
+      }));
+    }
   }, []);
 
   const loadProducts = async () => {
@@ -118,6 +124,7 @@ export default function ProductListingPage() {
       minPrice: "",
       maxPrice: "",
       availability: "",
+      highlight: "",
     });
     setSearch("");
     setSort("latest");
