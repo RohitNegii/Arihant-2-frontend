@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sparkles, ShieldCheck, RefreshCw, Truck, BadgeAlert, Award } from "lucide-react";
+import { ArrowLeft, Sparkles, ShieldCheck, RefreshCw, Truck, BadgeAlert, Award, Crown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/sections/Navbar";
 import MouseFollower from "@/components/MouseFollower";
@@ -103,15 +103,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
     ? (product.variants?.find((v) => v.name === selectedVariant)?.price ?? product.price ?? 0)
     : (product.price ?? 0);
 
-  const activeDiscountPrice = product.hasVariants && selectedVariant
-    ? product.variants?.find((v) => v.name === selectedVariant)?.discountPrice
-    : product.discountPrice;
-
-  const discountPercent =
-    activeDiscountPrice && activePrice > activeDiscountPrice
-      ? Math.round(((activePrice - activeDiscountPrice) / activePrice) * 100)
-      : 0;
-
   const breadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Collections", href: "/products" },
@@ -194,21 +185,25 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
                     {product.name}
                   </h1>
 
-                  {/* Pricing Row */}
+                  {/* Pricing Row & Incoming Priority Badges */}
                   <div className="flex flex-wrap items-center gap-3 mt-2">
-                    <ProductPrice
-                      price={activePrice}
-                      discountPrice={activeDiscountPrice}
-                      className="text-2xl sm:text-3xl font-medium"
-                    />
-                    {discountPercent > 0 && (
-                      <span className="bg-verdant-gold text-black text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-xs">
-                        {discountPercent}% OFF
+                    <ProductPrice price={activePrice} className="text-2xl sm:text-3xl font-medium" />
+
+                    {product.isFeatured && (
+                      <span className="gold-gradient-bg text-black border border-verdant-gold/40 text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1 font-mono shadow-xs">
+                        <Crown className="w-2.5 h-2.5 text-black" /> Featured Masterpiece
                       </span>
                     )}
+
+                    {product.isTrending && (
+                      <span className="bg-amber-600/15 text-amber-700 border border-amber-500/30 text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1 font-mono shadow-xs">
+                        <TrendingUp className="w-2.5 h-2.5 text-amber-700" /> Trending Design
+                      </span>
+                    )}
+
                     {product.isBestSeller && (
-                      <span className="bg-verdant-emerald text-verdant-cream border border-verdant-gold/40 text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1 shadow-xs">
-                        <Sparkles className="w-2.5 h-2.5 text-verdant-gold" /> Bestseller
+                      <span className="bg-verdant-emerald/15 text-verdant-emerald border border-verdant-emerald/30 text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1 font-mono shadow-xs">
+                        <Sparkles className="w-2.5 h-2.5 text-verdant-gold" /> Best Seller
                       </span>
                     )}
                   </div>

@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { fetchCategories, CategoryData } from "../../services/productListing";
-import { Filter, RotateCcw, ChevronDown, Check } from "lucide-react";
+import { Filter, RotateCcw, ChevronDown, Check, Crown, TrendingUp, Sparkles } from "lucide-react";
 
-interface FilterState {
+export interface FilterState {
   category: string;
   material: string;
   gender: string;
   minPrice: string;
   maxPrice: string;
   availability: string;
+  highlight?: string;
 }
 
 interface ProductFiltersProps {
@@ -53,6 +54,7 @@ export default function ProductFilters({
 
   // Accordion state
   const [openSections, setOpenSections] = useState({
+    highlights: true,
     categories: true,
     material: true,
     styling: true,
@@ -83,8 +85,9 @@ export default function ProductFilters({
     };
   }, []);
 
-  // Count active filters
+  // Count active filters (including highlight from incoming)
   const activeCount = [
+    filters.highlight,
     filters.category,
     filters.material,
     filters.gender,
@@ -139,6 +142,56 @@ export default function ProductFilters({
         </div>
       )}
 
+      {/* 0. Curated Exhibits / Highlights Facet (From Incoming) */}
+      <div className="border-b border-verdant-emerald/10 pb-5">
+        <button
+          type="button"
+          onClick={() => toggleSection("highlights")}
+          className="w-full flex items-center justify-between text-[9px] uppercase tracking-[0.2em] text-verdant-emerald font-bold font-mono cursor-pointer py-1 group"
+        >
+          <div className="flex items-center gap-2">
+            <span className="group-hover:text-verdant-gold transition-colors">Curated Exhibits</span>
+            {filters.highlight && (
+              <span className="w-1.5 h-1.5 rounded-full bg-verdant-gold animate-pulse" />
+            )}
+          </div>
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform duration-300 text-verdant-emerald/50 group-hover:text-verdant-gold ${
+              openSections.highlights ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {openSections.highlights && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[
+              { label: "All Works", value: "", icon: null },
+              { label: "Featured", value: "featured", icon: Crown },
+              { label: "Trending", value: "trending", icon: TrendingUp },
+              { label: "Best Sellers", value: "bestseller", icon: Sparkles },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = (filters.highlight || "") === item.value;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => onChange({ highlight: item.value })}
+                  className={`text-[9px] tracking-wider uppercase font-bold px-3 py-1.5 border rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-verdant-emerald border-verdant-emerald text-white shadow-xs ring-1 ring-verdant-gold/40"
+                      : "border-verdant-emerald/15 text-verdant-emerald/75 hover:bg-verdant-emerald/5 hover:border-verdant-gold bg-white/40"
+                  }`}
+                >
+                  {Icon && <Icon className="w-2.5 h-2.5 text-verdant-gold" />}
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* 1. Category / Exhibit Facet */}
       <div className="border-b border-verdant-emerald/10 pb-5">
         <button
@@ -161,7 +214,6 @@ export default function ProductFilters({
 
         {openSections.categories && (
           <div className="mt-3 flex flex-col gap-1 max-h-52 overflow-y-auto pr-1.5 custom-scrollbar">
-            {/* All Exhibits Option */}
             <button
               type="button"
               onClick={() => onChange({ category: "" })}
@@ -237,7 +289,6 @@ export default function ProductFilters({
 
         {openSections.material && (
           <div className="mt-3 flex flex-wrap gap-2">
-            {/* All Metals pill */}
             <button
               type="button"
               onClick={() => onChange({ material: "" })}
@@ -250,7 +301,6 @@ export default function ProductFilters({
               <span>All Metals</span>
             </button>
 
-            {/* Individual Metals with Luxurious Visual Swatches */}
             {METALS.map((m) => {
               const isActive = filters.material === m.name;
               return (
@@ -340,7 +390,6 @@ export default function ProductFilters({
 
         {openSections.price && (
           <div className="mt-3 space-y-3">
-            {/* Quick Price Preset Chips */}
             <div className="grid grid-cols-2 gap-1.5">
               {PRICE_PRESETS.map((preset) => {
                 const active = isPresetActive(preset.min, preset.max);
@@ -367,7 +416,6 @@ export default function ProductFilters({
               })}
             </div>
 
-            {/* Custom Min/Max Input Row */}
             <div className="pt-1">
               <span className="text-[8px] uppercase tracking-widest text-verdant-emerald/50 font-mono font-bold block mb-1.5">
                 Custom Valuation (INR)

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { X, ShoppingBag, ArrowRight, ShieldCheck, Truck, Sparkles, Check } from "lucide-react";
+import { X, ShoppingBag, ArrowRight, ShieldCheck, Truck, Sparkles, Check, Crown, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProductData } from "../../services/productListing";
 import { getImageUrl } from "../../utils/api";
@@ -40,18 +40,6 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
   const displayPrice = product.hasVariants
     ? (product.variants && product.variants.length > 0 ? Math.min(...product.variants.map((v) => v.price)) : 0)
     : (product.price ?? 0);
-
-  const displayDiscountPrice = product.discountPrice ?? (
-    product.hasVariants && product.variants && product.variants.length > 0
-      ? (product.variants.some((v) => v.discountPrice !== undefined)
-          ? Math.min(...product.variants.map((v) => v.discountPrice ?? v.price))
-          : undefined)
-      : undefined
-  );
-
-  const discountPercent = displayDiscountPrice && displayPrice > displayDiscountPrice
-    ? Math.round(((displayPrice - displayDiscountPrice) / displayPrice) * 100)
-    : 0;
 
   const handleAddToCart = async () => {
     if (outOfStock) return;
@@ -124,11 +112,23 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 rounded-xl"
                 />
 
-                {discountPercent > 0 && (
-                  <span className="absolute top-3 left-3 bg-verdant-gold text-black text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-sm">
-                    {discountPercent}% OFF
-                  </span>
-                )}
+                <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
+                  {product.isFeatured && (
+                    <span className="gold-gradient-bg text-black border border-verdant-gold/40 text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+                      <Crown className="w-2.5 h-2.5 text-black" /> Featured
+                    </span>
+                  )}
+                  {product.isTrending && (
+                    <span className="bg-gradient-to-r from-amber-600 to-amber-700 border border-amber-400/40 text-amber-50 text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+                      <TrendingUp className="w-2.5 h-2.5 text-amber-200" /> Trending
+                    </span>
+                  )}
+                  {product.isBestSeller && (
+                    <span className="bg-verdant-emerald border border-verdant-gold/30 text-verdant-cream text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+                      <Sparkles className="w-2.5 h-2.5 text-verdant-gold animate-pulse" /> Best Seller
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Thumbnails row */}
@@ -184,7 +184,6 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                 <div className="mb-4">
                   <ProductPrice
                     price={displayPrice}
-                    discountPrice={displayDiscountPrice}
                     className="text-lg md:text-xl"
                   />
                   <span className="text-[9px] tracking-wider text-verdant-emerald/50 block mt-0.5">

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Eye, Sparkles, ShoppingBag } from "lucide-react";
+import { ArrowRight, Eye, Sparkles, ShoppingBag, Crown, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { getImageUrl } from "../../utils/api";
 import { ProductData } from "../../services/productListing";
@@ -43,19 +43,6 @@ export default function ProductCard({
         ? Math.min(...product.variants.map((v) => v.price))
         : 0)
     : (product.price ?? 0);
-
-  const displayDiscountPrice = product.discountPrice ?? (
-    product.hasVariants && product.variants && product.variants.length > 0
-      ? (product.variants.some((v) => v.discountPrice !== undefined)
-          ? Math.min(...product.variants.map((v) => v.discountPrice ?? v.price))
-          : undefined)
-      : undefined
-  );
-
-  const discountPercent =
-    displayDiscountPrice && displayPrice > displayDiscountPrice
-      ? Math.round(((displayPrice - displayDiscountPrice) / displayPrice) * 100)
-      : 0;
 
   // Primary and secondary image for Swarovski/Palmonas-style hover crossfade
   const primaryImg = product.thumbnail || product.images?.[0] || "";
@@ -161,20 +148,25 @@ export default function ProductCard({
             </div>
           )}
 
-          {/* Badges Overlay */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
-            {product.isBestSeller && (
-              <span className="bg-verdant-emerald border border-verdant-gold/40 text-verdant-cream text-[8px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                <Sparkles className="w-2.5 h-2.5 text-verdant-gold" /> Bestseller
+          {/* Badges Overlay (Incoming Priority: Featured, Trending, Best Seller, Out of Stock) */}
+          <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-20">
+            {product.isFeatured && (
+              <span className="gold-gradient-bg text-black border border-verdant-gold/40 text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+                <Crown className="w-2.5 h-2.5 text-black" /> Featured
               </span>
             )}
-            {discountPercent > 0 && (
-              <span className="bg-verdant-gold text-black text-[8px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-sm">
-                {discountPercent}% OFF
+            {product.isTrending && (
+              <span className="bg-gradient-to-r from-amber-600 to-amber-700 border border-amber-400/40 text-amber-50 text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+                <TrendingUp className="w-2.5 h-2.5 text-amber-200" /> Trending
+              </span>
+            )}
+            {product.isBestSeller && (
+              <span className="bg-verdant-emerald border border-verdant-gold/30 text-verdant-cream text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+                <Sparkles className="w-2.5 h-2.5 text-verdant-gold animate-pulse" /> Best Seller
               </span>
             )}
             {outOfStock && (
-              <span className="bg-verdant-danger text-white text-[8px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-sm">
+              <span className="bg-verdant-danger text-white text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-md font-mono">
                 Out of Stock
               </span>
             )}
@@ -207,14 +199,14 @@ export default function ProductCard({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t border-verdant-emerald/5">
-            <ProductPrice price={displayPrice} discountPrice={displayDiscountPrice} />
+            <ProductPrice price={displayPrice} />
 
             <div className="flex items-center gap-2">
               {onQuickView && (
                 <button
                   type="button"
                   onClick={handleQuickViewClick}
-                  className="px-4 py-2.5 rounded-full border border-verdant-emerald/15 hover:border-verdant-gold text-verdant-emerald text-[9px] tracking-widest uppercase font-bold flex items-center gap-1.5 transition-all active:scale-95 bg-white/40"
+                  className="px-4 py-2.5 rounded-full border border-verdant-emerald/15 hover:border-verdant-gold text-verdant-emerald text-[9px] tracking-widest uppercase font-bold flex items-center gap-1.5 transition-all active:scale-95 bg-white/40 cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5 text-verdant-gold" /> Quick View
                 </button>
@@ -286,20 +278,25 @@ export default function ProductCard({
           )}
         </Link>
 
-        {/* Absolute Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20 pointer-events-none">
-          {product.isBestSeller && (
-            <span className="bg-verdant-emerald border border-verdant-gold/40 text-verdant-cream text-[8px] sm:text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-              <Sparkles className="w-2.5 h-2.5 text-verdant-gold" /> Bestseller
+        {/* Absolute Badges (Incoming Priority: Featured, Trending, Best Seller, Out of Stock) */}
+        <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-20 pointer-events-none">
+          {product.isFeatured && (
+            <span className="gold-gradient-bg text-black border border-verdant-gold/40 text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+              <Crown className="w-2.5 h-2.5 text-black" /> Featured
             </span>
           )}
-          {discountPercent > 0 && (
-            <span className="bg-verdant-gold text-black text-[8px] sm:text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-sm">
-              {discountPercent}% OFF
+          {product.isTrending && (
+            <span className="bg-gradient-to-r from-amber-600 to-amber-700 border border-amber-400/40 text-amber-50 text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+              <TrendingUp className="w-2.5 h-2.5 text-amber-200" /> Trending
+            </span>
+          )}
+          {product.isBestSeller && (
+            <span className="bg-verdant-emerald border border-verdant-gold/30 text-verdant-cream text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md font-mono">
+              <Sparkles className="w-2.5 h-2.5 text-verdant-gold animate-pulse" /> Best Seller
             </span>
           )}
           {outOfStock && (
-            <span className="bg-verdant-danger text-white text-[8px] sm:text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-sm">
+            <span className="bg-verdant-danger text-white text-[8.5px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full shadow-md font-mono">
               Out of Stock
             </span>
           )}
@@ -357,11 +354,7 @@ export default function ProductCard({
         </div>
 
         <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-verdant-emerald/5">
-          <ProductPrice
-            price={displayPrice}
-            discountPrice={displayDiscountPrice}
-            className="text-xs sm:text-sm font-medium"
-          />
+          <ProductPrice price={displayPrice} className="text-xs sm:text-sm font-medium" />
 
           <Link
             href={productLink}

@@ -192,20 +192,17 @@ export default function CartDrawer() {
 
                   const isUpdating = localUpdatingId === `${product._id}-${item.size || ""}-${item.variant || ""}`;
 
-                  let originalPrice = product.price ?? 0;
-                  let itemPrice = product.discountPrice !== undefined ? product.discountPrice : originalPrice;
+                  let itemPrice = product.price ?? 0;
                   let itemStock = product.stock ?? 0;
                   if (product.hasVariants && item.variant) {
                     const variant = product.variants?.find(
                       (v: any) => v.name.toLowerCase() === item.variant?.toLowerCase()
                     );
                     if (variant) {
-                      originalPrice = variant.price;
-                      itemPrice = variant.discountPrice !== undefined ? variant.discountPrice : variant.price;
+                      itemPrice = variant.price;
                       itemStock = variant.stock;
                     }
                   }
-                  const hasDiscount = itemPrice < originalPrice;
 
                   return (
                     <motion.div
@@ -270,11 +267,6 @@ export default function CartDrawer() {
                             <span className="text-xs font-bold text-verdant-gold">
                               {formatPrice(itemPrice * item.quantity)}
                             </span>
-                            {hasDiscount && (
-                              <span className="text-[10px] text-verdant-emerald/40 line-through">
-                                {formatPrice(originalPrice * item.quantity)}
-                              </span>
-                            )}
                           </div>
 
                           <div className="flex items-center border border-verdant-emerald/20 bg-white rounded-full px-1.5 py-0.5 shadow-2xs group-hover:border-verdant-gold/40 transition-colors duration-300">

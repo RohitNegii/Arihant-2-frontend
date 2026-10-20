@@ -80,6 +80,7 @@ export default function ProductListingPage() {
     minPrice: "",
     maxPrice: "",
     availability: "",
+    highlight: "",
   });
 
   // Fetch Categories for Palmonas-style carousel pills
@@ -101,10 +102,21 @@ export default function ProductListingPage() {
     };
   }, []);
 
-  // Deep link from showroom finale (/products?gender=Men)
+  // Deep link from showroom finale or curated links (/products?gender=Men, /products?highlight=trending, /products?category=rings).
+  // Applied on mount rather than as the initial state for prerendering parity.
   useEffect(() => {
-    const gender = new URLSearchParams(window.location.search).get("gender");
-    if (gender) setFilters((f) => ({ ...f, gender }));
+    const params = new URLSearchParams(window.location.search);
+    const gender = params.get("gender");
+    const highlight = params.get("highlight");
+    const category = params.get("category");
+    if (gender || highlight || category) {
+      setFilters((f) => ({
+        ...f,
+        ...(gender ? { gender } : {}),
+        ...(highlight ? { highlight } : {}),
+        ...(category ? { category } : {}),
+      }));
+    }
   }, []);
 
   const loadProducts = async () => {
@@ -154,6 +166,7 @@ export default function ProductListingPage() {
       minPrice: "",
       maxPrice: "",
       availability: "",
+      highlight: "",
     });
     setSearch("");
     setSort("latest");
@@ -168,6 +181,18 @@ export default function ProductListingPage() {
   // Active filter facets count & list for Swarovski-style chips
   const activeFiltersList: { label: string; key: keyof typeof filters | "search"; onRemove: () => void }[] = [];
 
+  if (filters.highlight) {
+    const highlightLabels: Record<string, string> = {
+      featured: "Exhibit: Featured",
+      trending: "Exhibit: Trending",
+      bestseller: "Exhibit: Best Sellers",
+    };
+    activeFiltersList.push({
+      label: highlightLabels[filters.highlight] || `Exhibit: ${filters.highlight}`,
+      key: "highlight",
+      onRemove: () => handleFilterChange({ highlight: "" }),
+    });
+  }
   if (filters.category) {
     const catName = categories.find((c) => c.slug === filters.category)?.name || filters.category;
     activeFiltersList.push({

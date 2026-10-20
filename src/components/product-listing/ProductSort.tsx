@@ -11,6 +11,7 @@ export default function ProductSort({ value, onChange }: ProductSortProps) {
     { label: "PRICE: LOW TO HIGH", value: "price-asc" },
     { label: "PRICE: HIGH TO LOW", value: "price-desc" },
     { label: "FEATURED EXHIBITS", value: "featured" },
+    { label: "TRENDING DESIGNS", value: "trending" },
     { label: "BESTSELLING SELECTION", value: "bestselling" },
   ];
 
