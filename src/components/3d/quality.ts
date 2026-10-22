@@ -88,8 +88,8 @@ function detectTier(): QualityTier {
 }
 
 /**
- * The phone profile: every detail knob at the desktop maximum, and the two
- * per-frame luxuries still off.
+ * The Android phone profile: desktop detail with the two per-frame luxuries
+ * off. Apple touch devices use the bounded mid-tier profile below instead.
  *
  * A phone used to be sorted into `low` or `mid`, and those tiers reach a very
  * long way — half-resolution procedural textures, photographs downscaled to
@@ -125,8 +125,26 @@ function detectTier(): QualityTier {
 const MOBILE_DPR_FLOOR = 2;
 const MOBILE_DPR_CEILING = 3;
 
+function isAppleTouchDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 function mobilePreset(): Quality {
   const panel = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+  // iOS has no deviceMemory hint. Giving every iPhone the desktop maximum
+  // retains too many textures and multisampled Retina pixels across routes.
+  // Use a bounded budget even on newer phones; keep Android's profile intact.
+  if (isAppleTouchDevice()) {
+    return {
+      ...PRESETS.mid,
+      dpr: [1, Math.min(1.5, panel)],
+      shadows: false,
+      transmission: false,
+      sparkles: 0,
+    };
+  }
   return {
     ...PRESETS.high,
     shadows: false,

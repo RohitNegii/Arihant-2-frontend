@@ -277,8 +277,6 @@ function nextPaint(): Promise<void> {
   });
 }
 
-let texturesPromise: Promise<void> | null = null;
-
 /**
  * Draw every procedural surface, one per task.
  *
@@ -298,12 +296,14 @@ let texturesPromise: Promise<void> | null = null;
  * The import is dynamic to keep three.js out of the initial bundle: this
  * module is reached from the loading screen, which is not lazily loaded.
  */
-export function preloadTextures(): Promise<void> {
-  if (!texturesPromise) texturesPromise = runTexturePreload();
-  return texturesPromise;
+export function preloadTextures(signal?: AbortSignal): Promise<void> {
+  // Each builder caches its texture. Keep the pass cancellable rather than
+  // caching a partially completed promise when the visitor leaves home.
+  return runTexturePreload(signal);
 }
 
-async function runTexturePreload(): Promise<void> {
+async function runTexturePreload(signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return;
   const tex = await import("./procedural-textures");
   const builders = [
     tex.leafMaps,
@@ -319,6 +319,7 @@ async function runTexturePreload(): Promise<void> {
   let done = 0;
   for (const build of builders) {
     await nextPaint();
+    if (signal?.aborted) return;
     try {
       build();
     } catch {

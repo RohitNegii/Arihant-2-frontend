@@ -15,6 +15,7 @@ const ShowroomCanvas = dynamic(() => import("./3d/ShowroomCanvas"), { ssr: false
 export default function ShowroomHost() {
   const pathname = usePathname();
   const active = pathname === "/";
+  const [initialized, setInitialized] = useState(false);
   const [visible, setVisible] = useState(true);
   const menuOpen = useShowroomStore((state) => state.menuOpen);
   const navigationFrom = useShowroomStore((state) => state.navigationFrom);
@@ -23,9 +24,21 @@ export default function ShowroomHost() {
   const running = active && visible && !menuOpen && !authOpen && !cartOpen && navigationFrom !== pathname;
 
   useEffect(() => {
-    if (!active) return;
-    void loadHomeMedia();
-  }, [active]);
+    if (!active || initialized) return;
+    const abort = new AbortController();
+    const initialize = async () => {
+      // Finish the manifest before useTexture reads its URLs. Prepare surfaces
+      // in separate tasks before importing the rooms' module-level materials.
+      await loadHomeMedia();
+      if (abort.signal.aborted) return;
+      const { preloadTextures } = await import("./3d/preload");
+      if (abort.signal.aborted) return;
+      await preloadTextures(abort.signal);
+      if (!abort.signal.aborted) setInitialized(true);
+    };
+    void initialize();
+    return () => abort.abort();
+  }, [active, initialized]);
 
   useEffect(() => {
     useShowroomStore.getState().endNavigation();
@@ -43,14 +56,22 @@ export default function ShowroomHost() {
   useEffect(() => {
     const onVisibility = () => setVisible(!document.hidden);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onVisibility);
     onVisibility();
-    return () => document.removeEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onVisibility);
+    };
   }, []);
 
   useEffect(() => {
     useShowroomStore.getState().setRunning(running);
     return () => useShowroomStore.getState().setRunning(false);
   }, [running]);
+
+  // Once mounted, retain this canvas across routes. Mounting it hidden still
+  // builds every room and texture, even with frameloop="never".
+  if (!initialized) return null;
 
   return (
     <div

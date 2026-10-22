@@ -1052,23 +1052,15 @@ function Chandelier({ position }: { position: [number, number, number] }) {
 function EntranceLight() {
   const keyRef = useRef<THREE.SpotLight>(null);
   const target = useMemo(() => new THREE.Object3D(), []);
-  const nearDoor = useRef(true);
-
-  useEffect(() => {
-    const onScroll = () => {
-      nearDoor.current = journeyProgress() < 0.14;
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     if (keyRef.current) keyRef.current.shadow.autoUpdate = false;
   }, []);
 
   useFrame(() => {
-    if (keyRef.current && nearDoor.current) keyRef.current.shadow.needsUpdate = true;
+    if (QUALITY.shadows && keyRef.current && journeyProgress() < 0.14) {
+      keyRef.current.shadow.needsUpdate = true;
+    }
   });
 
   return (
@@ -2462,6 +2454,7 @@ function CollectionLookbook({
 }) {
   const [spread, setSpread] = useState(0);
   const [active, setActive] = useState(false);
+  const running = useShowroomStore((state) => state.running);
   const spreads = Math.ceil(items.length / 2);
   const first = spread * 2;
   const currentItems = items.slice(first, first + 2);
@@ -2472,6 +2465,7 @@ function CollectionLookbook({
   }, [active]);
 
   useEffect(() => {
+    if (!running) return;
     const onScroll = () => {
       const progress = journeyProgress();
       setActive(progress >= 0.5 && progress < 2 / 3);
@@ -2479,7 +2473,7 @@ function CollectionLookbook({
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [running]);
 
   if (!items.length) return null;
 
@@ -2854,31 +2848,35 @@ const FILM_ALWAYS_ON = fullPreload();
 /**
  * The ring turning, as a texture — the one moving image in the show.
  *
- * Off full preload, nothing is fetched at boot: the element is not created
- * until the journey is within a zone of the room, and it is torn down again on
- * the way out, so a visitor who never scrolls that far never pays for it.
+ * Off full preload, nothing is fetched until the journey approaches the room.
+ * Retain the decoded texture after that and pause outside the room, including
+ * on other routes. Repeatedly clearing its video source while the retained
+ * scene still references it can send an empty video frame to WebKit's GPU.
  */
 function useAtelierFilm() {
   const [near, setNear] = useState(FILM_ALWAYS_ON);
+  const [requested, setRequested] = useState(FILM_ALWAYS_ON);
   const [film, setFilm] = useState<THREE.VideoTexture | null>(null);
   const video = useRef<HTMLVideoElement | null>(null);
   const running = useShowroomStore((state) => state.running);
 
   useEffect(() => {
-    if (FILM_ALWAYS_ON || !filmAllowed()) return;
+    if (!running || FILM_ALWAYS_ON || !filmAllowed()) return;
     const onScroll = () => {
       const p = journeyProgress();
-      setNear(p > 0.58 && p < 0.95);
+      const inRoom = p > 0.58 && p < 0.95;
+      setNear(inRoom);
+      if (inRoom) setRequested(true);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [running]);
 
   useEffect(() => {
     // `filmAllowed` is re-checked here rather than left to the scroll effect,
     // which does not run at all when the film is always on.
-    if (!near || !filmAllowed()) return;
+    if (!requested || !filmAllowed()) return;
     const el = document.createElement("video");
     video.current = el;
     el.src = ATELIER_FILM;
@@ -2893,7 +2891,7 @@ function useAtelierFilm() {
     // Cover-fit: the film is 9:16 and the frame is 4:5, so it is matched
     // on width and trimmed top and
     // bottom rather than squashed.
-    const onMeta = () => {
+    const onData = () => {
       const shot = el.videoWidth / el.videoHeight;
       const frame = MOMENTS_FRAME[0] / MOMENTS_FRAME[1];
       if (shot > frame) {
@@ -2905,28 +2903,25 @@ function useAtelierFilm() {
       }
       setFilm(tex);
     };
-    el.addEventListener("loadedmetadata", onMeta, { once: true });
-    // Muted and inline, so autoplay is allowed; if a browser refuses anyway the
-    // still is already on the frame and stays there.
-    if (useShowroomStore.getState().running) void el.play().catch(() => {});
-
+    // Metadata gives dimensions but does not guarantee an uploadable frame.
+    el.addEventListener("loadeddata", onData, { once: true });
     return () => {
-      el.removeEventListener("loadedmetadata", onMeta);
+      el.removeEventListener("loadeddata", onData);
       el.pause();
       video.current = null;
       el.removeAttribute("src");
       el.load();
       tex.dispose();
-      setFilm(null);
     };
-  }, [near]);
+  }, [requested]);
 
   useEffect(() => {
     const el = video.current;
     if (!el) return;
-    if (running) void el.play().catch(() => {});
+    // Muted and inline; retain the still if autoplay is refused.
+    if (running && near) void el.play().catch(() => {});
     else el.pause();
-  }, [running, near]);
+  }, [running, near, requested]);
 
   return film;
 }
@@ -3335,7 +3330,6 @@ function KeepsakeLetter() {
 
 function YoursForever({ z }: { z: number }) {
   const lidRef = useRef<THREE.Group>(null);
-  const lidOpen = useRef(0);
 
   // Both files are already on the page — one is zone 05's own portrait, the
   // other hangs in the gallery — so the loader serves these from cache.
@@ -3353,20 +3347,12 @@ function YoursForever({ z }: { z: number }) {
     [finale]
   );
 
-  useEffect(() => {
-    const onScroll = () => {
-      lidOpen.current = THREE.MathUtils.clamp((journeyProgress() - 0.84) / 0.05, 0, 1);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   useFrame(() => {
     if (!lidRef.current) return;
+    const lidOpen = THREE.MathUtils.clamp((journeyProgress() - 0.84) / 0.05, 0, 1);
     lidRef.current.rotation.x = THREE.MathUtils.lerp(
       lidRef.current.rotation.x,
-      THREE.MathUtils.lerp(1.35, -0.3, lidOpen.current),
+      THREE.MathUtils.lerp(1.35, -0.3, lidOpen),
       0.06
     );
   });
