@@ -21,19 +21,19 @@
 .count { font-size: 12px; color: var(--color-accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .controls { display: flex; align-items: center; gap: 24px; }
 .search { position: relative; width: 210px; }
-.search > svg { position: absolute; left: 0; top: 14px; width: 16px; height: 16px; color: var(--color-accent); pointer-events: none; }
-.search input { width: 100%; height: 44px; padding: 8px 28px 8px 26px; border-bottom: 1px solid rgba(var(--color-primary-rgb), .2); background: transparent; border-radius: 0; font-size: 12px; color: var(--color-primary); }
+.search > svg { position: absolute; left: 12px; top: 14px; width: 16px; height: 16px; color: var(--color-accent); pointer-events: none; }
+.search input { width: 100%; height: 44px; padding: 8px 32px 8px 36px; border: 1px solid rgba(var(--color-primary-rgb), .2); background: transparent; border-radius: 8px; font-size: 12px; color: var(--color-primary); }
 .search input::placeholder { color: var(--color-accent); }
 .search input:focus { outline: none; border-color: var(--color-primary); }
-.search button { position: absolute; right: -7px; top: 0; height: 44px; width: 32px; display: grid; place-items: center; cursor: pointer; }
+.search button { position: absolute; right: 0; top: 0; height: 44px; width: 32px; display: grid; place-items: center; cursor: pointer; }
 .search button svg { width: 14px; height: 14px; }
-.filterButton { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.filterButton { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 8px 12px; border: 1px solid rgba(var(--color-primary-rgb), .2); font-size: 12px; cursor: pointer; white-space: nowrap; }
 .filterButton svg { width: 16px; height: 16px; stroke-width: 1.4; }
 .filterCount { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 3px; border-radius: 50%; background: var(--color-primary); color: var(--color-background); font-size: 10px; }
 .sort { position: relative; display: flex; align-items: center; gap: 8px; }
 .sortLabel { font-size: 12px; color: var(--color-accent); white-space: nowrap; }
-.sort select { appearance: none; background: transparent; border: none; border-radius: 0; height: 44px; max-width: 160px; padding: 8px 22px 8px 0; font-size: 12px; color: var(--color-primary); cursor: pointer; }
-.sort > svg { position: absolute; right: 0; width: 13px; height: 13px; pointer-events: none; }
+.sort select { appearance: none; background: transparent; border: 1px solid rgba(var(--color-primary-rgb), .2); border-radius: 8px; height: 44px; max-width: 160px; padding: 8px 28px 8px 12px; font-size: 12px; color: var(--color-primary); cursor: pointer; }
+.sort > svg { position: absolute; right: 10px; width: 13px; height: 13px; pointer-events: none; }
 .views { display: flex; border-left: 1px solid rgba(var(--color-primary-rgb), .16); padding-left: 16px; gap: 2px; }
 .views button { width: 34px; height: 44px; display: grid; place-items: center; color: var(--color-accent); opacity: .45; cursor: pointer; }
 .views button[aria-pressed="true"], .views button:hover { opacity: 1; color: var(--color-primary); }
@@ -91,7 +91,7 @@
 .skeletonLine:last-child { width: 35%; margin-top: 12px; }
 .dialog { color: var(--color-primary); background: var(--color-background); padding: 0; border: 0; max-width: none; max-height: none; }
 .dialog::backdrop { background: rgba(25, 17, 21, .4); }
-.drawer { position: fixed; inset: 0 0 0 auto; width: 420px; max-width: 100%; height: 100dvh; margin: 0; }
+.drawer { position: fixed; inset: 0 0 0 auto; width: 420px; max-width: 100%; height: 100dvh; margin: 0; border-radius: 16px 0 0 16px; overflow: hidden; }
 .drawer[open] { display: flex; flex-direction: column; animation: drawerEnter .2s ease-out; }
 .dialogHeader { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 28px 28px 24px; border-bottom: 1px solid rgba(var(--color-primary-rgb), .13); }
 .dialogHeader > div { min-width: 0; }
@@ -115,9 +115,9 @@
 .priceOptions button[aria-pressed="true"] { border-color: var(--color-primary); background: rgba(var(--color-primary-rgb), .05); }
 .priceInputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
 .priceInputs label { font-size: 11px; color: var(--color-accent); }
-.priceInputs input { display: block; width: 100%; height: 42px; margin-top: 8px; border: 1px solid rgba(var(--color-primary-rgb), .2); padding: 8px 10px; font-size: 16px; border-radius: 0; background: transparent; }
+.priceInputs input { display: block; width: 100%; height: 42px; margin-top: 8px; border: 1px solid rgba(var(--color-primary-rgb), .2); padding: 8px 10px; font-size: 16px; border-radius: 8px; background: transparent; }
 .availability { margin-top: 20px; }
-.quickDialog { position: fixed; inset: 0; margin: auto; width: min(860px, calc(100% - 48px)); max-height: calc(100dvh - 64px); overflow-y: auto; overscroll-behavior: contain; }
+.quickDialog { position: fixed; inset: 0; margin: auto; width: min(860px, calc(100% - 48px)); max-height: calc(100dvh - 64px); border-radius: 16px; overflow-y: auto; overscroll-behavior: contain; }
 .quickLayout { display: grid; grid-template-columns: 1fr 1fr; }
 .quickClose { position: absolute; top: 10px; right: 10px; z-index: 1; background: var(--color-background); border-radius: 50%; }
 .quickImage { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: rgba(var(--color-primary-rgb), .04); }
@@ -136,6 +136,11 @@
 .quickChoices button:disabled { opacity: .35; cursor: not-allowed; }
 .quickContent > .primaryButton { margin-top: auto; width: 100%; }
 .quickContent > .textButton { align-self: center; margin-top: 12px; }
+.card, .imageWrap, .imageLink, .skeletonImage, .quickImage { border-radius: 12px; }
+.filterButton, .search button, .views button, .chip, .primaryButton, .pagination button, .priceOptions button, .quickChoices button, .quickChoices input, .quickThumbs button, .quickThumbs img { border-radius: 8px; }
+.badge, .skeletonLine { border-radius: 4px; }
+.quickThumbs button { overflow: hidden; }
+.views button[aria-pressed="true"], .pagination button[aria-current="page"] { background: rgba(var(--color-primary-rgb), .06); }
 .page :is(button, a, select):focus-visible, .dialog :is(button, a, input, summary):focus-visible { outline: 2px solid var(--color-primary); outline-offset: 4px; }
 @keyframes drawerEnter { from { transform: translateX(40px); opacity: .6; } to { transform: translateX(0); opacity: 1; } }
 @media (max-width: 1100px) {
@@ -160,7 +165,7 @@
   .search input { font-size: 16px; }
   .search input::placeholder { font-size: 12px; }
   .filterButton { grid-row: 2; justify-content: flex-start; min-height: 40px; }
-  .sort { grid-row: 2; }
+  .sort { grid-row: 2; justify-self: end; }
   .sort select { height: 40px; font-size: 12px; max-width: 150px; }
   .sortLabel { display: none; }
   .views { display: none; }

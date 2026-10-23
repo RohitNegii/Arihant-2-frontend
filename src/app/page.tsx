@@ -27,7 +27,7 @@ interface Zone {
 const ZONE_COUNT = 6;
 const STORY_ZONES = 6;
 
-/** Scroll progress at which the journey hands over to the category finale. */
+/** Scroll progress at which the journey hands over to the collection finale. */
 const FINALE_AT = 0.95;
 
 /**
@@ -36,13 +36,6 @@ const FINALE_AT = 0.95;
  * `position: fixed`, so nothing scrolls them off on its own.
  */
 const FOOTER_AT = 0.2;
-
-/** `gender` is the exact value the products filter expects — see ProductFilters. */
-const CATEGORIES = [
-  { label: "For Him", gender: "Men", note: "Signet rings, cufflinks, chains" },
-  { label: "For Her", gender: "Women", note: "Chandbalis, drops, medallions" },
-  { label: "Unisex", gender: "Unisex", note: "Bands, studs, everyday pieces" },
-] as const;
 
 function goToZone(zone: number) {
   scrollToOffset(((zone + 0.25) / ZONE_COUNT) * journeySpan());
@@ -100,7 +93,7 @@ function StoryCTA({
  * from the offset instead, so the resting position is exactly the journey's
  * last pixel: the card's foot on the footer's head.
  */
-function CategoryFinale() {
+function CollectionFinale() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -128,26 +121,15 @@ function CategoryFinale() {
           <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c.gender}
-              href={`/products?gender=${c.gender}`}
-              className="hover-target group flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2 rounded-2xl border border-verdant-emerald/15 bg-white/40 hover:bg-white/70 hover:border-verdant-gold/50 px-4 py-2 sm:py-4 text-left transition-all duration-300 cursor-pointer"
-            >
-              <span className="font-serif text-lg text-verdant-emerald leading-none">
-                {c.label}
-              </span>
-              <span className="hidden sm:block text-[10px] leading-snug text-verdant-emerald/50 font-light">
-                {c.note}
-              </span>
-              <span className="flex items-center gap-1.5 text-[9px] tracking-[0.2em] uppercase font-semibold text-verdant-gold sm:mt-1">
-                Shop
-                <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-              </span>
-            </Link>
-          ))}
-        </div>
+        <Link
+          href="/products"
+          className="hover-target group flex items-center justify-between gap-4 rounded-2xl border border-verdant-emerald/15 bg-white/40 hover:bg-white/70 hover:border-verdant-gold/50 px-5 py-4 sm:px-6 sm:py-5 text-left transition-all duration-300 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-verdant-gold"
+        >
+          <span className="font-serif text-xl sm:text-2xl text-verdant-emerald leading-none">
+            Our Collection
+          </span>
+          <ArrowRight aria-hidden="true" className="w-5 h-5 shrink-0 text-verdant-gold group-hover:translate-x-1 transition-transform" />
+        </Link>
       </div>
     </motion.div>
   );
@@ -389,7 +371,7 @@ export default function Home() {
       <Navbar />
 
       <div className="absolute inset-x-0 top-0 bottom-10 sm:bottom-12 md:bottom-16 z-20 pointer-events-none">
-        <AnimatePresence>{atFinale && <CategoryFinale />}</AnimatePresence>
+        <AnimatePresence>{atFinale && <CollectionFinale />}</AnimatePresence>
       </div>
 
       <div
