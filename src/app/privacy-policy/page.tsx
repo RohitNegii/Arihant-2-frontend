@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, Lock, Eye, FileText, Sparkles, ArrowUpRight } from "lucide-react";
+import {
+  Shield,
+  Lock,
+  Eye,
+  FileText,
+  Sparkles,
+  ArrowUpRight,
+  CheckCircle2,
+} from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 import PolicyTOCMobile from "@/components/global/PolicyTOCMobile";
+import PolicyHeaderTabs from "@/components/global/PolicyHeaderTabs";
 import { motion } from "framer-motion";
 
 export default function PrivacyPolicyPage() {
@@ -14,92 +23,173 @@ export default function PrivacyPolicyPage() {
   const sections = [
     {
       id: "introduction",
-      title: "1. Introduction",
+      number: "01",
+      title: "1. Introduction & Scope",
       icon: <FileText className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            Welcome to <strong>GEETEJ VIRAASAT</strong>. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we look after your personal data when you visit our website, browse our bespoke jewelry showrooms, or purchase our luxury articles.
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            Welcome to <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong>. We respect your privacy and are committed to protecting your personal data. This privacy policy informs you of how we look after your personal information when you visit our website, explore our bespoke jewelry showrooms, or purchase luxury creations from our atelier.
           </p>
-          <p>
-            By accessing or using our services, you consent to the collection, transfer, manipulation, storage, disclosure, and other uses of your information as described in this Privacy Policy.
+          <p className="leading-relaxed">
+            By accessing or using our services, you consent to the collection, transfer, processing, and storage of your information as described in this Privacy Policy. All operations are conducted in strict compliance with applicable global privacy standards and consumer data protection laws.
           </p>
-        </>
+        </div>
       ),
     },
     {
       id: "information-collection",
+      number: "02",
       title: "2. Information We Collect",
       icon: <Eye className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            We collect personal data to provide a tailored luxury experience. The categories of information we collect include:
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            We collect personal data to provide a seamless, personalized luxury experience. The categories of information we process include:
           </p>
-          <ul className="list-disc pl-5 space-y-2 mb-4">
-            <li><strong>Identity Data:</strong> First name, last name, and styling preferences.</li>
-            <li><strong>Contact Data:</strong> Email address, billing address, shipping address, and telephone number.</li>
-            <li><strong>Transaction Data:</strong> Details about payments to and from you, and other details of products you have purchased from us.</li>
-            <li><strong>Technical Data:</strong> Internet protocol (IP) address, browser type and version, time zone setting and location, and operating system.</li>
-          </ul>
-          <p>
-            We do not collect any Special Categories of Personal Data (such as details about your race, religious beliefs, or health information).
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            {[
+              {
+                title: "Identity Data",
+                desc: "Full name, styling preferences, ring and wrist sizing measurements, and custom engraving inscriptions.",
+              },
+              {
+                title: "Contact Data",
+                desc: "Email address, billing address, insured shipping address, and telephone contact details.",
+              },
+              {
+                title: "Transaction Data",
+                desc: "Records of completed bespoke commissions, payment verification tokens, invoices, and GIA certificates.",
+              },
+              {
+                title: "Technical Data",
+                desc: "Internet protocol (IP) address, browser classification, device telemetry, time zone, and session security cookies.",
+              },
+            ].map((cat, i) => (
+              <div
+                key={i}
+                className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-3.5 space-y-1 text-left"
+              >
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-verdant-emerald">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-verdant-gold" />
+                  {cat.title}
+                </div>
+                <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
+                  {cat.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-verdant-emerald/70 italic pt-1">
+            * We do not collect Special Categories of Personal Data (such as race, religious beliefs, biometrics, or health data).
           </p>
-        </>
+        </div>
       ),
     },
     {
       id: "how-we-use",
+      number: "03",
       title: "3. How We Use Your Data",
       icon: <Sparkles className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            We will only use your personal data when the law allows us to. Most commonly, we use your data in the following circumstances:
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            We will only use your personal data when authorized by law and strictly for genuine business functions:
           </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>To register you as a new client and verify authentication details.</li>
-            <li>To process and deliver your order, including managing payments, fees, and charges.</li>
-            <li>To manage our relationship with you, including notifying you about updates to our terms, collections, or GIA-certified reserve lists.</li>
-            <li>To deliver relevant website content and product recommendations based on your preferences.</li>
+          <ul className="space-y-2.5">
+            {[
+              "To register and authenticate you as a bespoke atelier client.",
+              "To manufacture, configure, insure, and securely deliver your commissioned fine jewelry.",
+              "To safeguard the registry of your GIA and international diamond certification credentials.",
+              "To notify you of essential updates regarding order status, collection releases, or private appointments.",
+              "To maintain our bespoke customer care archive and deliver tailored jewelry recommendations.",
+            ].map((item, idx) => (
+              <li key={idx} className="flex items-start gap-2.5 text-left">
+                <span className="w-1.5 h-1.5 rounded-full bg-verdant-gold mt-2 shrink-0" />
+                <span className="text-verdant-emerald/80 leading-relaxed">{item}</span>
+              </li>
+            ))}
           </ul>
-        </>
+        </div>
       ),
     },
     {
       id: "data-security",
-      title: "4. Data Security & Protection",
+      number: "04",
+      title: "4. Data Security & Payment Isolation",
       icon: <Lock className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used, or accessed in an unauthorized way. 
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            We implement stringent physical, digital, and procedural safeguards to prevent your personal data from accidental loss, unauthorized access, alteration, or disclosure.
           </p>
-          <p className="mb-4">
-            All transaction databases are isolated, and raw payment processing occurs strictly via encrypted payment gateways. We do not store credit card credentials on our servers.
+          <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 space-y-2 text-left">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-verdant-emerald flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-verdant-gold" /> Isolated Vault Architecture
+            </h4>
+            <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans">
+              All payment transactions are processed directly through 256-bit SSL encrypted PCI-DSS Level 1 compliant gateways. We do not store, retain, or have visibility into raw payment card credentials on our servers.
+            </p>
+          </div>
+          <p className="leading-relaxed">
+            Access to client records is strictly restricted to certified personnel and master craft coordinators with an operational need-to-know, all bound by comprehensive non-disclosure and confidentiality obligations.
           </p>
-          <p>
-            In addition, we limit access to your personal data to those employees, agents, contractors, and other third parties who have a business need to know. They will only process your personal data on our instructions and they are subject to a duty of confidentiality.
-          </p>
-        </>
+        </div>
       ),
     },
     {
       id: "your-rights",
+      number: "05",
       title: "5. Your Legal Rights",
       icon: <Shield className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            Under certain circumstances, you have rights under data protection laws in relation to your personal data:
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            Under international privacy regulations (including GDPR and CCPA standards), you have well-defined rights regarding your personal information:
           </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li><strong>Request access:</strong> Receive a copy of the personal data we hold about you.</li>
-            <li><strong>Request correction:</strong> Ask us to correct any incomplete or inaccurate data we hold about you.</li>
-            <li><strong>Request erasure:</strong> Ask us to delete personal data where there is no good reason for us continuing to process it.</li>
-            <li><strong>Object to processing:</strong> Object to processing of your personal data where we are relying on a legitimate interest.</li>
-          </ul>
-        </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              {
+                title: "Right to Access",
+                desc: "Request a digital copy of all personal records we maintain about you.",
+              },
+              {
+                title: "Right to Rectification",
+                desc: "Update or correct any inaccurate sizing, address, or identity details.",
+              },
+              {
+                title: "Right to Erasure",
+                desc: "Request deletion of your data when retention is no longer legally mandated.",
+              },
+              {
+                title: "Right to Object",
+                desc: "Opt out of direct marketing, profiling, or non-essential communication.",
+              },
+            ].map((right, idx) => (
+              <div
+                key={idx}
+                className="p-3.5 rounded-xl border border-[#EAE2D8] bg-[#FAF8F5] text-left space-y-1"
+              >
+                <span className="text-xs font-semibold text-verdant-emerald block">
+                  {right.title}
+                </span>
+                <span className="text-[11px] text-verdant-emerald/70 block leading-relaxed">
+                  {right.desc}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-verdant-emerald/75 leading-relaxed pt-2">
+            To exercise any of these rights, simply email our compliance desk at{" "}
+            <a
+              href="mailto:care@geetejviraasat.com"
+              className="text-verdant-emerald font-semibold underline underline-offset-4 hover:text-verdant-gold transition-colors"
+            >
+              care@geetejviraasat.com
+            </a>{" "}
+            or use our concierge inquiry form.
+          </p>
+        </div>
       ),
     },
   ];
@@ -109,123 +199,172 @@ export default function PrivacyPolicyPage() {
       {/* Navbar */}
       <Navbar />
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-verdant-gold/6 to-transparent blur-[130px] pointer-events-none z-0" />
-        <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-emerald/4 to-transparent blur-[140px] pointer-events-none z-0" />
-      </div>
+      {/* Header with Switcher Tabs */}
+      <PolicyHeaderTabs
+        currentPolicy="privacy-policy"
+        title="Privacy & Data Protection"
+        subtitle="Learn how we safeguard your personal data, secure GIA diamond certifications, and encrypt all boutique client records."
+        lastUpdated="October 2026"
+      />
 
-      {/* Header Banner */}
-      <div className="relative w-full h-[320px] md:h-[360px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=2000&q=80"
-            alt="Luxury Jewelry Studio"
-            className="w-full h-full object-cover object-center opacity-85 select-none pointer-events-none"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
-        </div>
+      {/* Main Content Layout */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-12 flex justify-center">
-          <div className="glass-effect rounded-3xl p-6 md:p-8 max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-2">
-            <span className="text-[9px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5">
-              <Shield className="w-3 h-3" /> GEETEJ VIRAASAT TRUST PROTOCOL
-            </span>
-            <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl font-light tracking-wide text-verdant-emerald leading-tight">
-              Privacy Policy
-            </h1>
-            <p className="text-[10px] md:text-xs text-verdant-emerald/75 leading-relaxed font-sans max-w-xl mx-auto">
-              Learn how we safeguard your information, secure GIA certifications, and process encrypted bespoke transaction details.
-            </p>
-          </div>
-        </div>
-      </div>
+          {/* Left Sticky Sidebar (Desktop) */}
+          <aside className="lg:col-span-4 xl:col-span-3 sticky top-28 space-y-4 hidden lg:block text-left">
+            {/* Table of Contents Card */}
+            <div className="bg-white rounded-2xl border border-[#EAE2D8] p-4 shadow-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-[#EAE2D8] mb-3">
+                <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-verdant-emerald/60">
+                  Contents
+                </span>
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-verdant-emerald/5 text-verdant-emerald/70 border border-[#EAE2D8]">
+                  {sections.length} Sections
+                </span>
+              </div>
 
-      {/* Content Layout */}
-      <div className="max-w-6xl mx-auto px-6 py-12 md:py-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
-          
-          {/* Left Sidebar navigation */}
-          <div className="lg:col-span-4 sticky top-28 space-y-4 hidden lg:block">
-            <div className="glass-card bg-white/50 backdrop-blur-md border border-verdant-emerald/10 rounded-2xl p-6 shadow-xs text-left">
-              <h3 className="font-serif text-sm tracking-wider font-semibold text-verdant-emerald uppercase mb-4">
-                Policy Sections
-              </h3>
-              <div className="flex flex-col gap-1">
-                {sections.map((sec) => (
-                  <button
-                    key={sec.id}
-                    onClick={() => {
-                      setActiveSection(sec.id);
-                      const el = document.getElementById(sec.id);
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }
-                    }}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wider transition-all duration-300 cursor-pointer ${
-                      activeSection === sec.id
-                        ? "bg-verdant-emerald/10 text-verdant-emerald font-semibold border-l-2 border-verdant-gold"
-                        : "text-verdant-emerald/65 hover:text-verdant-emerald hover:bg-verdant-emerald/5"
-                    }`}
-                  >
-                    {sec.icon}
-                    <span>{sec.title.substring(3)}</span>
-                  </button>
-                ))}
+              <nav className="flex flex-col gap-1">
+                {sections.map((sec) => {
+                  const isActive = activeSection === sec.id;
+                  return (
+                    <button
+                      key={sec.id}
+                      onClick={() => {
+                        setActiveSection(sec.id);
+                        const el = document.getElementById(sec.id);
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                      }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs tracking-wide text-left transition-all duration-200 cursor-pointer ${
+                        isActive
+                          ? "bg-verdant-emerald text-white font-medium shadow-2xs"
+                          : "text-verdant-emerald/70 hover:text-verdant-emerald hover:bg-[#FAF8F5]"
+                      }`}
+                    >
+                      <span
+                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-verdant-emerald/5 text-verdant-emerald/60"
+                        }`}
+                      >
+                        {sec.number}
+                      </span>
+                      <span className="truncate">{sec.title.replace(/^\d+\.\s*/, "")}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Assistance Card */}
+            <div className="bg-white rounded-2xl border border-[#EAE2D8] p-4 shadow-xs space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center">
+                  <CrestMark size={16} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold text-verdant-emerald">
+                    Privacy Concierge
+                  </h4>
+                  <p className="text-[10px] text-verdant-emerald/60">
+                    Questions about data records?
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
+                Our client desk assists with certification lookups, data access requests, and authentication inquiries.
+              </p>
+
+              <div className="pt-1">
+                <a
+                  href="/contact"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-verdant-emerald text-white text-[11px] font-semibold tracking-wider hover:bg-[#2C1820] transition-colors"
+                >
+                  Contact Desk <ArrowUpRight className="w-3.5 h-3.5 text-verdant-gold" />
+                </a>
               </div>
             </div>
-            
-            {/* Need Help Box */}
-            <div className="glass-card bg-verdant-emerald/5 border border-verdant-emerald/10 rounded-2xl p-6 text-left">
-              <h4 className="font-serif text-xs tracking-wider font-semibold text-verdant-emerald uppercase mb-1 flex items-center gap-1.5">
-                <CrestMark size={18} /> Need Assistance?
-              </h4>
-              <p className="text-[10px] text-verdant-emerald/65 leading-relaxed font-sans mb-3">
-                If you have questions regarding data retention or GIA credentials, please contact our legal desk.
-              </p>
-              <a
-                href="/contact"
-                className="inline-flex items-center gap-1 text-[9px] tracking-widest uppercase font-bold text-verdant-gold hover:text-verdant-emerald transition-colors"
-              >
-                Legal Concierge <ArrowUpRight className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
+          </aside>
 
           {/* Right Main Content Panel */}
-          <div className="lg:col-span-8">
+          <main className="lg:col-span-8 xl:col-span-9">
+            {/* Mobile Table of Contents Accordion */}
             <PolicyTOCMobile
               sections={sections}
               activeSection={activeSection}
               onSelect={setActiveSection}
             />
 
-            <div className="space-y-6">
-            {sections.map((sec) => (
-              <motion.div
-                key={sec.id}
-                id={sec.id}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                onViewportEnter={() => setActiveSection(sec.id)}
-                className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-2xl p-6 md:p-8 shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.02)] text-left space-y-4"
-              >
-                <div className="flex items-center gap-3 border-b border-verdant-emerald/5 pb-3">
-                  <div className="w-8 h-8 rounded-lg bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center shrink-0">
-                    {sec.icon}
-                  </div>
-                  <h2 className="font-serif text-lg tracking-wide font-light text-verdant-emerald">
-                    {sec.title}
-                  </h2>
+            {/* Unified Luxury Document Dossier */}
+            <div className="bg-white rounded-2xl border border-[#EAE2D8] shadow-xs overflow-hidden">
+              {/* Document Header Band */}
+              <div className="bg-[#FAF8F5] border-b border-[#EAE2D8] px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                  <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-verdant-emerald/70">
+                    Official Policy Dossier &bull; Section By Section
+                  </span>
                 </div>
-                <div className="text-xs md:text-sm text-verdant-emerald/80 leading-relaxed font-sans">
-                  {sec.content}
+                <div className="hidden sm:flex items-center gap-3 text-[11px] text-verdant-emerald/60">
+                  <span>Version 2.4</span>
+                  <span>&bull;</span>
+                  <span>Active Status</span>
                 </div>
-              </motion.div>
-            ))}
+              </div>
+
+              {/* Document Sections */}
+              <div className="divide-y divide-[#EAE2D8]/70">
+                {sections.map((sec) => (
+                  <motion.section
+                    key={sec.id}
+                    id={sec.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.35 }}
+                    onViewportEnter={() => setActiveSection(sec.id)}
+                    className="p-6 sm:p-8 md:p-9 text-left space-y-4 scroll-mt-28"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center shrink-0">
+                        {sec.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono tracking-wider font-bold uppercase text-verdant-gold block">
+                          Section {sec.number}
+                        </span>
+                        <h2 className="font-serif text-lg sm:text-xl font-normal text-verdant-emerald tracking-wide">
+                          {sec.title}
+                        </h2>
+                      </div>
+                    </div>
+
+                    <div className="text-[13px] sm:text-sm text-verdant-emerald/80 font-sans leading-relaxed pt-1">
+                      {sec.content}
+                    </div>
+                  </motion.section>
+                ))}
+              </div>
+
+              {/* Document Signoff Footer */}
+              <div className="bg-[#FAF8F5] border-t border-[#EAE2D8] p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-verdant-emerald/60">
+                <div className="flex items-center gap-2">
+                  <CrestMark size={20} />
+                  <span className="font-serif tracking-wider text-verdant-emerald text-xs">
+                    GEETEJ VIRAASAT ATELIER COMPLIANCE
+                  </span>
+                </div>
+                <div className="text-[11px] sm:text-right">
+                  <p>Certified Document &bull; Last Revised October 2026</p>
+                  <p className="text-verdant-emerald/50">All trademarks &amp; certifications registered.</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </main>
 
         </div>
       </div>

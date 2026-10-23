@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, ChevronRight, Columns2, Grid2X2, SlidersHorizontal, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 import CrestMark from "@/components/global/CrestMark";
@@ -60,7 +60,6 @@ function Collection({ initialFilters }: { initialFilters: FilterState }) {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [result, setResult] = useState<{ key: string; products: ProductData[]; pages: number; count: number; error: boolean } | null>(null);
   const [retry, setRetry] = useState(0);
-  const [columns, setColumns] = useState<2 | 4>(4);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [draftFilters, setDraftFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -153,10 +152,6 @@ function Collection({ initialFilters }: { initialFilters: FilterState }) {
               <SlidersHorizontal aria-hidden="true" /> Filters {activeFilters.length > 0 && <span className={styles.filterCount}>{activeFilters.length}</span>}
             </button>
             <ProductSort value={sort} onChange={value => { setSort(value); setPage(1); }} />
-            <div className={styles.views} role="group" aria-label="Product layout">
-              <button type="button" aria-label="Two columns" aria-pressed={columns === 2} onClick={() => setColumns(2)}><Columns2 aria-hidden="true" /></button>
-              <button type="button" aria-label="Four columns" aria-pressed={columns === 4} onClick={() => setColumns(4)}><Grid2X2 aria-hidden="true" /></button>
-            </div>
           </div>
         </div>
 
@@ -170,9 +165,9 @@ function Collection({ initialFilters }: { initialFilters: FilterState }) {
             <h2>A little pause in browsing.</h2>
             <p>We couldn’t load the collection. Please try again in a moment.</p>
             <button type="button" className={styles.primaryButton} onClick={() => setRetry(value => value + 1)}>Try again</button>
-          </div> : loading ? <div className={`${styles.grid} ${columns === 2 ? styles.gridWide : ""}`} role="status" aria-label="Loading jewellery">
+          </div> : loading ? <div className={styles.grid} role="status" aria-label="Loading jewellery">
             {Array.from({ length: 8 }, (_, index) => <div key={index} aria-hidden="true"><div className={styles.skeletonImage} /><div className={styles.skeletonLine} /><div className={styles.skeletonLine} /></div>)}
-          </div> : <ProductGrid products={products} columns={columns} onQuickView={setQuickViewProduct} onClearFilters={clearFilters} />}
+          </div> : <ProductGrid products={products} onQuickView={setQuickViewProduct} onClearFilters={clearFilters} />}
         </div>
 
         {!loading && !error && totalCount > 0 && <>

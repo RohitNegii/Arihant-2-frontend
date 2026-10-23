@@ -1,11 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldCheck, HelpCircle, Scale, Info, ArrowUpRight, Ban } from "lucide-react";
+import {
+  ShieldCheck,
+  HelpCircle,
+  Scale,
+  Info,
+  ArrowUpRight,
+  Ban,
+  CheckCircle2,
+  AlertTriangle,
+  Truck,
+  Wrench,
+  Gem,
+} from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 import PolicyTOCMobile from "@/components/global/PolicyTOCMobile";
+import PolicyHeaderTabs from "@/components/global/PolicyHeaderTabs";
 import { motion } from "framer-motion";
 
 export default function RefundPolicyPage() {
@@ -14,84 +27,174 @@ export default function RefundPolicyPage() {
   const sections = [
     {
       id: "policy",
-      title: "1. Policy Overview",
-      icon: <Ban className="w-4 h-4 text-verdant-danger" />,
+      number: "01",
+      title: "1. Policy Overview & Absolute No-Refund Notice",
+      icon: <Ban className="w-4 h-4 text-amber-600" />,
       content: (
         <div className="space-y-4">
-          <div className="glass-card bg-verdant-gold/5 border border-verdant-gold/30 rounded-2xl p-6 text-left relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-verdant-gold/10 rounded-full blur-xl pointer-events-none" />
-            <span className="text-[9px] tracking-[0.2em] font-bold text-verdant-gold uppercase flex items-center gap-1.5 mb-2 animate-pulse">
-              <CrestMark size={18} /> Final Transaction Agreement
-            </span>
-            <p className="font-serif text-base text-verdant-emerald font-semibold leading-relaxed mb-3">
+          {/* Prominent High-Contrast Callout Card */}
+          <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-5 sm:p-6 text-left relative overflow-hidden shadow-2xs">
+            <div className="absolute top-0 right-0 w-28 h-28 bg-amber-200/20 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-0.5 rounded-full bg-amber-600/10 border border-amber-600/20 text-[10px] tracking-[0.2em] font-bold text-amber-800 uppercase flex items-center gap-1.5">
+                <AlertTriangle className="w-3 h-3 text-amber-700" />
+                Final Transaction Agreement
+              </span>
+            </div>
+
+            <h3 className="font-serif text-base sm:text-lg text-verdant-emerald font-semibold leading-snug mb-2.5">
               Once any purchase is completed, money will not be refunded under any circumstances.
+            </h3>
+
+            <p className="text-xs sm:text-[13px] text-verdant-emerald/80 leading-relaxed font-sans mb-3">
+              Every purchase of a <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong> creation represents an individual, custom-allocated acquisition involving high-purity precious metals, hand-selected diamonds, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
             </p>
-            <p className="text-xs text-verdant-emerald/70 leading-relaxed font-sans">
-              Every purchase of a GEETEJ VIRAASAT creation represents a singular transaction involving high-purity precious metals, hand-selected diamonds, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
-            </p>
+
+            <div className="text-[11px] text-amber-900/80 bg-amber-100/50 rounded-xl p-3 border border-amber-200/60 leading-relaxed">
+              We urge all clients to carefully review their specifications, finger sizing guidelines, diamond classifications (color/clarity/cut), and personalized engraving preferences prior to confirming payment.
+            </div>
           </div>
-          <p className="text-xs md:text-sm text-verdant-emerald/80 leading-relaxed font-sans">
-            We urge all buyers to double-check their specifications, finger sizing guidelines, diamond classifications (color/clarity/cut), and engraving preferences before submitting their final transaction token.
+
+          <p className="text-xs sm:text-sm text-verdant-emerald/80 leading-relaxed font-sans pt-1">
+            By authorizing payment, the buyer expressly acknowledges that fine jewelry made or adjusted for their order cannot be returned or refunded.
           </p>
         </div>
       ),
     },
     {
       id: "why-final",
+      number: "02",
       title: "2. Why All Sales Are Final",
       icon: <Scale className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            Due to the exceptional nature of high-end jewelry and custom order allocations, we cannot reverse transaction processes for the following reasons:
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            Due to the rare nature of bespoke fine jewelry and immediate capital allocations, transactions cannot be reversed once initiated:
           </p>
-          <ul className="list-disc pl-5 space-y-3">
-            <li>
-              <strong>Bespoke Tailoring & Engraving:</strong> The majority of our rings and pendants are adjusted or fully structured based on your size specifications and personalized inscriptions. A custom piece cannot be restocked.
-            </li>
-            <li>
-              <strong>Immediate Metal & Gem Lock-in:</strong> Upon receipt of payment, our treasury department immediately secures the raw components (platinum, 18k gold alloy, and certified diamond gems) at prevailing market commodity indices.
-            </li>
-            <li>
-              <strong>Master Artisanal Allocation:</strong> Handcrafting slots by our master jewelers are scheduled immediately upon order confirmation. Compensation for artisan craft hours is locked instantly.
-            </li>
-          </ul>
-        </>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
+            {[
+              {
+                icon: <Gem className="w-4 h-4 text-verdant-gold" />,
+                title: "Bespoke Tailoring & Engraving",
+                desc: "Rings, pendants, and bracelets are adjusted or mounted specifically to your exact size specifications and personalized inscriptions. A custom piece cannot be restocked.",
+              },
+              {
+                icon: <Scale className="w-4 h-4 text-verdant-gold" />,
+                title: "Immediate Metal & Gem Lock-in",
+                desc: "Upon receipt of payment, our treasury immediately secures the raw components (platinum, 18k solid gold alloy, and certified diamond gems) at prevailing market commodity indices.",
+              },
+              {
+                icon: <Wrench className="w-4 h-4 text-verdant-gold" />,
+                title: "Master Artisanal Allocation",
+                desc: "Handcrafting slots by master jewelers are scheduled immediately upon order confirmation. Compensation and bench hours for artisan craftsmanship are locked instantly.",
+              },
+            ].map((reason, idx) => (
+              <div
+                key={idx}
+                className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2"
+              >
+                <div className="w-7 h-7 rounded-lg bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center">
+                  {reason.icon}
+                </div>
+                <h4 className="text-xs font-semibold text-verdant-emerald">
+                  {reason.title}
+                </h4>
+                <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
+                  {reason.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       ),
     },
     {
       id: "guarantees",
+      number: "03",
       title: "3. Structural & Sizing Guarantees",
       icon: <ShieldCheck className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            While we maintain a strict no-refund protocol, we stand behind the outstanding quality and design integrity of our jewelry. To provide peace of mind, every purchase is backed by:
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            While we maintain an unwavering no-refund protocol, we stand firmly behind the structural integrity and artisanal quality of every piece. Every creation is backed by:
           </p>
-          <ul className="list-disc pl-5 space-y-2 mb-4">
-            <li><strong>Complimentary Resizing:</strong> We provide one free resizing support adjustment for rings within 30 days of receiving your item (applicable to resizable designs; exclusions apply to eternity bands).</li>
-            <li><strong>Manufacturing Warranty:</strong> If any diamond ornament shows structural damage due to a raw manufacturing defect, we will repair or replace the element free of charge. This does not cover daily wear, scratches, or cosmetic marks.</li>
-            <li><strong>Lifetime Maintenance:</strong> Access to complimentary professional inspection and steam-cleaning at any of our flagship boutiques.</li>
-          </ul>
-          <p>
-            Please note that shipping expenses for resizing or warranty verification remain the responsibility of the client.
-          </p>
-        </>
+
+          <div className="space-y-3">
+            {[
+              {
+                title: "Complimentary Ring Resizing",
+                tag: "Within 30 Days",
+                desc: "We provide one complimentary resizing adjustment for rings within 30 days of delivery (applicable to resizable mountings; full-eternity diamond bands are excluded due to structural stone settings).",
+              },
+              {
+                title: "Lifetime Manufacturing Warranty",
+                tag: "Craft Guarantee",
+                desc: "If any jewelry piece exhibits structural defects resulting from workshop fabrication or raw metal casting, we will repair or service the item free of charge. This guarantee excludes regular wear and tear, surface scratches, or trauma caused by external impact.",
+              },
+              {
+                title: "Lifetime Boutique Maintenance",
+                tag: "Complimentary Care",
+                desc: "Enjoy lifetime access to complimentary professional ultrasonic cleaning, steam-cleaning, and prong security audits at any GEETEJ VIRAASAT flagship showroom.",
+              },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 text-left"
+              >
+                <div className="space-y-1 max-w-xl">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-xs font-semibold text-verdant-emerald">
+                      {item.title}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans pl-6">
+                    {item.desc}
+                  </p>
+                </div>
+                <span className="self-start sm:self-center px-2 py-0.5 rounded-full bg-verdant-gold/15 text-[10px] font-mono font-medium text-verdant-emerald border border-verdant-gold/30 shrink-0">
+                  {item.tag}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-xs text-verdant-emerald/70 bg-verdant-emerald/5 rounded-xl p-3 border border-verdant-emerald/10">
+            <strong>Logistics Notice:</strong> Shipping and insurance expenses for resizing or warranty evaluations remain the responsibility of the client.
+          </div>
+        </div>
       ),
     },
     {
       id: "order-integrity",
-      title: "4. Quality Audits & Shipping",
+      number: "04",
+      title: "4. Quality Audits & Insured Transport",
       icon: <Info className="w-4 h-4 text-verdant-gold" />,
       content: (
-        <>
-          <p className="mb-4">
-            Every jewelry piece leaves our atelier only after a double-grade physical quality control audit. We verify clarity parameters under 10x magnification and cross-reference GIA registration numbers directly against corresponding dossiers.
+        <div className="space-y-4">
+          <p className="leading-relaxed">
+            Every jewelry piece leaves our atelier only after a double-grade physical quality control audit. We examine clarity parameters under 10x magnification and cross-reference GIA registration numbers directly against corresponding dossiers.
           </p>
-          <p>
-            All parcels are shipped via armored transport couriers, fully insured, and require a direct signature upon receipt. In the highly unlikely event that an item is damaged during transit, notify us within 24 hours of delivery with photographic evidence, and we will initiate an expedited insurance replacement claim.
-          </p>
-        </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-verdant-emerald">
+                <Truck className="w-4 h-4 text-verdant-gold" /> Armored Transport &amp; Signature
+              </div>
+              <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
+                All parcels are dispatched via specialized armored courier services, fully insured up to their declared value, and require an adult signature upon delivery.
+              </p>
+            </div>
+            <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-verdant-emerald">
+                <AlertTriangle className="w-4 h-4 text-amber-600" /> Transit Damage Claims (24 Hours)
+              </div>
+              <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
+                In the rare event of transit damage, report it within 24 hours of delivery with photographic evidence, and our team will initiate an expedited insurance replacement claim.
+              </p>
+            </div>
+          </div>
+        </div>
       ),
     },
   ];
@@ -101,131 +204,172 @@ export default function RefundPolicyPage() {
       {/* Navbar */}
       <Navbar />
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[25%] left-[-15%] w-[55vw] h-[55vw] bg-radial from-verdant-gold/6 to-transparent blur-[130px] pointer-events-none z-0" />
-        <div className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-emerald/4 to-transparent blur-[140px] pointer-events-none z-0" />
-      </div>
+      {/* Header with Switcher Tabs */}
+      <PolicyHeaderTabs
+        currentPolicy="refund-policy"
+        title="Refund & Cancellation Policy"
+        subtitle="Review our strict final sale parameters, bespoke metal lock-in guidelines, and lifetime warranty coverage."
+        lastUpdated="October 2026"
+      />
 
-      {/* Header Banner */}
-      <div className="relative w-full h-[320px] md:h-[360px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=2000&q=80"
-            alt="Luxury Jewelry Craftsmanship"
-            className="w-full h-full object-cover object-center opacity-85 select-none pointer-events-none"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
-        </div>
+      {/* Main Content Layout */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-12 flex justify-center">
-          <div className="glass-effect rounded-3xl p-6 md:p-8 max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-2">
-            <span className="text-[9px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-3 h-3" /> GEETEJ VIRAASAT TRANSACTION POLICY
-            </span>
-            <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl font-light tracking-wide text-verdant-emerald leading-tight">
-              Refund & Return Policy
-            </h1>
-            <p className="text-[10px] md:text-xs text-verdant-emerald/75 leading-relaxed font-sans max-w-xl mx-auto">
-              Please review our final sale guidelines, bespoke commissioning terms, and structural warranty parameters.
-            </p>
-          </div>
-        </div>
-      </div>
+          {/* Left Sticky Sidebar (Desktop) */}
+          <aside className="lg:col-span-4 xl:col-span-3 sticky top-28 space-y-4 hidden lg:block text-left">
+            {/* Table of Contents Card */}
+            <div className="bg-white rounded-2xl border border-[#EAE2D8] p-4 shadow-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-[#EAE2D8] mb-3">
+                <span className="text-[10px] tracking-[0.22em] uppercase font-bold text-verdant-emerald/60">
+                  Contents
+                </span>
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-verdant-emerald/5 text-verdant-emerald/70 border border-[#EAE2D8]">
+                  {sections.length} Sections
+                </span>
+              </div>
 
-      {/* Content Layout */}
-      <div className="max-w-6xl mx-auto px-6 py-12 md:py-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
-          
-          {/* Left Sidebar navigation */}
-          <div className="lg:col-span-4 sticky top-28 space-y-4 hidden lg:block">
-            <div className="glass-card bg-white/50 backdrop-blur-md border border-verdant-emerald/10 rounded-2xl p-6 shadow-xs text-left">
-              <h3 className="font-serif text-sm tracking-wider font-semibold text-verdant-emerald uppercase mb-4">
-                Policy Chapters
-              </h3>
-              <div className="flex flex-col gap-1">
-                {sections.map((sec) => (
-                  <button
-                    key={sec.id}
-                    onClick={() => {
-                      setActiveSection(sec.id);
-                      const el = document.getElementById(sec.id);
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }
-                    }}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wider transition-all duration-300 cursor-pointer ${
-                      activeSection === sec.id
-                        ? "bg-verdant-emerald/10 text-verdant-emerald font-semibold border-l-2 border-verdant-gold"
-                        : "text-verdant-emerald/65 hover:text-verdant-emerald hover:bg-verdant-emerald/5"
-                    }`}
-                  >
-                    {sec.icon}
-                    <span>{sec.title.substring(3)}</span>
-                  </button>
-                ))}
+              <nav className="flex flex-col gap-1">
+                {sections.map((sec) => {
+                  const isActive = activeSection === sec.id;
+                  return (
+                    <button
+                      key={sec.id}
+                      onClick={() => {
+                        setActiveSection(sec.id);
+                        const el = document.getElementById(sec.id);
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                      }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs tracking-wide text-left transition-all duration-200 cursor-pointer ${
+                        isActive
+                          ? "bg-verdant-emerald text-white font-medium shadow-2xs"
+                          : "text-verdant-emerald/70 hover:text-verdant-emerald hover:bg-[#FAF8F5]"
+                      }`}
+                    >
+                      <span
+                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-verdant-emerald/5 text-verdant-emerald/60"
+                        }`}
+                      >
+                        {sec.number}
+                      </span>
+                      <span className="truncate">{sec.title.replace(/^\d+\.\s*/, "")}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Assistance Card */}
+            <div className="bg-white rounded-2xl border border-[#EAE2D8] p-4 shadow-xs space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center">
+                  <HelpCircle className="w-4 h-4 text-verdant-gold" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold text-verdant-emerald">
+                    Sizing Questions?
+                  </h4>
+                  <p className="text-[10px] text-verdant-emerald/60">
+                    Verify sizing before you order
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
+                Our bespoke specialists can guide you through precise ring measurements and diamond classifications.
+              </p>
+
+              <div className="pt-1">
+                <a
+                  href="/contact"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-verdant-emerald text-white text-[11px] font-semibold tracking-wider hover:bg-[#2C1820] transition-colors"
+                >
+                  Client Concierge <ArrowUpRight className="w-3.5 h-3.5 text-verdant-gold" />
+                </a>
               </div>
             </div>
-            
-            {/* Help desk Box */}
-            <div className="glass-card bg-verdant-emerald/5 border border-verdant-emerald/10 rounded-2xl p-6 text-left">
-              <h4 className="font-serif text-xs tracking-wider font-semibold text-verdant-emerald uppercase mb-1 flex items-center gap-1.5">
-                <HelpCircle className="w-3.5 h-3.5 text-verdant-gold" /> Questions?
-              </h4>
-              <p className="text-[10px] text-verdant-emerald/65 leading-relaxed font-sans mb-3">
-                Do you have inquiries about ring sizing dimensions or metal certifications before purchasing?
-              </p>
-              <a
-                href="/contact"
-                className="inline-flex items-center gap-1 text-[9px] tracking-widest uppercase font-bold text-verdant-gold hover:text-verdant-emerald transition-colors"
-              >
-                Client Concierge <ArrowUpRight className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
+          </aside>
 
           {/* Right Main Content Panel */}
-          <div className="lg:col-span-8">
+          <main className="lg:col-span-8 xl:col-span-9">
+            {/* Mobile Table of Contents Accordion */}
             <PolicyTOCMobile
               sections={sections}
               activeSection={activeSection}
               onSelect={setActiveSection}
             />
 
-            <div className="space-y-6">
-            {sections.map((sec) => (
-              <motion.div
-                key={sec.id}
-                id={sec.id}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                onViewportEnter={() => setActiveSection(sec.id)}
-                className={`glass-card backdrop-blur-md border rounded-2xl p-6 md:p-8 shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.02)] text-left space-y-4 ${
-                  sec.id === "policy"
-                    ? "bg-verdant-gold/5 border-verdant-gold/20"
-                    : "bg-white/60 border-verdant-emerald/10"
-                }`}
-              >
-                <div className="flex items-center gap-3 border-b border-verdant-emerald/5 pb-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
-                    sec.id === "policy"
-                      ? "bg-verdant-gold/5 border-verdant-gold/25"
-                      : "bg-verdant-emerald/5 border-verdant-emerald/10"
-                  }`}>
-                    {sec.icon}
-                  </div>
-                  <h2 className="font-serif text-lg tracking-wide font-light text-verdant-emerald">
-                    {sec.title}
-                  </h2>
+            {/* Unified Luxury Document Dossier */}
+            <div className="bg-white rounded-2xl border border-[#EAE2D8] shadow-xs overflow-hidden">
+              {/* Document Header Band */}
+              <div className="bg-[#FAF8F5] border-b border-[#EAE2D8] px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-600" />
+                  <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-verdant-emerald/70">
+                    Bespoke Transaction Charter &bull; All Sales Final
+                  </span>
                 </div>
-                <div className="text-xs md:text-sm text-verdant-emerald/80 leading-relaxed font-sans">
-                  {sec.content}
+                <div className="hidden sm:flex items-center gap-3 text-[11px] text-verdant-emerald/60">
+                  <span>Policy ID: GV-REF-2026</span>
+                  <span>&bull;</span>
+                  <span>Certified</span>
                 </div>
-              </motion.div>
-            ))}
+              </div>
+
+              {/* Document Sections */}
+              <div className="divide-y divide-[#EAE2D8]/70">
+                {sections.map((sec) => (
+                  <motion.section
+                    key={sec.id}
+                    id={sec.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.35 }}
+                    onViewportEnter={() => setActiveSection(sec.id)}
+                    className="p-6 sm:p-8 md:p-9 text-left space-y-4 scroll-mt-28"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center shrink-0">
+                        {sec.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono tracking-wider font-bold uppercase text-verdant-gold block">
+                          Section {sec.number}
+                        </span>
+                        <h2 className="font-serif text-lg sm:text-xl font-normal text-verdant-emerald tracking-wide">
+                          {sec.title}
+                        </h2>
+                      </div>
+                    </div>
+
+                    <div className="text-[13px] sm:text-sm text-verdant-emerald/80 font-sans leading-relaxed pt-1">
+                      {sec.content}
+                    </div>
+                  </motion.section>
+                ))}
+              </div>
+
+              {/* Document Signoff Footer */}
+              <div className="bg-[#FAF8F5] border-t border-[#EAE2D8] p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-verdant-emerald/60">
+                <div className="flex items-center gap-2">
+                  <CrestMark size={20} />
+                  <span className="font-serif tracking-wider text-verdant-emerald text-xs">
+                    GEETEJ VIRAASAT ATELIER COMPLIANCE
+                  </span>
+                </div>
+                <div className="text-[11px] sm:text-right">
+                  <p>Certified Final Sale Protocol &bull; Binding on Purchase</p>
+                  <p className="text-verdant-emerald/50">All rights reserved &bull; 2001&ndash;2026</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </main>
 
         </div>
       </div>

@@ -17,13 +17,9 @@ interface PolicyTOCMobileProps {
 }
 
 /**
- * The section index for the legal pages, on phones.
- *
- * The three policy pages each carry a `hidden lg:block` sidebar index, which
- * left a ~220-line document with no navigation at all below `lg` — you could
- * only scroll. This is the same list as a collapsed disclosure, so it costs
- * one row of vertical space until it is asked for. Desktop keeps the sidebar;
- * this is `lg:hidden`.
+ * Mobile Table of Contents for legal pages.
+ * Displays a clean, compact accordion button on mobile that allows readers
+ * to jump to any section without long scrolling.
  */
 export default function PolicyTOCMobile({
   sections,
@@ -35,20 +31,22 @@ export default function PolicyTOCMobile({
   const current = sections.find((s) => s.id === activeSection);
 
   return (
-    <div className="lg:hidden glass-card border border-verdant-emerald/10 rounded-2xl overflow-hidden mb-6 text-left">
+    <div className="lg:hidden bg-white border border-[#EAE2D8] rounded-xl shadow-2xs overflow-hidden mb-6 text-left">
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="w-full min-h-11 px-5 py-3.5 flex items-center justify-between gap-3 cursor-pointer"
+        className="w-full min-h-11 px-4 py-3 flex items-center justify-between gap-3 cursor-pointer bg-white hover:bg-[#FAF8F5] transition-colors"
       >
         <span className="flex items-center gap-2.5 min-w-0">
-          <List className="w-4 h-4 text-verdant-gold shrink-0" />
-          <span className="text-[10px] tracking-widest uppercase font-bold text-verdant-emerald/60 shrink-0">
-            Sections
+          <span className="w-6 h-6 rounded-md bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center shrink-0">
+            <List className="w-3.5 h-3.5 text-verdant-gold" />
+          </span>
+          <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-verdant-emerald/60 shrink-0">
+            Contents
           </span>
           {current && (
             <span className="text-xs text-verdant-emerald font-semibold truncate">
-              &middot; {current.title.replace(/^\d+\.\s*/, "")}
+              &bull; {current.title.replace(/^\d+\.\s*/, "")}
             </span>
           )}
         </span>
@@ -66,32 +64,40 @@ export default function PolicyTOCMobile({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="overflow-hidden border-t border-verdant-emerald/10"
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="overflow-hidden border-t border-[#EAE2D8]"
           >
-            <div className="flex flex-col p-2">
-              {sections.map((sec) => (
-                <button
-                  key={sec.id}
-                  onClick={() => {
-                    onSelect(sec.id);
-                    setOpen(false);
-                    document
-                      .getElementById(sec.id)
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  className={`flex items-center gap-3 px-3 min-h-11 rounded-lg text-xs tracking-wider text-left transition-colors duration-200 cursor-pointer ${
-                    activeSection === sec.id
-                      ? "bg-verdant-emerald/10 text-verdant-emerald font-semibold border-l-2 border-verdant-gold"
-                      : "text-verdant-emerald/65 hover:text-verdant-emerald hover:bg-verdant-emerald/5"
-                  }`}
-                >
-                  <span className="shrink-0">{sec.icon}</span>
-                  <span className="truncate">
-                    {sec.title.replace(/^\d+\.\s*/, "")}
-                  </span>
-                </button>
-              ))}
+            <div className="flex flex-col p-2 bg-[#FAF8F5]">
+              {sections.map((sec, idx) => {
+                const isActive = activeSection === sec.id;
+                return (
+                  <button
+                    key={sec.id}
+                    onClick={() => {
+                      onSelect(sec.id);
+                      setOpen(false);
+                      const el = document.getElementById(sec.id);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wide text-left transition-colors duration-150 cursor-pointer ${
+                      isActive
+                        ? "bg-verdant-emerald text-white font-semibold shadow-2xs"
+                        : "text-verdant-emerald/75 hover:text-verdant-emerald hover:bg-white"
+                    }`}
+                  >
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                      isActive ? "bg-white/20 text-white" : "bg-verdant-emerald/5 text-verdant-emerald/60"
+                    }`}>
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <span className="truncate">
+                      {sec.title.replace(/^\d+\.\s*/, "")}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </motion.div>
         )}

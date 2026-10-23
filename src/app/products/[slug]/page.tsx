@@ -161,14 +161,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
           }
 
           return (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 lg:gap-14 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 lg:gap-14 items-start relative">
               {/* Left Gallery Block (Sticky on Desktop) */}
-              <div className="lg:col-span-7 lg:sticky lg:top-28">
+              <div className="lg:col-span-7 lg:sticky lg:top-28 z-10">
                 <ProductGallery images={activeGalleryImages} name={product.name} />
               </div>
 
               {/* Right Product Summary Block */}
-              <div className="lg:col-span-5 flex flex-col gap-6 text-left">
+              <div className="lg:col-span-5 flex flex-col gap-6 text-left relative z-10">
                 <div>
                   {/* Category / Collection Tag & SKU */}
                   <div className="flex justify-between items-center mb-2">
@@ -411,7 +411,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
         })()}
 
         {/* Elegant Interactive Tabs Section */}
-        <div className="mt-16 sm:mt-20">
+        <div className="mt-16 sm:mt-20 relative z-20">
           <div className="flex justify-start sm:justify-center overflow-x-auto scrollbar-none border-b border-verdant-emerald/10 mb-8 font-mono text-[9px] md:text-xs uppercase tracking-widest font-bold gap-4 md:gap-8 whitespace-nowrap">
             <button
               type="button"
@@ -470,7 +470,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* Related Products Section */}
-        <RelatedProducts productId={product._id} />
+        <div className="relative z-20">
+          <RelatedProducts productId={product._id} />
+        </div>
       </div>
 
       <Footer />

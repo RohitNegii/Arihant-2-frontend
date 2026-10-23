@@ -55,7 +55,7 @@ export default function MouseFollower() {
     <>
       {/* Outer Glow Ring */}
       <motion.div
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999]"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[45]"
         style={{
           x: cursorX,
           y: cursorY,
@@ -77,7 +77,7 @@ export default function MouseFollower() {
       />
       {/* Inner Dot */}
       <motion.div
-        className="fixed top-0 left-0 w-1.5 h-1.5 bg-luxury-gold rounded-full pointer-events-none z-[10000]"
+        className="fixed top-0 left-0 w-1.5 h-1.5 bg-luxury-gold rounded-full pointer-events-none z-[45]"
         style={{
           x: cursorX,
           y: cursorY,

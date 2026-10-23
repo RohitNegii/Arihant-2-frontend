@@ -1,27 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2,
   Package,
-  ArrowLeft,
   ArrowRight,
   X,
   MapPin,
   Truck,
   Calendar,
-  CreditCard,
   ExternalLink,
   ShieldCheck,
-  Sparkles,
-  Award,
   MessageCircle,
   Clock,
   Star,
   Send,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  ChevronRight,
+  Copy,
+  Check,
+  RotateCcw,
+  AlertCircle,
+  ShoppingBag,
+  Eye
 } from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 import { getMyOrdersApi } from "../../services/checkout";
@@ -38,26 +42,107 @@ const isVideoUrl = (url: string) => {
   return ["mp4", "webm", "ogg", "mov"].includes(ext || "");
 };
 
-const getStatusBadgeStyle = (status: string) => {
+const getStatusBadge = (status: string) => {
   switch (status) {
     case "Pending Confirmation":
-      return "bg-amber-500/10 border-amber-500/30 text-amber-700";
+      return {
+        badgeClass: "bg-amber-50 text-amber-800 border-amber-200/80",
+        dotClass: "bg-amber-500",
+        label: "Pending Confirmation"
+      };
     case "Confirmed":
-      return "bg-sky-500/10 border-sky-500/30 text-sky-700";
+      return {
+        badgeClass: "bg-blue-50 text-blue-800 border-blue-200/80",
+        dotClass: "bg-blue-500",
+        label: "Confirmed"
+      };
     case "Processing":
-      return "bg-indigo-500/10 border-indigo-500/30 text-indigo-700";
+      return {
+        badgeClass: "bg-indigo-50 text-indigo-800 border-indigo-200/80",
+        dotClass: "bg-indigo-500",
+        label: "In Atelier / Processing"
+      };
     case "Shipped":
-      return "bg-purple-500/10 border-purple-500/30 text-purple-700";
+      return {
+        badgeClass: "bg-purple-50 text-purple-800 border-purple-200/80",
+        dotClass: "bg-purple-500",
+        label: "Dispatched / In Transit"
+      };
     case "Delivered":
-      return "bg-teal-500/10 border-teal-500/30 text-teal-700";
     case "Completed":
-      return "bg-emerald-500/10 border-emerald-500/30 text-emerald-700";
+      return {
+        badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200/80",
+        dotClass: "bg-emerald-500",
+        label: "Delivered"
+      };
     case "Cancelled":
-      return "bg-rose-500/10 border-rose-500/30 text-rose-700";
+      return {
+        badgeClass: "bg-rose-50 text-rose-800 border-rose-200/80",
+        dotClass: "bg-rose-500",
+        label: "Cancelled"
+      };
     default:
-      return "bg-verdant-emerald/5 border-verdant-emerald/15 text-verdant-emerald/70";
+      return {
+        badgeClass: "bg-neutral-100 text-neutral-800 border-neutral-200",
+        dotClass: "bg-neutral-400",
+        label: status || "Order Placed"
+      };
   }
 };
+
+/**
+ * Strips out internal admin logs (e.g. "from table dropdown", "updated by admin", etc.)
+ * so the customer only sees legitimate user-facing shipment notes.
+ */
+const getCustomerFacingComment = (comment?: string): string | null => {
+  if (!comment || typeof comment !== "string") return null;
+  const lower = comment.toLowerCase();
+
+  if (
+    lower.includes("dropdown") ||
+    lower.includes("table") ||
+    lower.includes("status updated") ||
+    lower.includes("manually updated") ||
+    lower.includes("updated by") ||
+    lower.includes("admin") ||
+    lower.includes("order status:") ||
+    lower.includes("order marked as")
+  ) {
+    return null;
+  }
+
+  return comment.trim();
+};
+
+/**
+ * Stepper calculation
+ * 1: Placed
+ * 2: Confirmed
+ * 3: Processing
+ * 4: Shipped
+ * 5: Delivered
+ */
+const getOrderStep = (status: string): number => {
+  switch (status) {
+    case "Pending Confirmation":
+      return 1;
+    case "Confirmed":
+      return 2;
+    case "Processing":
+      return 3;
+    case "Shipped":
+      return 4;
+    case "Delivered":
+    case "Completed":
+      return 5;
+    case "Cancelled":
+      return -1;
+    default:
+      return 1;
+  }
+};
+
+type TabFilter = "ALL" | "PENDING" | "ACTIVE" | "DELIVERED" | "CANCELLED";
 
 export default function MyOrdersPage() {
   const router = useRouter();
@@ -69,7 +154,12 @@ export default function MyOrdersPage() {
 
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
-  // In-order review modal state
+  // Client-side filtering & search (zero functionality change)
+  const [activeTab, setActiveTab] = useState<TabFilter>("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // In-order critique review modal state
   const [reviewItem, setReviewItem] = useState<{ productId: string; productName: string } | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
@@ -135,523 +225,848 @@ export default function MyOrdersPage() {
     }
   };
 
-  const totalSpent = orders.reduce((sum, order) => {
-    if (order.orderStatus === "Completed" || order.paymentStatus === "Paid") {
-      return sum + order.grandTotal;
-    }
-    return sum;
-  }, 0);
+  const handleCopyOrderId = (e: React.MouseEvent, orderNumber: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(orderNumber);
+    setCopiedId(orderNumber);
+    toast.success(`Order ID #${orderNumber} copied`);
+    setTimeout(() => setCopiedId(null), 2200);
+  };
+
+  // Counts for tabs
+  const counts = useMemo(() => {
+    let pending = 0;
+    let active = 0;
+    let delivered = 0;
+    let cancelled = 0;
+
+    orders.forEach((o) => {
+      const status = o.orderStatus || "Pending Confirmation";
+      if (status === "Pending Confirmation") pending++;
+      else if (["Confirmed", "Processing", "Shipped"].includes(status)) active++;
+      else if (["Delivered", "Completed"].includes(status)) delivered++;
+      else if (status === "Cancelled") cancelled++;
+    });
+
+    return { total: orders.length, pending, active, delivered, cancelled };
+  }, [orders]);
+
+  // Filtered list
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const status = order.orderStatus || "Pending Confirmation";
+
+      if (activeTab === "PENDING" && status !== "Pending Confirmation") return false;
+      if (activeTab === "ACTIVE" && !["Confirmed", "Processing", "Shipped"].includes(status)) return false;
+      if (activeTab === "DELIVERED" && !["Delivered", "Completed"].includes(status)) return false;
+      if (activeTab === "CANCELLED" && status !== "Cancelled") return false;
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        const matchesNum = (order.orderNumber || "").toLowerCase().includes(q);
+        const matchesRecipient = (order.shippingAddress?.name || "").toLowerCase().includes(q);
+        const matchesItem = order.items?.some((it: any) => (it.name || "").toLowerCase().includes(q));
+        return matchesNum || matchesRecipient || matchesItem;
+      }
+
+      return true;
+    });
+  }, [orders, activeTab, searchQuery]);
 
   if (loading || authLoading) {
     return (
-      <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald">
+      <div className="min-h-screen bg-[#FBF9F6] text-[#2C1820]">
         <Navbar />
-        <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
-          <div className="absolute inset-0 z-0">
-            <img
-              src="/images/products/ksp_18.jpg"
-              alt="Luxury Jewelry Banner"
-              className="w-full h-full object-cover object-center opacity-20 select-none pointer-events-none filter blur-[0.5px]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-verdant-cream/40 to-verdant-cream" />
+        <main className="pt-28 pb-20 px-4 sm:px-6 max-w-4xl mx-auto space-y-6">
+          <div className="animate-pulse space-y-3 pb-6 border-b border-[#EAE2D8]">
+            <div className="w-24 h-3 bg-neutral-200 rounded-full" />
+            <div className="w-48 h-8 bg-neutral-200 rounded-xl" />
+            <div className="w-72 h-4 bg-neutral-200 rounded-full" />
           </div>
-          <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-16 flex justify-center">
-            <div className="glass-effect rounded-3xl p-8 md:p-10 w-full max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col items-center space-y-3">
-              <div className="w-24 h-4 bg-verdant-emerald/10 rounded animate-pulse" />
-              <div className="w-64 h-10 bg-verdant-emerald/15 rounded-lg animate-pulse" />
-              <div className="w-96 h-4 bg-verdant-emerald/10 rounded animate-pulse" />
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-4 space-y-6">
-              <div className="bg-white/40 border border-verdant-emerald/5 rounded-3xl p-6 animate-pulse space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-verdant-emerald/10" />
-                  <div className="space-y-2">
-                    <div className="w-24 h-4 bg-verdant-emerald/10 rounded" />
-                    <div className="w-16 h-3 bg-verdant-emerald/5 rounded" />
-                  </div>
-                </div>
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 border border-[#EAE2D8] shadow-2xs space-y-4 animate-pulse">
+                <div className="h-6 bg-neutral-200 rounded-md w-1/3" />
+                <div className="h-20 bg-neutral-100 rounded-xl" />
+                <div className="h-10 bg-neutral-200 rounded-md w-full" />
               </div>
-            </div>
-            <div className="lg:col-span-8 space-y-6">
-              {[1, 2].map((n) => (
-                <div key={n} className="bg-white/40 border border-verdant-emerald/5 rounded-3xl p-6 animate-pulse h-28" />
-              ))}
-            </div>
+            ))}
           </div>
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black">
+    <div className="min-h-screen bg-[#FBF9F6] text-[#2C1820] selection:bg-[#C8A96A]/20 selection:text-[#2C1820]">
       <Navbar />
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div
-          className="absolute top-[30%] left-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-gold/8 to-transparent blur-[120px] pointer-events-none animate-pulse"
-          style={{ animationDuration: "8s" }}
-        />
-        <div
-          className="absolute bottom-[20%] right-[-15%] w-[50vw] h-[50vw] bg-radial from-verdant-emerald/6 to-transparent blur-[140px] pointer-events-none animate-pulse"
-          style={{ animationDuration: "10s" }}
-        />
-      </div>
+      <main className="pt-24 sm:pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        {/* PAGE HEADER */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-[#EAE2D8]">
+            <div className="text-left space-y-1">
+              <span className="text-[10px] tracking-[0.2em] uppercase text-[#B58D4B] font-bold flex items-center gap-1.5 font-sans">
+                <CrestMark size={14} /> My Account
+              </span>
+              <h1 className="font-serif text-3xl sm:text-4xl font-normal text-[#2C1820] tracking-tight">
+                My Orders
+              </h1>
+              <p className="text-xs sm:text-sm text-[#2C1820]/65 font-sans">
+                Track your jewellery shipments, manage bespoke order confirmations, and review your acquisitions.
+              </p>
+            </div>
 
-      {/* HERO BANNER SECTION */}
-      <div className="relative w-full h-[360px] md:h-[400px] overflow-hidden flex items-center justify-center border-b border-verdant-emerald/5">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="/images/products/ksp_18.jpg"
-            alt="Luxury Jewelry Banner"
-            className="w-full h-full object-cover object-center opacity-80 scale-105 select-none pointer-events-none"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-verdant-cream/10 via-verdant-cream/45 to-verdant-cream" />
-        </div>
-
-        <div className="relative z-10 max-w-4xl w-full mx-auto px-6 pt-16 flex justify-center">
-          <div className="glass-effect rounded-3xl p-8 md:p-10 w-full max-w-2xl border border-verdant-emerald/10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center space-y-3 relative">
-            <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold font-bold flex items-center justify-center gap-1.5 pt-2">
-              <CrestMark size={18} /> Client Order Vault
-            </span>
-            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-verdant-emerald leading-tight">
-              My Orders
-            </h1>
-            <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans max-w-xl mx-auto">
-              Review your purchase logs, track WhatsApp order confirmation, and submit critiques for your bespoke acquisitions.
-            </p>
+            {/* Orders Count Indicator */}
+            {orders.length > 0 && (
+              <div className="self-start sm:self-auto shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#EAE2D8] text-xs font-medium text-[#2C1820]/75 shadow-2xs font-sans">
+                  <Package className="w-3.5 h-3.5 text-[#B58D4B]" />
+                  <span>
+                    <strong className="text-[#2C1820] font-semibold">{orders.length}</strong> {orders.length === 1 ? "Order" : "Orders"}
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
 
-      {/* MAIN CONTAINER */}
-      <div className="max-w-6xl mx-auto px-6 py-16 relative z-10">
+          {/* FILTER CONTROLS & SEARCH BAR */}
+          {orders.length > 0 && (
+            <div className="mt-5 space-y-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                {/* Horizontal Scrollable Tabs */}
+                <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 md:pb-0 text-xs font-sans">
+                  <button
+                    onClick={() => setActiveTab("ALL")}
+                    className={`px-3.5 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      activeTab === "ALL"
+                        ? "bg-[#2C1820] text-white shadow-2xs font-semibold"
+                        : "bg-white text-[#2C1820]/70 hover:bg-[#F2ECE4] border border-[#EAE2D8]"
+                    }`}
+                  >
+                    <span>All Orders</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        activeTab === "ALL" ? "bg-white/20 text-white" : "bg-neutral-100 text-[#2C1820]"
+                      }`}
+                    >
+                      {counts.total}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("PENDING")}
+                    className={`px-3.5 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      activeTab === "PENDING"
+                        ? "bg-amber-700 text-white shadow-2xs font-semibold"
+                        : "bg-white text-[#2C1820]/70 hover:bg-[#F2ECE4] border border-[#EAE2D8]"
+                    }`}
+                  >
+                    <span>Pending</span>
+                    {counts.pending > 0 && (
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                          activeTab === "PENDING" ? "bg-white/20 text-white" : "bg-amber-100 text-amber-900"
+                        }`}
+                      >
+                        {counts.pending}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("ACTIVE")}
+                    className={`px-3.5 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      activeTab === "ACTIVE"
+                        ? "bg-blue-700 text-white shadow-2xs font-semibold"
+                        : "bg-white text-[#2C1820]/70 hover:bg-[#F2ECE4] border border-[#EAE2D8]"
+                    }`}
+                  >
+                    <span>Active</span>
+                    {counts.active > 0 && (
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                          activeTab === "ACTIVE" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-900"
+                        }`}
+                      >
+                        {counts.active}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("DELIVERED")}
+                    className={`px-3.5 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      activeTab === "DELIVERED"
+                        ? "bg-emerald-700 text-white shadow-2xs font-semibold"
+                        : "bg-white text-[#2C1820]/70 hover:bg-[#F2ECE4] border border-[#EAE2D8]"
+                    }`}
+                  >
+                    <span>Delivered</span>
+                    {counts.delivered > 0 && (
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                          activeTab === "DELIVERED" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-900"
+                        }`}
+                      >
+                        {counts.delivered}
+                      </span>
+                    )}
+                  </button>
+
+                  {counts.cancelled > 0 && (
+                    <button
+                      onClick={() => setActiveTab("CANCELLED")}
+                      className={`px-3.5 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                        activeTab === "CANCELLED"
+                          ? "bg-rose-700 text-white shadow-2xs font-semibold"
+                          : "bg-white text-[#2C1820]/70 hover:bg-[#F2ECE4] border border-[#EAE2D8]"
+                      }`}
+                    >
+                      <span>Cancelled</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                          activeTab === "CANCELLED" ? "bg-white/20 text-white" : "bg-rose-100 text-rose-900"
+                        }`}
+                      >
+                        {counts.cancelled}
+                      </span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative w-full md:w-64">
+                  <Search className="w-3.5 h-3.5 text-[#2C1820]/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by order # or item..."
+                    className="w-full pl-9 pr-7 py-1.5 rounded-full bg-white border border-[#EAE2D8] text-xs text-[#2C1820] placeholder:text-[#2C1820]/40 focus:outline-hidden focus:border-[#B58D4B] transition-all font-sans"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#2C1820]/40 hover:text-[#2C1820] cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ERROR NOTICE IF ANY */}
         {error && (
-          <div className="bg-verdant-danger/5 border border-verdant-danger/10 text-verdant-danger p-4 rounded-2xl text-xs mb-8 text-left">
-            {error}
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs mb-6 text-left flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
+        {/* EMPTY STATE - NO ORDERS EVER */}
         {orders.length === 0 ? (
-          <div className="glass-card bg-white/40 border border-verdant-emerald/5 rounded-3xl p-8 sm:p-12 md:p-16 text-center max-w-xl mx-auto shadow-[0_10px_40px_-15px_rgba(var(--color-primary-rgb),0.05)] hover:border-verdant-gold/20 transition-all duration-300">
-            <div className="w-20 h-20 bg-verdant-emerald/5 border border-verdant-emerald/10 rounded-full flex items-center justify-center mx-auto mb-6 group hover:border-verdant-gold/40 transition-colors duration-300">
-              <Package className="w-8 h-8 text-verdant-gold group-hover:scale-110 transition-transform duration-300" />
+          <div className="bg-white border border-[#EAE2D8] rounded-3xl p-10 sm:p-14 text-center max-w-md mx-auto shadow-xs my-8">
+            <div className="w-16 h-16 bg-[#FBF9F6] border border-[#EAE2D8] rounded-full flex items-center justify-center mx-auto mb-4 text-[#B58D4B]">
+              <ShoppingBag className="w-7 h-7" />
             </div>
-            <h3 className="font-serif text-2xl font-light text-verdant-emerald mb-3">No Orders Registered</h3>
-            <p className="text-xs text-verdant-emerald/60 max-w-sm mx-auto mb-8 leading-relaxed font-sans">
-              You have not placed any orders yet. Visit our catalog to discover and order our handcrafted botanical collections.
+            <h3 className="font-serif text-2xl font-normal text-[#2C1820] mb-2">No Orders Placed Yet</h3>
+            <p className="text-xs sm:text-sm text-[#2C1820]/65 max-w-xs mx-auto mb-6 leading-relaxed font-sans">
+              Discover our botanical and royal handcrafted fine jewellery collection.
             </p>
             <button
               onClick={() => router.push("/products")}
-              className="gold-gradient-bg text-black hover:scale-105 active:scale-95 text-[10px] tracking-[0.2em] uppercase font-bold px-8 py-4 rounded-full shadow-md transition-all duration-300 cursor-pointer"
+              className="gold-gradient-bg text-black hover:opacity-95 text-xs font-bold uppercase tracking-wider px-7 py-3 rounded-full shadow-xs transition-transform active:scale-98 cursor-pointer inline-flex items-center gap-2 font-sans"
             >
-              Discover Catalog
+              <span>Explore Collection</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          /* NO MATCHES FOR SEARCH / TAB */
+          <div className="bg-white border border-[#EAE2D8] rounded-2xl p-10 text-center my-6 space-y-3">
+            <Package className="w-8 h-8 text-[#2C1820]/30 mx-auto" />
+            <h4 className="font-serif text-lg text-[#2C1820]">No matching orders found</h4>
+            <p className="text-xs text-[#2C1820]/60 font-sans max-w-xs mx-auto">
+              We couldn't find any orders matching your criteria.
+            </p>
+            <button
+              onClick={() => {
+                setActiveTab("ALL");
+                setSearchQuery("");
+              }}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B58D4B] hover:text-[#2C1820] transition-colors pt-2 cursor-pointer font-sans"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* STICKY USER PROFILE & METRICS SIDEBAR */}
-            <div className="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
-              <div className="glass-card bg-white/60 backdrop-blur-md border border-verdant-emerald/10 rounded-3xl p-6 shadow-[0_10px_35px_rgba(var(--color-primary-rgb),0.02)] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-radial from-verdant-gold/10 to-transparent blur-xl pointer-events-none" />
+          /* ORDERS LIST */
+          <div className="space-y-5">
+            {filteredOrders.map((order) => {
+              const currentStatus = order.orderStatus || "Pending Confirmation";
+              const badge = getStatusBadge(currentStatus);
+              const stepIndex = getOrderStep(currentStatus);
+              const isPending = currentStatus === "Pending Confirmation";
+              const isCancelled = currentStatus === "Cancelled";
+              const isDelivered = currentStatus === "Delivered" || currentStatus === "Completed";
+              const placedDate = new Date(order.createdAt).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+              });
 
-                <div className="flex items-center gap-4 mb-6 text-left relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-verdant-emerald/5 border border-verdant-emerald/10 flex items-center justify-center text-verdant-gold text-lg font-serif">
-                    {user?.name ? user.name[0].toUpperCase() : "V"}
-                  </div>
-                  <div>
-                    <h3 className="font-serif text-base font-semibold text-verdant-emerald">{user?.name}</h3>
-                    <span className="text-[9px] tracking-widest text-verdant-gold uppercase font-bold flex items-center gap-1">
-                      <Award className="w-3 h-3 text-verdant-gold" /> Atelier Patron
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4 border-t border-verdant-emerald/5 pt-5 text-left font-mono text-[9px] uppercase tracking-widest text-verdant-emerald/50">
-                  <div className="flex justify-between items-center">
-                    <span>Total Orders</span>
-                    <span className="font-sans font-bold text-verdant-emerald text-sm">{orders.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Ledger Value</span>
-                    <span className="font-sans font-bold text-verdant-emerald text-sm">
-                      ₹{totalSpent.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Order Protocol</span>
-                    <span className="font-sans font-bold text-verdant-gold text-xs flex items-center gap-1">
-                      <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Direct
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-card bg-white/40 border border-verdant-emerald/5 rounded-3xl p-6 text-left space-y-4">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4.5 h-4.5 text-verdant-gold shrink-0" />
-                  <h4 className="font-serif text-xs tracking-wider font-semibold text-verdant-emerald uppercase">
-                    WhatsApp Order Protocol
-                  </h4>
-                </div>
-                <p className="text-[10px] text-verdant-emerald/60 leading-relaxed font-sans">
-                  Orders are initiated via checkout and confirmed manually by our team on WhatsApp. Tracking logs and product review eligibility update dynamically as your order progresses.
-                </p>
-              </div>
-            </div>
-
-            {/* ORDER LIST CONTAINER */}
-            <div className="lg:col-span-8 space-y-6">
-              {orders.map((order) => {
-                const currentStatus = order.orderStatus || "Pending Confirmation";
-                const totalUnits = order.items?.reduce((s: number, it: any) => s + (it.quantity || 1), 0) || 0;
-                const itemsSummary = order.items?.map((it: any) => it.name).join(", ");
-
-                return (
-                  <div
-                    key={order._id}
-                    className="glass-card bg-white/60 border border-verdant-emerald/5 hover:border-verdant-gold/25 rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(var(--color-primary-rgb),0.02)] hover:shadow-[0_20px_50px_-12px_rgba(var(--color-primary-rgb),0.08)] hover:-translate-y-0.5 transition-all duration-300 text-left"
-                  >
-                    <div
-                      onClick={() => setSelectedOrder(order)}
-                      className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 cursor-pointer select-none hover:bg-verdant-emerald/[0.01] transition-colors group"
-                    >
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full md:w-auto flex-1 font-mono text-[9px] uppercase tracking-wider text-verdant-emerald/75">
-                        <div>
-                          <span className="text-verdant-emerald/40 block text-[8px] tracking-widest mb-0.5">Order ID</span>
-                          <span className="font-bold text-verdant-emerald text-xs font-sans tracking-wide">
-                            #{order.orderNumber}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-verdant-emerald/40 block text-[8px] tracking-widest mb-0.5">Date Placed</span>
-                          <span className="font-semibold text-verdant-emerald text-xs font-sans tracking-wide flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-verdant-gold/75 shrink-0" />
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-verdant-emerald/40 block text-[8px] tracking-widest mb-0.5">Total Amount</span>
-                          <span className="font-bold text-verdant-emerald text-xs font-sans tracking-wide">
-                            ₹{order.grandTotal.toLocaleString("en-IN")}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-verdant-emerald/40 block text-[8px] tracking-widest mb-0.5">Current Status</span>
-                          <span
-                            className={`text-[8.5px] px-2.5 py-0.5 rounded-full font-bold border inline-flex items-center gap-1 mt-0.5 whitespace-nowrap ${getStatusBadgeStyle(
-                              currentStatus
-                            )}`}
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                            {currentStatus}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-verdant-emerald/5 pt-4 md:pt-0 shrink-0">
-                        <button className="text-[11px] font-bold text-verdant-emerald group-hover:text-verdant-gold transition-colors font-sans uppercase flex items-center gap-1.5 cursor-pointer">
-                          View Details{" "}
-                          <ArrowRight className="w-4 h-4 text-verdant-gold transition-transform group-hover:translate-x-1" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Product Summary Row */}
-                    <div className="px-6 pb-4 pt-0 border-t border-verdant-emerald/5 text-xs text-verdant-emerald/60 flex items-center justify-between font-sans">
-                      <span className="truncate max-w-[80%]">
-                        <strong className="text-verdant-emerald/80 font-medium">Items ({totalUnits}):</strong>{" "}
-                        {itemsSummary}
+              return (
+                <div
+                  key={order._id}
+                  className="bg-white border border-[#EAE2D8] rounded-2xl overflow-hidden shadow-2xs hover:shadow-xs transition-shadow duration-200 text-left"
+                >
+                  {/* CARD HEADER */}
+                  <div className="bg-[#FAF7F2] border-b border-[#EAE2D8] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-sans">
+                      {/* Status Badge */}
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${badge.badgeClass}`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${badge.dotClass}`} />
+                        <span>{badge.label}</span>
                       </span>
-                      {currentStatus === "Completed" && (
-                        <span className="text-emerald-700 text-[10px] font-bold flex items-center gap-1 font-mono uppercase tracking-wider shrink-0">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Eligible for Review
+
+                      {/* Placed Date */}
+                      <span className="text-[#2C1820]/60 text-xs">
+                        Placed on <strong className="text-[#2C1820] font-medium">{placedDate}</strong>
+                      </span>
+
+                      {/* Order Number */}
+                      <span className="inline-flex items-center gap-1 text-[#2C1820]/60 font-mono text-xs">
+                        <span>#</span>
+                        <strong className="text-[#2C1820]">{order.orderNumber}</strong>
+                        <button
+                          onClick={(e) => handleCopyOrderId(e, order.orderNumber)}
+                          title="Copy Order ID"
+                          className="text-[#2C1820]/40 hover:text-[#2C1820] cursor-pointer p-0.5"
+                        >
+                          {copiedId === order.orderNumber ? (
+                            <Check className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </span>
+                    </div>
+
+                    {/* Total & Action */}
+                    <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE2D8]">
+                      <div className="text-right sm:text-right">
+                        <span className="text-[10px] uppercase tracking-wider text-[#2C1820]/50 block font-mono">
+                          Order Total
                         </span>
-                      )}
+                        <span className="font-serif text-base sm:text-lg font-semibold text-[#2C1820]">
+                          ₹{order.grandTotal.toLocaleString("en-IN")}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedOrder(order)}
+                        className="border border-[#EAE2D8] hover:border-[#B58D4B] bg-white hover:bg-[#FAF7F2] text-[#2C1820] px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer inline-flex items-center gap-1 font-sans shrink-0"
+                      >
+                        <span>Details</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-[#B58D4B]" />
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* WHATSAPP ACTION CALLOUT IF PENDING */}
+                  {isPending && order.whatsappUrl && (
+                    <div className="bg-amber-50/70 border-b border-amber-200/60 px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex items-start sm:items-center gap-2 text-amber-900 font-sans">
+                        <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5 sm:mt-0" />
+                        <span>
+                          <strong>Action Required:</strong> Send the pre-filled WhatsApp message to confirm bespoke crafting.
+                        </span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(order.whatsappUrl, "_blank", "noopener,noreferrer");
+                        }}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-4 py-1.5 rounded-full transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer font-sans shrink-0 self-start sm:self-auto"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Confirm on WhatsApp</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* CLEAN RESPONSIVE STEPPER FOR ACTIVE ORDERS */}
+                  {!isCancelled && (
+                    <div className="px-4 sm:px-6 py-3.5 bg-white border-b border-[#EAE2D8]/60">
+                      <div className="relative flex items-center justify-between max-w-lg mx-auto py-1">
+                        {/* Background bar */}
+                        <div className="absolute top-1/2 left-3 right-3 -translate-y-1/2 h-0.5 bg-neutral-200 z-0" />
+                        {/* Filled bar */}
+                        <div
+                          className="absolute top-1/2 left-3 -translate-y-1/2 h-0.5 bg-[#B58D4B] transition-all duration-300 z-0"
+                          style={{
+                            width:
+                              stepIndex <= 1
+                                ? "0%"
+                                : stepIndex === 2
+                                ? "33%"
+                                : stepIndex === 3
+                                ? "50%"
+                                : stepIndex === 4
+                                ? "70%"
+                                : "calc(100% - 24px)"
+                          }}
+                        />
+
+                        {/* Step 1: Placed */}
+                        <div className="relative z-10 flex flex-col items-center">
+                          <div className="w-5 h-5 rounded-full bg-[#B58D4B] text-white flex items-center justify-center text-[10px] font-bold shadow-2xs">
+                            <Check className="w-3 h-3" />
+                          </div>
+                          <span className="text-[9px] uppercase font-semibold text-[#2C1820] mt-1 font-mono">
+                            Placed
+                          </span>
+                        </div>
+
+                        {/* Step 2: Confirmed */}
+                        <div className="relative z-10 flex flex-col items-center">
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-2xs transition-colors ${
+                              stepIndex >= 2
+                                ? "bg-[#B58D4B] text-white"
+                                : "bg-white border border-neutral-300 text-neutral-400"
+                            }`}
+                          >
+                            {stepIndex >= 2 ? <Check className="w-3 h-3" /> : "2"}
+                          </div>
+                          <span
+                            className={`text-[9px] uppercase font-semibold mt-1 font-mono ${
+                              stepIndex >= 2 ? "text-[#2C1820]" : "text-neutral-400"
+                            }`}
+                          >
+                            Confirmed
+                          </span>
+                        </div>
+
+                        {/* Step 3: Shipped */}
+                        <div className="relative z-10 flex flex-col items-center">
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-2xs transition-colors ${
+                              stepIndex >= 4
+                                ? "bg-[#B58D4B] text-white"
+                                : "bg-white border border-neutral-300 text-neutral-400"
+                            }`}
+                          >
+                            {stepIndex >= 4 ? <Check className="w-3 h-3" /> : "3"}
+                          </div>
+                          <span
+                            className={`text-[9px] uppercase font-semibold mt-1 font-mono ${
+                              stepIndex >= 4 ? "text-[#2C1820]" : "text-neutral-400"
+                            }`}
+                          >
+                            Shipped
+                          </span>
+                        </div>
+
+                        {/* Step 4: Delivered */}
+                        <div className="relative z-10 flex flex-col items-center">
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-2xs transition-colors ${
+                              stepIndex >= 5
+                                ? "bg-emerald-600 text-white"
+                                : "bg-white border border-neutral-300 text-neutral-400"
+                            }`}
+                          >
+                            {stepIndex >= 5 ? <Check className="w-3 h-3" /> : "4"}
+                          </div>
+                          <span
+                            className={`text-[9px] uppercase font-semibold mt-1 font-mono ${
+                              stepIndex >= 5 ? "text-emerald-700" : "text-neutral-400"
+                            }`}
+                          >
+                            Delivered
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ORDER ITEMS LIST */}
+                  <div className="p-4 sm:p-5 divide-y divide-[#EAE2D8]/60">
+                    {order.items?.map((item: any, idx: number) => {
+                      const productId = item.product?._id || item.product;
+                      const hasReviewed = reviewedProductIds[productId];
+
+                      return (
+                        <div
+                          key={idx}
+                          className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
+                        >
+                          <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            {/* Product Thumbnail */}
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[#FBF9F6] border border-[#EAE2D8] overflow-hidden shrink-0 flex items-center justify-center p-0.5">
+                              {isVideoUrl(item.image) ? (
+                                <video
+                                  src={getImageUrl(item.image)}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  muted
+                                  playsInline
+                                  autoPlay
+                                  loop
+                                />
+                              ) : (
+                                <img
+                                  src={getImageUrl(item.image)}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  loading="lazy"
+                                />
+                              )}
+                            </div>
+
+                            {/* Product Details */}
+                            <div className="flex-1 min-w-0 text-left">
+                              <h4 className="font-serif text-sm sm:text-base font-normal text-[#2C1820] truncate">
+                                {item.name}
+                              </h4>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] text-[#2C1820]/70 font-sans">
+                                <span className="bg-[#FAF7F2] border border-[#EAE2D8] px-2 py-0.2 rounded font-mono text-[10px]">
+                                  Qty: {item.quantity}
+                                </span>
+                                {item.size && (
+                                  <span className="bg-[#FAF7F2] border border-[#EAE2D8] px-2 py-0.2 rounded text-[10px]">
+                                    Size: {item.size}
+                                  </span>
+                                )}
+                                {item.variant && (
+                                  <span className="bg-[#FAF7F2] border border-[#EAE2D8] px-2 py-0.2 rounded text-[10px]">
+                                    Option: {item.variant}
+                                  </span>
+                                )}
+                                <span className="text-[#2C1820]/40 font-mono">&bull;</span>
+                                <span className="font-mono text-xs font-medium text-[#2C1820]">
+                                  ₹{item.price.toLocaleString("en-IN")} each
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Line Total & Review Trigger */}
+                          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE2D8]/50 gap-1.5">
+                            <span className="font-mono text-sm font-semibold text-[#2C1820]">
+                              ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                            </span>
+
+                            {isDelivered && (
+                              <div className="pt-0.5">
+                                {hasReviewed ? (
+                                  <span className="text-[11px] font-sans text-emerald-700 flex items-center gap-1 font-medium">
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Reviewed
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenReview(productId, item.name);
+                                    }}
+                                    className="text-[11px] font-sans font-medium text-[#B58D4B] hover:text-[#2C1820] flex items-center gap-1 transition-colors cursor-pointer"
+                                  >
+                                    <Star className="w-3 h-3 fill-[#B58D4B]" />
+                                    <span>Write Review</span>
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* CARD FOOTER */}
+                  <div className="px-4 sm:px-5 py-3 bg-[#FAF7F2]/60 border-t border-[#EAE2D8] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs font-sans">
+                    <div className="flex items-center gap-1.5 text-[#2C1820]/60 text-[11px] truncate">
+                      <MapPin className="w-3.5 h-3.5 text-[#B58D4B] shrink-0" />
+                      <span className="truncate">
+                        Delivering to <strong className="text-[#2C1820] font-medium">{order.shippingAddress?.name || "Client"}</strong>
+                        {order.shippingAddress?.city ? `, ${order.shippingAddress.city}` : ""}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedOrder(order)}
+                      className="text-xs font-medium text-[#B58D4B] hover:text-[#2C1820] transition-colors cursor-pointer inline-flex items-center gap-1 self-start sm:self-auto"
+                    >
+                      <span>View Receipt &amp; Tracking</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* ORDER DETAILS MODAL */}
+      {/* ORDER DETAILS MODAL / RECEIPT DOSSIER */}
       <AnimatePresence>
         {selectedOrder && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 select-none">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 select-none">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedOrder(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="glass-card bg-verdant-cream border border-verdant-emerald/10 w-full max-w-4xl rounded-[2rem] shadow-[0_25px_70px_-10px_rgba(var(--color-primary-rgb),0.2)] relative z-10 overflow-hidden max-h-[90vh] flex flex-col text-left text-verdant-emerald"
+              className="bg-white border border-[#EAE2D8] w-full max-w-2xl rounded-2xl shadow-xl relative z-10 overflow-hidden max-h-[92vh] flex flex-col text-left text-[#2C1820]"
             >
               {/* Modal Header */}
-              <div className="p-6 md:p-8 border-b border-verdant-emerald/5 flex justify-between items-center bg-white/20">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[9px] tracking-widest font-mono uppercase text-verdant-emerald/50">
-                      Order Summary
+              <div className="p-4 sm:p-6 border-b border-[#EAE2D8] flex justify-between items-start bg-[#FAF7F2]">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] tracking-widest font-mono uppercase text-[#B58D4B] font-bold">
+                      Order Receipt
                     </span>
+                    <span className="text-[#2C1820]/20">&bull;</span>
                     <span
-                      className={`text-[8.5px] px-2.5 py-0.5 rounded-full font-bold border inline-block uppercase tracking-wider ${getStatusBadgeStyle(
-                        selectedOrder.orderStatus || "Pending Confirmation"
-                      )}`}
+                      className={`text-[10px] px-2 py-0.2 rounded-full font-semibold border ${
+                        getStatusBadge(selectedOrder.orderStatus || "Pending Confirmation").badgeClass
+                      }`}
                     >
-                      {selectedOrder.orderStatus || "Pending Confirmation"}
+                      {getStatusBadge(selectedOrder.orderStatus || "Pending Confirmation").label}
                     </span>
                   </div>
-                  <h2 className="font-serif text-xl md:text-2xl font-light text-verdant-emerald">
+                  <h2 className="font-serif text-xl sm:text-2xl font-normal text-[#2C1820]">
                     Order #{selectedOrder.orderNumber}
                   </h2>
+                  <p className="text-xs text-[#2C1820]/60 font-sans">
+                    Placed on{" "}
+                    {new Date(selectedOrder.createdAt).toLocaleDateString("en-IN", {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric"
+                    })}
+                  </p>
                 </div>
 
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="text-verdant-emerald/40 hover:text-verdant-emerald bg-verdant-emerald/5 hover:bg-verdant-emerald/10 p-2 rounded-full cursor-pointer transition-colors"
-                  aria-label="Close modal"
+                  className="text-[#2C1820]/50 hover:text-[#2C1820] bg-white border border-[#EAE2D8] p-1.5 rounded-full cursor-pointer transition-colors"
+                  aria-label="Close"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Modal Scrollable Body */}
-              <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-8 bg-verdant-cream/40" data-lenis-prevent>
-                {/* Retry WhatsApp banner if Pending Confirmation */}
+              <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6" data-lenis-prevent>
+                {/* WhatsApp Callout if Pending */}
                 {selectedOrder.orderStatus === "Pending Confirmation" && (
-                  <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-2 font-bold text-amber-800 text-xs uppercase tracking-wider font-sans">
-                        <MessageCircle className="w-4 h-4 text-amber-600" />
+                      <div className="flex items-center gap-1.5 font-semibold text-amber-900 text-xs font-sans">
+                        <MessageCircle className="w-4 h-4 text-emerald-600" />
                         <span>Awaiting WhatsApp Confirmation</span>
                       </div>
-                      <p className="text-[11px] text-verdant-emerald/80 font-sans">
-                        Please confirm this order with our atelier team by manually sending the pre-filled message on WhatsApp.
+                      <p className="text-xs text-amber-900/80 font-sans">
+                        Please send the pre-filled message on WhatsApp to initiate bespoke creation.
                       </p>
                     </div>
                     {selectedOrder.whatsappUrl && (
                       <button
                         onClick={() => window.open(selectedOrder.whatsappUrl, "_blank", "noopener,noreferrer")}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-[9.5px] uppercase tracking-wider font-bold px-5 py-2.5 rounded-full transition-all flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm font-mono"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer shadow-2xs font-sans"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
-                        <span>Open WhatsApp</span>
+                        <span>Send Message</span>
                         <ExternalLink className="w-3 h-3" />
                       </button>
                     )}
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  {/* Left Column: Items */}
-                  <div className="lg:col-span-7 space-y-6">
-                    <div>
-                      <span className="text-[10px] tracking-widest uppercase text-verdant-gold font-bold font-sans block mb-4 border-b border-verdant-emerald/5 pb-2">
-                        Acquired Masterpieces ({selectedOrder.items?.length || 0} items)
-                      </span>
-                      <div className="divide-y divide-verdant-emerald/5">
-                        {selectedOrder.items?.map((item: any, idx: number) => {
-                          const productId = item.product?._id || item.product;
-                          const hasBeenReviewed = reviewedProductIds[productId];
-                          const isOrderCompleted = selectedOrder.orderStatus === "Completed";
+                {/* Items in order */}
+                <div>
+                  <span className="text-[10px] tracking-wider uppercase text-[#B58D4B] font-bold font-mono block mb-3 border-b border-[#EAE2D8] pb-1.5">
+                    Purchased Items ({selectedOrder.items?.length || 0})
+                  </span>
+                  <div className="divide-y divide-[#EAE2D8]">
+                    {selectedOrder.items?.map((item: any, idx: number) => {
+                      const productId = item.product?._id || item.product;
+                      const hasReviewed = reviewedProductIds[productId];
+                      const isDelivered =
+                        selectedOrder.orderStatus === "Completed" || selectedOrder.orderStatus === "Delivered";
 
-                          return (
-                            <div key={idx} className="flex flex-col py-4 first:pt-0 last:pb-0 gap-3">
-                              <div className="flex items-center gap-4">
-                                <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-verdant-emerald/10 bg-white/50 shrink-0 shadow-xs flex items-center justify-center p-0.5">
-                                  {isVideoUrl(item.image) ? (
-                                    <video
-                                      src={getImageUrl(item.image)}
-                                      className="w-full h-full object-cover"
-                                      muted
-                                      playsInline
-                                      autoPlay
-                                      loop
-                                    />
-                                  ) : (
-                                    <img
-                                      src={getImageUrl(item.image)}
-                                      alt={item.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  )}
-                                </div>
-                                <div className="flex-1 min-w-0 text-left">
-                                  <h4 className="font-serif text-sm text-verdant-emerald font-medium truncate">
-                                    {item.name}
-                                  </h4>
-                                  <div className="flex items-center gap-3 text-[10px] text-verdant-emerald/50 font-sans tracking-wide mt-1">
-                                    <span>
-                                      Qty: {item.quantity} &times; ₹{item.price.toLocaleString("en-IN")}
-                                    </span>
-                                    {item.size && (
-                                      <span className="text-verdant-gold font-bold">Size: {item.size}</span>
-                                    )}
-                                    {item.variant && (
-                                      <span className="text-verdant-gold font-bold">Option: {item.variant}</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <span className="font-semibold text-xs text-verdant-emerald font-mono">
-                                    ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                      return (
+                        <div key={idx} className="py-3 first:pt-0 last:pb-0 flex items-center gap-3">
+                          <div className="w-14 h-14 rounded-lg bg-[#FBF9F6] border border-[#EAE2D8] overflow-hidden shrink-0 flex items-center justify-center p-0.5">
+                            {isVideoUrl(item.image) ? (
+                              <video
+                                src={getImageUrl(item.image)}
+                                className="w-full h-full object-cover rounded"
+                                muted
+                                playsInline
+                                autoPlay
+                                loop
+                              />
+                            ) : (
+                              <img
+                                src={getImageUrl(item.image)}
+                                alt={item.name}
+                                className="w-full h-full object-cover rounded"
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 text-left">
+                            <h4 className="font-serif text-sm font-medium text-[#2C1820] truncate">{item.name}</h4>
+                            <p className="text-[11px] text-[#2C1820]/60 font-sans mt-0.5">
+                              Qty: {item.quantity} &times; ₹{item.price.toLocaleString("en-IN")}
+                              {item.size && ` • Size: ${item.size}`}
+                              {item.variant && ` • Option: ${item.variant}`}
+                            </p>
+                            {isDelivered && (
+                              <div className="mt-1">
+                                {hasReviewed ? (
+                                  <span className="text-[10px] text-emerald-700 font-medium inline-flex items-center gap-1 font-sans">
+                                    <CheckCircle2 className="w-3 h-3" /> Reviewed
                                   </span>
-                                </div>
-                              </div>
-
-                              {/* Review Action for Completed Orders */}
-                              {isOrderCompleted && (
-                                <div className="flex justify-end pt-1">
-                                  {hasBeenReviewed ? (
-                                    <span className="text-[10px] font-mono text-emerald-700 flex items-center gap-1 font-semibold">
-                                      <CheckCircle2 className="w-3.5 h-3.5" /> Critique Submitted
-                                    </span>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleOpenReview(productId, item.name)}
-                                      className="text-[10px] uppercase tracking-wider font-bold text-verdant-gold hover:text-verdant-emerald flex items-center gap-1.5 transition-colors cursor-pointer"
-                                    >
-                                      <Star className="w-3.5 h-3.5 fill-verdant-gold" /> Write Critique / Review
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Status History Timeline */}
-                    {selectedOrder.statusTimeline && selectedOrder.statusTimeline.length > 0 && (
-                      <div>
-                        <span className="text-[10px] tracking-widest uppercase text-verdant-gold font-bold font-sans block mb-4 border-b border-verdant-emerald/5 pb-2">
-                          Order Progress History
-                        </span>
-                        <div className="space-y-3 font-sans text-xs">
-                          {selectedOrder.statusTimeline.map((item: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-start gap-3 p-3.5 rounded-xl bg-white/50 border border-verdant-emerald/5 shadow-2xs"
-                            >
-                              <Clock className="w-4 h-4 text-verdant-gold shrink-0 mt-0.5" />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <span
-                                    className={`text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${getStatusBadgeStyle(
-                                      item.status
-                                    )}`}
+                                ) : (
+                                  <button
+                                    onClick={() => handleOpenReview(productId, item.name)}
+                                    className="text-[10px] text-[#B58D4B] hover:text-[#2C1820] font-medium inline-flex items-center gap-1 font-sans cursor-pointer"
                                   >
-                                    {item.status}
-                                  </span>
-                                  <span className="text-[9px] text-verdant-emerald/45 font-mono">
-                                    {new Date(item.date).toLocaleString()}
-                                  </span>
-                                </div>
-                                {item.comment && (
-                                  <p className="text-[11px] text-verdant-emerald/75 mt-1 leading-relaxed">
-                                    {item.comment}
-                                  </p>
+                                    <Star className="w-3 h-3 fill-current" /> Write Review
+                                  </button>
                                 )}
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-
-                  </div>
-
-                  {/* Right Column: Address & Details */}
-                  <div className="lg:col-span-5 space-y-6">
-                    <div className="bg-white/50 border border-verdant-emerald/5 rounded-2xl p-5 space-y-4 shadow-xs text-left">
-                      <div className="flex items-center gap-2 border-b border-verdant-emerald/5 pb-2">
-                        <MapPin className="w-4 h-4 text-verdant-gold shrink-0" />
-                        <span className="text-[10px] tracking-widest uppercase font-bold text-verdant-emerald">
-                          Destination Shipping
-                        </span>
-                      </div>
-                      <div className="text-xs space-y-1 text-verdant-emerald/80 leading-relaxed">
-                        <p className="font-semibold text-verdant-emerald text-sm">
-                          {selectedOrder.shippingAddress?.name}
-                        </p>
-                        <p>{selectedOrder.shippingAddress?.addressLine1}</p>
-                        {selectedOrder.shippingAddress?.addressLine2 && (
-                          <p>{selectedOrder.shippingAddress.addressLine2}</p>
-                        )}
-                        <p>
-                          {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} -{" "}
-                          {selectedOrder.shippingAddress?.postalCode || ""}
-                        </p>
-                        <p className="font-sans text-verdant-emerald/40 text-[9px] uppercase tracking-wider pt-2">
-                          Country: {selectedOrder.shippingAddress?.country || "India"}
-                        </p>
-                        <p className="font-mono text-[10px] pt-1">
-                          Contact Phone:{" "}
-                          <strong className="text-verdant-emerald">{selectedOrder.shippingAddress?.phone}</strong>
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="bg-white/50 border border-verdant-emerald/5 rounded-2xl p-5 space-y-4 shadow-xs text-left">
-                      <div className="flex items-center gap-2 border-b border-verdant-emerald/5 pb-2">
-                        <MessageCircle className="w-4 h-4 text-verdant-gold shrink-0" />
-                        <span className="text-[10px] tracking-widest uppercase font-bold text-verdant-emerald">
-                          Order Method
-                        </span>
-                      </div>
-                      <div className="text-xs space-y-2 text-verdant-emerald/80 font-mono leading-relaxed">
-                        <div>
-                          <span className="text-verdant-emerald/50 block text-[9px] uppercase tracking-wider mb-0.5">
-                            Ordering Channel
-                          </span>
-                          <span className="font-sans font-semibold text-verdant-emerald text-sm">
-                            WhatsApp Manual Confirmation
+                            )}
+                          </div>
+                          <span className="font-mono text-xs font-semibold text-[#2C1820] shrink-0">
+                            ₹{(item.price * item.quantity).toLocaleString("en-IN")}
                           </span>
                         </div>
-                        <div>
-                          <span className="text-verdant-emerald/50 block text-[9px] uppercase tracking-wider mb-0.5">
-                            Current Order Status
-                          </span>
-                          <span className="text-xs text-verdant-emerald font-bold">
-                            {selectedOrder.orderStatus}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* Delivery & Logistics Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Shipping Address */}
+                  <div className="bg-[#FAF7F2] border border-[#EAE2D8] rounded-xl p-4 text-xs font-sans space-y-1">
+                    <div className="flex items-center gap-1.5 text-[#B58D4B] font-bold text-[10px] uppercase tracking-wider mb-2">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>Delivery Address</span>
+                    </div>
+                    <p className="font-semibold text-[#2C1820]">{selectedOrder.shippingAddress?.name}</p>
+                    <p className="text-[#2C1820]/75">{selectedOrder.shippingAddress?.addressLine1}</p>
+                    {selectedOrder.shippingAddress?.addressLine2 && (
+                      <p className="text-[#2C1820]/75">{selectedOrder.shippingAddress.addressLine2}</p>
+                    )}
+                    <p className="text-[#2C1820]/75">
+                      {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} -{" "}
+                      {selectedOrder.shippingAddress?.postalCode}
+                    </p>
+                    <p className="font-mono text-[11px] pt-1 text-[#2C1820]/60">
+                      Phone: <strong className="text-[#2C1820]">{selectedOrder.shippingAddress?.phone}</strong>
+                    </p>
+                  </div>
+
+                  {/* Order Protocol & Courier */}
+                  <div className="bg-[#FAF7F2] border border-[#EAE2D8] rounded-xl p-4 text-xs font-sans space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-[#B58D4B] font-bold text-[10px] uppercase tracking-wider mb-2">
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>Delivery &amp; Courier</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase text-[#2C1820]/50 block font-mono">Ordering Channel</span>
+                      <span className="font-medium text-[#2C1820]">WhatsApp Direct Ordering</span>
+                    </div>
+                    {selectedOrder.courierName && (
+                      <div>
+                        <span className="text-[10px] uppercase text-[#2C1820]/50 block font-mono">Courier Partner</span>
+                        <span className="font-medium text-[#2C1820]">{selectedOrder.courierName}</span>
+                      </div>
+                    )}
+                    {selectedOrder.trackingNumber && (
+                      <div>
+                        <span className="text-[10px] uppercase text-[#2C1820]/50 block font-mono">Tracking Airway Bill</span>
+                        <span className="font-mono font-semibold text-[#2C1820]">{selectedOrder.trackingNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Progress History Timeline */}
+                {selectedOrder.statusTimeline && selectedOrder.statusTimeline.length > 0 && (
+                  <div>
+                    <span className="text-[10px] tracking-wider uppercase text-[#B58D4B] font-bold font-mono block mb-2.5 border-b border-[#EAE2D8] pb-1.5">
+                      Shipment Milestones
+                    </span>
+                    <div className="space-y-2 text-xs font-sans">
+                      {selectedOrder.statusTimeline.map((item: any, idx: number) => {
+                        const cleanComment = getCustomerFacingComment(item.comment);
+                        const itemBadge = getStatusBadge(item.status);
+
+                        return (
+                          <div key={idx} className="flex items-start gap-2.5 p-3 rounded-xl bg-[#FAF7F2] border border-[#EAE2D8]">
+                            <Clock className="w-3.5 h-3.5 text-[#B58D4B] shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className={`text-[10px] px-2 py-0.2 rounded-full font-semibold border ${itemBadge.badgeClass}`}>
+                                  {itemBadge.label}
+                                </span>
+                                <span className="text-[10px] text-[#2C1820]/50 font-mono">
+                                  {new Date(item.date).toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric"
+                                  })}
+                                </span>
+                              </div>
+                              {cleanComment && (
+                                <p className="text-[11px] text-[#2C1820]/75 mt-1 font-sans leading-relaxed">
+                                  {cleanComment}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Modal Footer */}
-              <div className="p-6 border-t border-verdant-emerald/5 bg-white/20 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="text-left w-full sm:w-auto font-mono text-[10px] space-y-1">
-                  <span className="text-[9px] tracking-widest uppercase text-verdant-emerald/40 block font-bold">
-                    Order Breakdown
-                  </span>
-                  <div className="flex justify-between gap-4 text-verdant-emerald/60">
-                    <span>Subtotal:</span>
+              {/* Modal Footer & Breakdown */}
+              <div className="p-4 sm:p-5 border-t border-[#EAE2D8] bg-[#FAF7F2] flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div className="w-full sm:w-auto font-mono text-xs space-y-1">
+                  <div className="flex justify-between gap-6 text-[#2C1820]/65 text-[11px]">
+                    <span>Items Subtotal:</span>
                     <span>₹{(selectedOrder.subtotal || selectedOrder.grandTotal || 0).toLocaleString("en-IN")}</span>
                   </div>
-                  <div className="flex items-baseline justify-between gap-4 pt-1 font-sans border-t border-verdant-emerald/10">
-                    <span className="text-xs font-semibold text-verdant-emerald">Grand Total:</span>
-                    <span className="font-bold text-lg text-verdant-emerald">
+                  <div className="flex justify-between gap-6 text-[#2C1820]/65 text-[11px]">
+                    <span>Shipping:</span>
+                    <span className="text-emerald-700 font-sans font-medium">Complimentary</span>
+                  </div>
+                  <div className="flex justify-between gap-6 pt-1 border-t border-[#EAE2D8] font-sans">
+                    <span className="font-medium text-xs text-[#2C1820]">Total:</span>
+                    <span className="font-serif text-base font-semibold text-[#2C1820]">
                       ₹{selectedOrder.grandTotal.toLocaleString("en-IN")}
                     </span>
                   </div>
@@ -659,9 +1074,9 @@ export default function MyOrdersPage() {
 
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="w-full sm:w-auto border border-verdant-emerald/20 hover:border-verdant-gold hover:bg-white px-8 py-3 rounded-full text-[10px] tracking-widest uppercase font-bold text-verdant-emerald transition-all duration-300 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2 rounded-full border border-[#EAE2D8] hover:border-[#B58D4B] bg-white text-xs font-semibold text-[#2C1820] transition-colors cursor-pointer font-sans"
                 >
-                  Close Vault
+                  Close Receipt
                 </button>
               </div>
             </motion.div>
@@ -672,44 +1087,44 @@ export default function MyOrdersPage() {
       {/* PRODUCT REVIEW SUBMISSION MODAL */}
       <AnimatePresence>
         {reviewItem && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6 select-none">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 select-none">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setReviewItem(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="glass-card bg-[#FAF7F4] border border-verdant-emerald/15 w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl relative z-10 text-left text-verdant-emerald"
+              exit={{ opacity: 0, scale: 0.96 }}
+              className="bg-white border border-[#EAE2D8] w-full max-w-md rounded-2xl p-6 shadow-xl relative z-10 text-left text-[#2C1820]"
             >
               <button
                 onClick={() => setReviewItem(null)}
-                className="absolute top-5 right-5 text-verdant-emerald/50 hover:text-verdant-emerald cursor-pointer"
+                className="absolute top-4 right-4 text-[#2C1820]/40 hover:text-[#2C1820] cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="mb-6">
-                <span className="text-[9px] uppercase tracking-widest text-verdant-gold font-mono font-bold block">
-                  Completed Order Feedback
+              <div className="mb-4">
+                <span className="text-[10px] uppercase tracking-wider text-[#B58D4B] font-mono font-bold block">
+                  Write a Review
                 </span>
-                <h3 className="font-serif text-xl font-light text-verdant-emerald mt-1">
-                  Critique {reviewItem.productName}
+                <h3 className="font-serif text-lg font-normal text-[#2C1820] mt-0.5">
+                  {reviewItem.productName}
                 </h3>
               </div>
 
-              <form onSubmit={handleSubmitReview} className="space-y-5">
-                {/* Star Rating Selector */}
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                {/* Rating */}
                 <div>
-                  <label className="block text-[8.5px] uppercase tracking-widest font-bold text-verdant-emerald/70 mb-2">
+                  <label className="block text-[11px] font-medium text-[#2C1820]/70 mb-1.5 font-sans">
                     Rating (1 to 5 Stars) *
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     {[1, 2, 3, 4, 5].map((star) => {
                       const isActive = (reviewHoverRating !== null ? reviewHoverRating : reviewRating) >= star;
                       return (
@@ -722,25 +1137,23 @@ export default function MyOrdersPage() {
                           className="p-1 cursor-pointer transition-transform hover:scale-115"
                         >
                           <Star
-                            className={`w-6 h-6 transition-colors ${
-                              isActive
-                                ? "text-amber-500 fill-amber-500"
-                                : "text-verdant-emerald/20"
+                            className={`w-5 h-5 transition-colors ${
+                              isActive ? "text-amber-500 fill-amber-500" : "text-neutral-300"
                             }`}
                           />
                         </button>
                       );
                     })}
-                    <span className="font-mono text-xs font-bold text-verdant-emerald/60 ml-2">
-                      {reviewRating} of 5
+                    <span className="font-mono text-xs font-semibold text-[#2C1820]/60 ml-2">
+                      {reviewRating} / 5
                     </span>
                   </div>
                 </div>
 
                 {/* Comment */}
                 <div>
-                  <label className="block text-[8.5px] uppercase tracking-widest font-bold text-verdant-emerald/70 mb-2">
-                    Your Critique / Experience *
+                  <label className="block text-[11px] font-medium text-[#2C1820]/70 mb-1.5 font-sans">
+                    Your Review *
                   </label>
                   <textarea
                     rows={4}
@@ -748,29 +1161,29 @@ export default function MyOrdersPage() {
                     onChange={(e) => setReviewComment(e.target.value)}
                     required
                     placeholder="Share your thoughts on the craftsmanship, design, and finish..."
-                    className="w-full p-4 rounded-xl bg-white border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:outline-hidden font-sans"
+                    className="w-full p-3 rounded-xl bg-white border border-[#EAE2D8] text-xs text-[#2C1820] placeholder:text-[#2C1820]/40 focus:border-[#B58D4B] focus:outline-hidden font-sans"
                   />
                 </div>
 
-                {/* Submit */}
-                <div className="flex gap-3 justify-end pt-2">
+                {/* Buttons */}
+                <div className="flex gap-2 justify-end pt-1 font-sans">
                   <button
                     type="button"
                     onClick={() => setReviewItem(null)}
-                    className="px-5 py-2.5 rounded-full border border-verdant-emerald/20 text-xs text-verdant-emerald hover:bg-verdant-emerald/5 transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full border border-[#EAE2D8] text-xs text-[#2C1820] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={reviewSubmitting || !reviewComment.trim()}
-                    className="gold-gradient-bg text-black px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5 shadow-sm"
+                    className="gold-gradient-bg text-black px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   >
                     {reviewSubmitting ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
                       <>
-                        <Send className="w-3.5 h-3.5" /> Submit Critique
+                        <Send className="w-3.5 h-3.5" /> Submit Review
                       </>
                     )}
                   </button>
