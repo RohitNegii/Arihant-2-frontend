@@ -31,7 +31,7 @@ export default function VideoShowcase() {
         >
           <span className="w-1.5 h-1.5 rounded-full bg-verdant-gold" />
           <span className="text-[9px] tracking-[0.25em] uppercase text-verdant-gold font-light">
-            ateliers de cinema
+            Craftsmanship Film
           </span>
         </motion.div>
 

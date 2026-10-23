@@ -43,7 +43,7 @@ export default function Testimonials() {
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-16 md:mb-24">
           <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold mb-3 font-light">
-            ateliers & testaments
+            Stories &amp; Testimonials
           </span>
           <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl tracking-wide text-verdant-emerald font-light">
             Voices of Elegance
@@ -59,19 +59,19 @@ export default function Testimonials() {
               initial={{ opacity: 0, y: 50, rotate: test.rotation * 0.8 }}
               whileInView={{ opacity: 1, y: 0, rotate: test.rotation }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1], delay: index * 0.15 }}
-              animate={{
-                y: [0, -12, 0],
-              }}
-              // Infinite smooth floating wave
-              // @ts-expect-error keyframe animation options are checked by react compiler correctly
               transition={{
+                duration: 1.0,
+                ease: [0.16, 1, 0.3, 1],
+                delay: index * 0.15,
                 y: {
                   duration: test.floatDuration,
                   repeat: Infinity,
                   ease: "easeInOut",
                   delay: test.floatDelay,
-                }
+                },
+              }}
+              animate={{
+                y: [0, -12, 0],
               }}
               style={{
                 transformStyle: "preserve-3d",

@@ -111,7 +111,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
   ];
 
   return (
-    <div className="min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative overflow-x-hidden">
+    <div className="min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-emerald/15 select-none relative overflow-x-hidden flex flex-col justify-between">
       <MouseFollower />
       <Navbar />
 
@@ -119,7 +119,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
       <div className="absolute top-[12%] right-[-10%] w-[40vw] h-[40vw] bg-radial from-verdant-gold/5 to-transparent blur-[140px] pointer-events-none" />
       <div className="absolute top-[45%] left-[-10%] w-[40vw] h-[40vw] bg-radial from-verdant-emerald/4 to-transparent blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-28 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-28 pb-16 flex-1 w-full">
         {/* Navigation Breadcrumbs & Back Link */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-3 border-b border-verdant-emerald/10 mb-8">
           <Breadcrumb items={breadcrumbs} />
@@ -358,7 +358,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
 
                 <hr className="border-verdant-emerald/10" />
 
-                {/* Shopping Actions (Quantity, Add to Bag, Instant Checkout) */}
+                {/* Shopping Actions (Quantity, Add to Bag) */}
                 <ProductActions
                   product={product}
                   selectedSize={selectedSize}
@@ -444,7 +444,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
                   : "border-transparent text-verdant-emerald/40 hover:text-verdant-emerald"
               }`}
             >
-              Atelier FAQ
+              Product FAQ
             </button>
           </div>
 

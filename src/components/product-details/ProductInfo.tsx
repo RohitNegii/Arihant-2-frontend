@@ -12,7 +12,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     { label: "Precious Metal", value: product.material },
     { label: "Metal Purity", value: product.purity },
     { label: "Gross Weight", value: `${product.weight} grams` },
-    { label: "Dimensions", value: product.dimensions || "Atelier Standard" },
+    { label: "Dimensions", value: product.dimensions || "Standard Sizing" },
     { label: "Curated Styling", value: product.gender },
     { label: "Suitable Occasion", value: product.occasion || "Celebrations & Generational Heirlooms" },
   ];
@@ -30,7 +30,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </div>
         <div className="flex items-center gap-1.5 text-[9px] tracking-wider uppercase font-mono font-bold text-verdant-emerald/60 bg-white/60 border border-verdant-emerald/10 px-3 py-1.5 rounded-full self-start sm:self-auto">
           <Award className="w-3.5 h-3.5 text-verdant-gold" />
-          <span>Atelier Certified</span>
+          <span>Artisan Certified</span>
         </div>
       </div>
 

@@ -16,8 +16,8 @@ export default function Gallery() {
     },
     {
       src: "/images/products/ksp_11.jpg",
-      title: "The Sourcing Atelier",
-      category: "Atelier Process",
+      title: "The Sourcing Studio",
+      category: "Crafting Process",
     },
     {
       src: "/images/products/ksp_12.jpg",
@@ -32,7 +32,7 @@ export default function Gallery() {
     {
       src: "/images/products/ksp_14.jpg",
       title: "Dewdrop Emeralds",
-      category: "Atelier Benchwork",
+      category: "Artisanal Benchwork",
     },
   ];
 

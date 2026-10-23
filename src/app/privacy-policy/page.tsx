@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
       content: (
         <div className="space-y-4">
           <p className="leading-relaxed">
-            Welcome to <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong>. We respect your privacy and are committed to protecting your personal data. This privacy policy informs you of how we look after your personal information when you visit our website, explore our bespoke jewelry showrooms, or purchase luxury creations from our atelier.
+            Welcome to <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong>. We respect your privacy and are committed to protecting your personal data. This privacy policy informs you of how we look after your personal information when you visit our website, explore our bespoke jewelry showrooms, or purchase luxury creations from our jewelry house.
           </p>
           <p className="leading-relaxed">
             By accessing or using our services, you consent to the collection, transfer, processing, and storage of your information as described in this Privacy Policy. All operations are conducted in strict compliance with applicable global privacy standards and consumer data protection laws.
@@ -98,7 +98,7 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul className="space-y-2.5">
             {[
-              "To register and authenticate you as a bespoke atelier client.",
+              "To register and authenticate you as a bespoke client.",
               "To manufacture, configure, insure, and securely deliver your commissioned fine jewelry.",
               "To safeguard the registry of your GIA and international diamond certification credentials.",
               "To notify you of essential updates regarding order status, collection releases, or private appointments.",
@@ -195,7 +195,7 @@ export default function PrivacyPolicyPage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black flex flex-col justify-between">
       {/* Navbar */}
       <Navbar />
 
@@ -208,7 +208,7 @@ export default function PrivacyPolicyPage() {
       />
 
       {/* Main Content Layout */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* Left Sticky Sidebar (Desktop) */}
@@ -299,14 +299,14 @@ export default function PrivacyPolicyPage() {
               onSelect={setActiveSection}
             />
 
-            {/* Unified Luxury Document Dossier */}
+            {/* Unified Policy Document */}
             <div className="bg-white rounded-2xl border border-[#EAE2D8] shadow-xs overflow-hidden">
               {/* Document Header Band */}
               <div className="bg-[#FAF8F5] border-b border-[#EAE2D8] px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-600" />
                   <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-verdant-emerald/70">
-                    Official Policy Dossier &bull; Section By Section
+                    Official Policy Document &bull; Section By Section
                   </span>
                 </div>
                 <div className="hidden sm:flex items-center gap-3 text-[11px] text-verdant-emerald/60">
@@ -355,7 +355,7 @@ export default function PrivacyPolicyPage() {
                 <div className="flex items-center gap-2">
                   <CrestMark size={20} />
                   <span className="font-serif tracking-wider text-verdant-emerald text-xs">
-                    GEETEJ VIRAASAT ATELIER COMPLIANCE
+                    GEETEJ VIRAASAT COMPLIANCE &amp; LEGAL
                   </span>
                 </div>
                 <div className="text-[11px] sm:text-right">

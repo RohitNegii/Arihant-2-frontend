@@ -59,7 +59,7 @@ export default function Timeline() {
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-20 md:mb-28">
           <span className="text-[10px] tracking-[0.3em] uppercase text-verdant-gold mb-3 font-light">
-            Atelier Chronicles
+            Heritage Chronicles
           </span>
           <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl tracking-wide text-verdant-emerald font-light">
             The Journey of Creation

@@ -77,7 +77,7 @@ export default function TermsOfUsePage() {
           </div>
 
           <p className="text-xs sm:text-sm text-verdant-emerald/80 leading-relaxed font-sans pt-1">
-            Clients are expected to review diamond certification dossiers, metal hallmarks, and sizing guides prior to submitting their final order authorization.
+            Clients are expected to review diamond certification documents, metal hallmarks, and sizing guides prior to submitting their final order authorization.
           </p>
         </div>
       ),
@@ -125,7 +125,7 @@ export default function TermsOfUsePage() {
           </p>
           <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2">
             <h4 className="text-xs font-semibold text-verdant-emerald flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-verdant-gold" /> Exclusive Atelier Designs
+              <Sparkles className="w-3.5 h-3.5 text-verdant-gold" /> Exclusive Original Designs
             </h4>
             <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans">
               No part of our catalogs, custom ring mount templates, or web visualizations may be copied, reproduced, aggregated, republished, uploaded, posted, or publicly displayed for any commercial or competitive purpose without our express prior written permission.
@@ -158,7 +158,7 @@ export default function TermsOfUsePage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black flex flex-col justify-between">
       {/* Navbar */}
       <Navbar />
 
@@ -166,12 +166,12 @@ export default function TermsOfUsePage() {
       <PolicyHeaderTabs
         currentPolicy="terms-of-use"
         title="Terms of Use & Agreement"
-        subtitle="Review the binding legal terms, intellectual property protections, and transactional obligations governing our bespoke atelier services."
+        subtitle="Review the binding legal terms, intellectual property protections, and transactional obligations governing our jewelry services."
         lastUpdated="October 2026"
       />
 
       {/* Main Content Layout */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* Left Sticky Sidebar (Desktop) */}
@@ -262,7 +262,7 @@ export default function TermsOfUsePage() {
               onSelect={setActiveSection}
             />
 
-            {/* Unified Luxury Document Dossier */}
+            {/* Unified Policy Document */}
             <div className="bg-white rounded-2xl border border-[#EAE2D8] shadow-xs overflow-hidden">
               {/* Document Header Band */}
               <div className="bg-[#FAF8F5] border-b border-[#EAE2D8] px-6 py-4 flex items-center justify-between">
@@ -318,7 +318,7 @@ export default function TermsOfUsePage() {
                 <div className="flex items-center gap-2">
                   <CrestMark size={20} />
                   <span className="font-serif tracking-wider text-verdant-emerald text-xs">
-                    GEETEJ VIRAASAT ATELIER COMPLIANCE
+                    GEETEJ VIRAASAT COMPLIANCE &amp; LEGAL
                   </span>
                 </div>
                 <div className="text-[11px] sm:text-right">

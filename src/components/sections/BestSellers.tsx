@@ -65,7 +65,7 @@ export default function BestSellers() {
             curated highlights
           </span>
           <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl tracking-wide text-verdant-emerald font-light">
-            Atelier Best Sellers
+            Signature Best Sellers
           </h2>
           <div className="w-12 h-[1px] bg-verdant-gold/50 mt-6" />
         </div>

@@ -361,7 +361,7 @@ export function LaboratoryDiamond() {
   );
 }
 
-// --- SCENE 5: CRAFTING ATELIER (Z = -48) ---
+// --- SCENE 5: CRAFTING STUDIO (Z = -48) ---
 export function CraftingAtelier() {
   const ringRef = useRef<THREE.Group>(null);
   const puddleRef = useRef<THREE.Mesh>(null);

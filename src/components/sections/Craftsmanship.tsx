@@ -74,7 +74,7 @@ export default function Craftsmanship() {
         {/* Right Column - Sub-copy (Vertical Parallax) */}
         <motion.div style={{ y: yText }} className="lg:col-span-5 flex flex-col gap-6 lg:mt-16 text-left">
           <p className="text-verdant-emerald/80 text-sm md:text-base font-light leading-relaxed tracking-wide">
-            Every piece engineered in our atelier is a delicate balance of physical chemistry and structural art. We forge gold and refine diamonds down to micro-millimeter alignment tolerances, ensuring each reflection is exactly as designed.
+            Every piece engineered in our workshop is a delicate balance of physical chemistry and structural art. We forge gold and refine diamonds down to micro-millimeter alignment tolerances, ensuring each reflection is exactly as designed.
           </p>
           <p className="text-verdant-emerald/50 text-xs md:text-sm font-light leading-relaxed tracking-wide">
             Our master jewelers combine decades of hand-crafted technique with digital modeling instruments. The result is structural integrity that defies gravity, and facets that capture light rays with cinematic intensity.

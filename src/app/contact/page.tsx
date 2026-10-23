@@ -122,8 +122,8 @@ export default function ContactPage() {
     {
       icon: <Mail className="w-5 h-5 text-verdant-gold" />,
       label: "Bespoke Concierge",
-      value: "concierge@verdantjewels.com",
-      link: "mailto:concierge@verdantjewels.com"
+      value: "care@geetejviraasat.com",
+      link: "mailto:care@geetejviraasat.com"
     },
     {
       icon: <Phone className="w-5 h-5 text-verdant-gold" />,
@@ -139,14 +139,14 @@ export default function ContactPage() {
     },
     {
       icon: <Clock className="w-5 h-5 text-verdant-gold" />,
-      label: "Atelier Hours",
+      label: "Studio Hours",
       value: "Monday – Saturday: 10:00 AM – 7:00 PM EST",
       link: null
     }
   ];
 
   return (
-    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald overflow-hidden selection:bg-verdant-gold selection:text-black flex flex-col justify-between">
       {/* Navbar */}
       <Navbar />
 
@@ -173,7 +173,7 @@ export default function ContactPage() {
               blur — gold type on gold jewellery disappeared entirely. */}
           <div className="rounded-3xl p-8 md:p-10 max-w-2xl border border-verdant-gold/25 bg-[var(--color-background)]/92 backdrop-blur-xl shadow-[0_10px_40px_rgba(53,30,40,0.10)] text-center space-y-3">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-verdant-gold/30 bg-verdant-gold/10 px-3.5 py-1.5 text-[10px] tracking-[0.3em] uppercase text-[var(--color-accent)] font-bold">
-              <CrestMark size={18} /> Direct Atelier Connection
+              <CrestMark size={18} /> Direct Client Connection
             </span>
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-verdant-emerald leading-tight">
               Get in Touch
@@ -186,7 +186,7 @@ export default function ContactPage() {
       </div>
 
       {/* MAIN CONTENT BLOCK */}
-      <div className="max-w-6xl mx-auto px-6 py-16 relative z-10">
+      <div className="max-w-6xl mx-auto px-6 py-16 relative z-10 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
           {/* LEFT COLUMN: CONTACT INFORMATION */}
@@ -196,7 +196,7 @@ export default function ContactPage() {
 
               <h2 className="font-serif text-2xl font-light text-verdant-emerald mb-2">Our Boutiques</h2>
               <p className="text-xs text-verdant-emerald/60 leading-relaxed mb-8">
-                Verdant Jewels blends the geometry of rare raw crystals with clean modern settings. Connect with us online, call our support desks, or visit one of our flagship global galleries.
+                Geetej Viraasat blends the geometry of rare raw crystals with clean modern settings. Connect with us online, call our support desks, or visit one of our flagship global galleries.
               </p>
 
               <div className="space-y-6">

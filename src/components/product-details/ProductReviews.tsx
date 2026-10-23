@@ -19,6 +19,12 @@ export default function ProductReviews({
   initialReviews,
 }: ProductReviewsProps) {
   const [reviews, setReviews] = useState<ReviewData[]>(initialReviews);
+  const [prevInitial, setPrevInitial] = useState(initialReviews);
+
+  if (initialReviews !== prevInitial) {
+    setPrevInitial(initialReviews);
+    setReviews(initialReviews);
+  }
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hoverRating, setHoverRating] = useState<number | null>(null);
@@ -50,9 +56,6 @@ export default function ProductReviews({
     },
   ];
 
-  useEffect(() => {
-    setReviews(initialReviews);
-  }, [initialReviews]);
 
   useEffect(() => {
     let mounted = true;
@@ -115,12 +118,16 @@ export default function ProductReviews({
           setSuccessMsg(false);
         }, 4000);
       } else {
-        setFormError(res.message || "Failed to submit critique.");
+        setFormError(res.message || "Failed to submit review.");
       }
-    } catch (err: any) {
-      setFormError(
-        err.response?.data?.message || err.message || "Could not publish your critique. Please try again."
-      );
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : err instanceof Error
+          ? err.message
+          : "Could not publish your review. Please try again.";
+      setFormError(message || "Could not publish your review. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -136,14 +143,14 @@ export default function ProductReviews({
   return (
     <div className="glass-card rounded-3xl p-6 sm:p-8 md:p-10 border border-verdant-emerald/10 text-left select-none max-w-4xl mx-auto w-full shadow-[0_4px_25px_rgba(var(--color-primary-rgb),0.02)]">
       <span className="text-[8px] uppercase tracking-[0.25em] text-verdant-gold font-bold font-mono block mb-2">
-        Patron Testimonials
+        Customer Testimonials
       </span>
 
       {/* Review summary header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 pb-6 border-b border-verdant-emerald/10 mb-8">
         <div>
           <h3 className="font-serif text-2xl md:text-3xl text-verdant-emerald font-light">
-            Customer Critiques & Ratings
+            Customer Reviews & Ratings
           </h3>
           <div className="flex items-center gap-3 mt-2.5 font-mono text-[10px]">
             <div className="flex text-verdant-gold">
@@ -171,12 +178,12 @@ export default function ProductReviews({
             className="gold-gradient-bg text-black hover:scale-102 active:scale-95 text-[9px] tracking-widest uppercase font-bold px-6 py-3 rounded-full flex items-center gap-2 shadow-xs transition-all cursor-pointer"
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            {showForm ? "Cancel Critique" : "Submit Critique"}
+            {showForm ? "Cancel Review" : "Write a Review"}
           </button>
         ) : (
           <div className="text-[9px] tracking-wider uppercase font-bold text-verdant-emerald/50 border border-verdant-emerald/10 rounded-full px-4 py-2 bg-white/40 flex items-center gap-1.5 select-none font-mono">
             <ShieldAlert className="w-3.5 h-3.5 text-verdant-gold" />
-            {isAuthenticated ? "Verified Buyers Only" : "Log In to Critique"}
+            {isAuthenticated ? "Verified Buyers Only" : "Log In to Review"}
           </div>
         )}
       </div>
@@ -251,7 +258,7 @@ export default function ProductReviews({
             <div className="text-left font-mono text-[9px] uppercase tracking-widest text-verdant-emerald/60">
               Posting As:{" "}
               <span className="font-sans font-bold text-verdant-emerald text-xs tracking-normal">
-                {user?.name || "Bespoke Patron"}
+                {user?.name || "Verified Customer"}
               </span>
             </div>
 
@@ -271,7 +278,7 @@ export default function ProductReviews({
               disabled={submitting}
               className="gold-gradient-bg text-black hover:scale-102 active:scale-95 text-[9px] tracking-[0.2em] uppercase font-bold py-3.5 rounded-full flex items-center justify-center gap-1.5 shadow-md transition-all duration-300 w-full cursor-pointer mt-1 disabled:opacity-50"
             >
-              {submitting ? "Publishing Critique..." : "Publish Critique"}
+              {submitting ? "Publishing Review..." : "Publish Review"}
             </button>
           </motion.form>
         )}
@@ -281,7 +288,7 @@ export default function ProductReviews({
       <div className="flex flex-col gap-6 max-h-96 overflow-y-auto pr-2 custom-scrollbar text-left">
         {displayReviews.length === 0 ? (
           <p className="text-verdant-emerald/50 text-xs italic tracking-wider py-4">
-            Be the first to leave a critique for this masterpiece.
+            Be the first to leave a review for this jewelry piece.
           </p>
         ) : (
           displayReviews.map((rev, idx) => (
@@ -314,7 +321,7 @@ export default function ProductReviews({
                 ))}
               </div>
               <p className="text-verdant-emerald/75 text-xs font-light leading-relaxed tracking-wide italic">
-                "{rev.comment}"
+                &ldquo;{rev.comment}&rdquo;
               </p>
             </div>
           ))
@@ -325,7 +332,7 @@ export default function ProductReviews({
       {!canReview && (
         <div className="text-[9px] uppercase tracking-wider font-mono text-verdant-emerald/45 text-center mt-6 pt-4 border-t border-verdant-emerald/5 leading-relaxed">
           {checkMessage ||
-            "Only patrons who have purchased this masterpiece are eligible to leave critiques."}
+            "Only verified customers who have purchased this piece are eligible to leave reviews."}
         </div>
       )}
     </div>

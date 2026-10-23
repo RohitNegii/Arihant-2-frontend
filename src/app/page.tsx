@@ -6,7 +6,14 @@ import { useState, useEffect, useRef } from "react";
 // import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Gem,
+  MessageSquare,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 import MouseFollower from "@/components/MouseFollower";
 import Footer from "@/components/sections/Footer";
@@ -94,42 +101,115 @@ function StoryCTA({
  * last pixel: the card's foot on the footer's head.
  */
 function CollectionFinale() {
+  const categories = [
+    { name: "Rings & Solitaires", href: "/products?category=rings" },
+    { name: "Necklaces & Pendants", href: "/products?category=necklaces" },
+    { name: "Earrings & Studs", href: "/products?category=earrings" },
+    { name: "Bangles & Bracelets", href: "/products?category=braceletsbangles" },
+  ];
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 35, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.98 }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-[calc(100svh-20.5rem-env(safe-area-inset-bottom))] md:top-[calc(50vh-10rem)] flex justify-center px-4 pointer-events-none"
+      className="sticky top-[max(5rem,calc(50svh-14rem))] md:top-[calc(50vh-14rem)] flex justify-center px-4 pointer-events-none"
     >
-      <div className="finale-card pointer-events-auto w-full max-w-md md:max-w-2xl rounded-3xl border border-verdant-gold/45 bg-[var(--color-background)]/97 backdrop-blur-2xl shadow-[0_16px_60px_rgba(var(--color-primary-rgb),0.35)] p-4 sm:p-8 md:p-10 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-2 sm:mb-4">
-          <CrestMark size={16} />
-          <span className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-accent)] font-semibold">
-            The Collection
-          </span>
+      <div className="relative w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl pointer-events-auto">
+        {/* Ambient Atmospheric Halo Glow */}
+        <div className="absolute -inset-4 sm:-inset-8 bg-radial from-verdant-gold/25 via-verdant-gold/5 to-transparent blur-3xl -z-10 rounded-full pointer-events-none" />
+
+        <div className="finale-card relative rounded-3xl border border-verdant-gold/45 bg-[#FAF6F0]/95 md:bg-[#FAF6F0]/92 backdrop-blur-2xl shadow-[0_24px_70px_rgba(53,30,40,0.18),0_0_40px_rgba(200,169,106,0.12)] p-5 sm:p-8 md:p-10 text-center overflow-hidden">
+          
+          {/* Heritage Golden Corner Accents */}
+          <span className="absolute top-3.5 left-3.5 w-3.5 h-3.5 sm:w-4 sm:h-4 border-t-2 border-l-2 border-verdant-gold/60 rounded-tl-sm pointer-events-none" />
+          <span className="absolute top-3.5 right-3.5 w-3.5 h-3.5 sm:w-4 sm:h-4 border-t-2 border-r-2 border-verdant-gold/60 rounded-tr-sm pointer-events-none" />
+          <span className="absolute bottom-3.5 left-3.5 w-3.5 h-3.5 sm:w-4 sm:h-4 border-b-2 border-l-2 border-verdant-gold/60 rounded-bl-sm pointer-events-none" />
+          <span className="absolute bottom-3.5 right-3.5 w-3.5 h-3.5 sm:w-4 sm:h-4 border-b-2 border-r-2 border-verdant-gold/60 rounded-br-sm pointer-events-none" />
+
+          {/* Top Brand & Chapter Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-verdant-gold/40 bg-verdant-gold/10 mb-3 sm:mb-4 shadow-xs">
+            <CrestMark size={14} />
+            <span className="text-[9px] sm:text-[9.5px] tracking-[0.25em] uppercase text-verdant-gold font-bold font-mono">
+              Geetej Viraasat Fine Jewelry
+            </span>
+            <span className="w-1 h-1 rounded-full bg-verdant-gold/60" />
+            <span className="text-[8.5px] sm:text-[9px] tracking-[0.2em] uppercase text-verdant-emerald/60 font-medium">
+              The Grand Finale
+            </span>
+          </div>
+
+          {/* Main Headline */}
+          <h3 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-tight leading-tight text-verdant-emerald font-light">
+            Find Your Forever{" "}
+            <span className="italic text-verdant-gold font-normal">Masterpiece</span>
+          </h3>
+
+          {/* Royal Hallmark Separator */}
+          <div className="flex items-center justify-center gap-2.5 my-3 sm:my-4">
+            <span className="h-px w-8 sm:w-16 bg-gradient-to-r from-transparent via-verdant-gold/50 to-verdant-gold" />
+            <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold bg-verdant-gold/20" />
+            <Sparkles className="w-3.5 h-3.5 text-verdant-gold" />
+            <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold bg-verdant-gold/20" />
+            <span className="h-px w-8 sm:w-16 bg-gradient-to-l from-transparent via-verdant-gold/50 to-verdant-gold" />
+          </div>
+
+          {/* Subtitle / Descriptive Copy */}
+          <p className="font-serif text-xs sm:text-sm text-verdant-emerald/80 max-w-lg mx-auto leading-relaxed mb-5 sm:mb-6 font-light">
+            Step from the exhibition into our complete jewelry collection. Handcrafted in 22K certified gold, natural diamonds, and custom family heirlooms created to be cherished for generations.
+          </p>
+
+          {/* Quick Category Discovery Pills */}
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mb-6 sm:mb-7">
+            {categories.map((cat) => (
+              <Link
+                key={cat.name}
+                href={cat.href}
+                className="hover-target inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-serif text-verdant-emerald/80 bg-white/70 hover:bg-white hover:text-verdant-emerald border border-verdant-emerald/10 hover:border-verdant-gold/60 shadow-xs hover:shadow-sm transition-all duration-300 cursor-pointer"
+              >
+                <Gem className="w-3 h-3 text-verdant-gold" />
+                <span>{cat.name}</span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Primary & Secondary Call to Actions */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-5 sm:mb-6">
+            <Link
+              href="/products"
+              className="hover-target group w-full sm:w-auto gold-gradient-bg text-verdant-emerald font-serif tracking-[0.15em] uppercase font-semibold text-xs px-8 py-3.5 sm:py-4 rounded-full shadow-[0_6px_25px_rgba(200,169,106,0.35)] hover:shadow-[0_8px_35px_rgba(200,169,106,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer flex items-center justify-center gap-2.5"
+            >
+              <span>Explore The Full Collection</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            <Link
+              href="/contact"
+              className="hover-target w-full sm:w-auto px-6 py-3.5 sm:py-4 rounded-full border border-verdant-emerald/20 hover:border-verdant-gold bg-white/50 hover:bg-white text-verdant-emerald font-serif tracking-[0.12em] uppercase text-xs font-medium shadow-xs hover:shadow-sm transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-verdant-gold" />
+              <span>Custom Consultation</span>
+            </Link>
+          </div>
+
+          {/* Trust Hallmark Strip */}
+          <div className="grid grid-cols-3 gap-2 pt-4 border-t border-verdant-emerald/10 text-[8.5px] sm:text-[9.5px] text-verdant-emerald/65 font-medium tracking-wider uppercase font-mono">
+            <div className="flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
+              <span>Certified Gold</span>
+            </div>
+            <div className="flex items-center justify-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
+              <span>Natural Gemstones</span>
+            </div>
+            <div className="flex items-center justify-center gap-1.5">
+              <Truck className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
+              <span>Insured Shipping</span>
+            </div>
+          </div>
+
         </div>
-
-        <h3 className="font-serif text-xl sm:text-2xl md:text-3xl tracking-tight leading-tight text-verdant-emerald font-light">
-          Find Your Forever
-          <span className="block italic text-verdant-gold">Piece</span>
-        </h3>
-
-        <div className="flex items-center justify-center gap-2 my-3 sm:my-5">
-          <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
-          <span className="h-px w-14 bg-verdant-gold/30" />
-          <span className="w-1.5 h-1.5 rotate-45 border border-verdant-gold/70" />
-        </div>
-
-        <Link
-          href="/products"
-          className="hover-target group flex items-center justify-between gap-4 rounded-2xl border border-verdant-emerald/15 bg-white/40 hover:bg-white/70 hover:border-verdant-gold/50 px-5 py-4 sm:px-6 sm:py-5 text-left transition-all duration-300 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-verdant-gold"
-        >
-          <span className="font-serif text-xl sm:text-2xl text-verdant-emerald leading-none">
-            Our Collection
-          </span>
-          <ArrowRight aria-hidden="true" className="w-5 h-5 shrink-0 text-verdant-gold group-hover:translate-x-1 transition-transform" />
-        </Link>
       </div>
     </motion.div>
   );
@@ -261,7 +341,7 @@ export default function Home() {
     {
       title: "History Tunnel",
       subtitle: "The Archives of Creation",
-      desc: "Drift between gilded frames of our signature heirlooms — six handcrafted pieces photographed in the atelier, hanging along both gallery walls.",
+      desc: "Drift between gilded frames of our signature heirlooms — six handcrafted pieces photographed in the studio, hanging along both gallery walls.",
     },
     {
       title: "Floating Gallery",
@@ -275,7 +355,7 @@ export default function Home() {
       desc: "Scroll to watch a raw carbon structure explode and rebuild into a faceted emerald gem. We guarantee Cut, Clarity, Color, and Carat purity.",
     },
     {
-      title: "Craftsmanship Atelier",
+      title: "Craftsmanship Studio",
       subtitle: "From fire to form",
       desc: "Scroll to watch raw gold casting melt, morph, and solidify into a mirror-polished luxury band.",
       image: JEWELRY_IMAGES.peacockHexagon,
@@ -289,10 +369,10 @@ export default function Home() {
     {
       title: "Virtual Try-On Mirror",
       subtitle: "Interactive Reflexes",
-      desc: "The atelier mirror previews a styled look — jade medallions reflected back as if already worn.",
+      desc: "The virtual mirror previews a styled look — jade medallions reflected back as if already worn.",
     },
     {
-      title: "Atelier Museum",
+      title: "Jewelry Museum",
       subtitle: "Best Sellers Selection",
       desc: "Hover over the museum display glass cubes to open them, floating the jewelry upwards and showing boutique prices.",
       image: JEWELRY_IMAGES.rubyChandbali,
@@ -531,7 +611,7 @@ export default function Home() {
                   <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
                     <p className="text-[8px] tracking-[0.3em] uppercase text-verdant-gold font-bold mb-1 flex items-center gap-1.5">
-                      <CrestMark size={16} /> Verdant Jewels
+                      <CrestMark size={16} /> Geetej Viraasat
                     </p>
                     <p className="font-serif text-lg text-white leading-snug">
                       {currentZone.image.name}

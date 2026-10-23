@@ -174,7 +174,7 @@ export default function RefundPolicyPage() {
       content: (
         <div className="space-y-4">
           <p className="leading-relaxed">
-            Every jewelry piece leaves our atelier only after a double-grade physical quality control audit. We examine clarity parameters under 10x magnification and cross-reference GIA registration numbers directly against corresponding dossiers.
+            Every jewelry piece leaves our workshop only after a double-grade physical quality control audit. We examine clarity parameters under 10x magnification and cross-reference GIA registration numbers directly against corresponding certificates.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2">
@@ -200,7 +200,7 @@ export default function RefundPolicyPage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black">
+    <div className="relative min-h-screen bg-verdant-cream text-verdant-emerald selection:bg-verdant-gold selection:text-black flex flex-col justify-between">
       {/* Navbar */}
       <Navbar />
 
@@ -213,7 +213,7 @@ export default function RefundPolicyPage() {
       />
 
       {/* Main Content Layout */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* Left Sticky Sidebar (Desktop) */}
@@ -304,7 +304,7 @@ export default function RefundPolicyPage() {
               onSelect={setActiveSection}
             />
 
-            {/* Unified Luxury Document Dossier */}
+            {/* Unified Policy Document */}
             <div className="bg-white rounded-2xl border border-[#EAE2D8] shadow-xs overflow-hidden">
               {/* Document Header Band */}
               <div className="bg-[#FAF8F5] border-b border-[#EAE2D8] px-6 py-4 flex items-center justify-between">
@@ -360,7 +360,7 @@ export default function RefundPolicyPage() {
                 <div className="flex items-center gap-2">
                   <CrestMark size={20} />
                   <span className="font-serif tracking-wider text-verdant-emerald text-xs">
-                    GEETEJ VIRAASAT ATELIER COMPLIANCE
+                    GEETEJ VIRAASAT COMPLIANCE &amp; LEGAL
                   </span>
                 </div>
                 <div className="text-[11px] sm:text-right">

@@ -86,7 +86,7 @@ export default function InteractiveSection() {
                 </h4>
               </div>
               <span className="text-verdant-emerald/70 text-xs tracking-widest uppercase font-light border border-verdant-emerald/10 rounded-full px-4 py-1.5 bg-white/5">
-                Atelier Grade Spec
+                Masterpiece Grade Spec
               </span>
             </div>
           </div>

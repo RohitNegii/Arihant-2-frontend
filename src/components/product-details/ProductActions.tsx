@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { ShoppingBag, CreditCard, Check, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { ShoppingBag, Check, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProductData } from "../../services/productListing";
 import { useAuthStore } from "../../store/authStore";
@@ -20,6 +21,11 @@ export default function ProductActions({
 }: ProductActionsProps) {
   const [qty, setQty] = useState(1);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { isAuthenticated, openAuthModal } = useAuthStore();
   const { addToCart: addToCartContext, setCartOpen } = useCartStore();
@@ -66,40 +72,6 @@ export default function ProductActions({
     }
   };
 
-  const handleBuyNow = async (quantity: number) => {
-    const hasSizes = (product.sizes && product.sizes.length > 0) || product.allowCustomSize;
-    if (hasSizes && !selectedSize) {
-      showToast("Please select a size before checkout");
-      return;
-    }
-
-    if (product.hasVariants && !selectedVariant) {
-      showToast("Please select a variety option before checkout");
-      return;
-    }
-
-    if (!isAuthenticated) {
-      openAuthModal("login", () => handleBuyNow(quantity));
-      return;
-    }
-
-    try {
-      const success = await addToCartContext(
-        product._id,
-        quantity,
-        selectedSize || undefined,
-        selectedVariant || undefined
-      );
-      if (success) {
-        setCartOpen(true);
-      } else {
-        showToast("Could not update bag");
-      }
-    } catch {
-      showToast("Could not update bag");
-    }
-  };
-
   const selectedVariantData = product.hasVariants && selectedVariant
     ? product.variants?.find((v) => v.name === selectedVariant)
     : null;
@@ -108,24 +80,28 @@ export default function ProductActions({
 
   return (
     <div className="flex flex-col gap-4 text-left select-none relative">
-      {/* Toast Notification Alert */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-verdant-emerald text-white border border-verdant-gold/40 px-6 py-3.5 rounded-full flex items-center gap-2.5 shadow-2xl text-[10px] tracking-widest font-bold uppercase backdrop-blur-md"
-          >
-            {toastMessage.includes("Please select") ? (
-              <AlertCircle className="w-4 h-4 text-verdant-gold shrink-0" />
-            ) : (
-              <Check className="w-4 h-4 text-verdant-gold shrink-0" />
-            )}
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Toast Notification Alert (Portaled to document.body below the header to prevent stacking context clipping) */}
+      {mounted && typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -15, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -15, scale: 0.95 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-[99999] max-w-[90vw] bg-verdant-emerald text-white border border-verdant-gold/40 px-5 sm:px-6 py-3 sm:py-3.5 rounded-full flex items-center gap-2.5 shadow-2xl text-[10px] tracking-widest font-bold uppercase backdrop-blur-md pointer-events-none"
+            >
+              {toastMessage.includes("Please select") ? (
+                <AlertCircle className="w-4 h-4 text-verdant-gold shrink-0" />
+              ) : (
+                <Check className="w-4 h-4 text-verdant-gold shrink-0" />
+              )}
+              <span className="truncate">{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Stock Status details */}
       <div className="flex items-center gap-2">
@@ -170,13 +146,13 @@ export default function ProductActions({
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex-1 flex flex-col sm:flex-row gap-3">
+        {/* Action Button */}
+        <div className="flex-1">
           <button
             type="button"
             onClick={() => handleAddToBag(qty)}
             disabled={outOfStock}
-            className={`flex-1 px-6 py-3.5 h-12 rounded-full text-[10px] tracking-[0.2em] uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-sm cursor-pointer ${
+            className={`w-full px-8 py-3.5 h-12 rounded-full text-[10px] tracking-[0.2em] uppercase font-bold flex items-center justify-center gap-2.5 transition-all duration-300 shadow-sm cursor-pointer ${
               outOfStock
                 ? "bg-verdant-emerald/5 border border-verdant-emerald/10 text-verdant-emerald/30 cursor-not-allowed"
                 : "bg-verdant-emerald hover:bg-verdant-emerald/90 border border-verdant-gold/40 text-verdant-cream active:scale-98 shadow-md"
@@ -184,20 +160,6 @@ export default function ProductActions({
           >
             <ShoppingBag className="w-4 h-4 text-verdant-gold" />
             Add To Bag
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleBuyNow(qty)}
-            disabled={outOfStock}
-            className={`flex-1 px-6 py-3.5 h-12 rounded-full text-[10px] tracking-[0.2em] uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-md cursor-pointer ${
-              outOfStock
-                ? "bg-verdant-gold/10 text-verdant-gold/30 cursor-not-allowed"
-                : "gold-gradient-bg text-black hover:scale-102 active:scale-98"
-            }`}
-          >
-            <CreditCard className="w-4 h-4" />
-            Instant Checkout
           </button>
         </div>
       </div>

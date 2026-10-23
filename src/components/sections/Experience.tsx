@@ -68,7 +68,7 @@ export default function Experience() {
             <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl tracking-wide text-verdant-emerald leading-tight font-light">
               The Uncompromising
               <br />
-              <span className="gold-gradient-text font-serif italic">Atelier Standard</span>
+              <span className="gold-gradient-text font-serif italic">Artisanal Standard</span>
             </h2>
           </div>
           <div className="lg:col-span-6 flex items-end text-left">

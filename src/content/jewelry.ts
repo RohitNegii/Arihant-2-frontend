@@ -56,7 +56,7 @@ export const JEWELRY_IMAGES = {
   },
   chainCoupe: {
     src: "/images/chain-on-table.webp",
-    name: "Atelier Chain Bracelets",
+    name: "Artisan Chain Bracelets",
     alt: "Four gold and silver link bracelets hung over the rim of a coupe glass on a copper cloth",
   },
   elephantRing: {

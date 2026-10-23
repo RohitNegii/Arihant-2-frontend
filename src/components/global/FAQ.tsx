@@ -53,7 +53,7 @@ export default function FAQ() {
 
   const mockFaqs = [
     {
-      question: "How do I care for my custom Verdant Jewelry?",
+      question: "How do I care for my custom Geetej Viraasat Jewelry?",
       answer: "We recommend cleaning your jewelry with a very soft brush, warm water, and mild detergent. Dry thoroughly with a lint-free polishing cloth. Keep pieces separated in soft pouches when stored to prevent surface scratches.",
     },
     {

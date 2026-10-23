@@ -8,7 +8,7 @@ export interface NavLink {
 
 export const NAV_LINKS: NavLink[] = [
   { label: "Story", zone: 1 }, // History Tunnel
-  { label: "Craftsmanship", zone: 4 }, // Crafting Atelier
+  { label: "Craftsmanship", zone: 4 }, // Crafting Studio
   { label: "Collections", zone: 5 }, // Signature Collections
   { label: "Showcase", zone: 11 }, // Masterpiece Arena
 ];
