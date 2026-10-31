@@ -54,6 +54,7 @@ function plasterSurface(repeat: number, relief = 1) {
   const map = maps.map.clone();
   for (const tex of [normalMap, roughnessMap, map]) {
     tex.repeat.set(repeat, repeat);
+    tex.anisotropy = 8;
     tex.needsUpdate = true;
   }
   return {
@@ -72,6 +73,7 @@ export function stoneSlabSurface(worldW: number, worldD: number) {
   const map = maps.map.clone();
   for (const tex of [normalMap, roughnessMap, map]) {
     tex.repeat.set(worldW / SLAB_TILE_W, worldD / SLAB_TILE_D);
+    tex.anisotropy = 8;
     tex.needsUpdate = true;
   }
   return {
@@ -459,7 +461,10 @@ function TextPlane({
     draw();
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 8;
+    tex.anisotropy = 16;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.generateMipmaps = true;
     document.fonts?.ready.then(() => {
       draw();
       tex.needsUpdate = true;
@@ -2407,11 +2412,12 @@ const PICTURE_MAX: [number, number] = [0.72, 0.96];
  * texture memory to show maybe 2MB of it. That is invisible on a desktop GPU
  * and very much not on a phone, which is where the low tier matters.
  */
-const PICTURE_TEX_W = { low: 192, mid: 320, high: 512 }[QUALITY.tier];
+const PICTURE_TEX_W = { low: 512, mid: 768, high: 1024 }[QUALITY.tier];
 
 function downscalePicture(tex: THREE.Texture): THREE.Texture {
   const img = tex.image as (CanvasImageSource & { width: number; height: number }) | undefined;
   if (typeof document === "undefined" || !img?.width || img.width <= PICTURE_TEX_W) {
+    tex.anisotropy = 16;
     return tex;
   }
   const canvas = document.createElement("canvas");
@@ -2419,13 +2425,18 @@ function downscalePicture(tex: THREE.Texture): THREE.Texture {
   canvas.height = Math.max(1, Math.round((img.height * PICTURE_TEX_W) / img.width));
   const ctx = canvas.getContext("2d");
   if (!ctx) return tex;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
   // A new texture rather than a resized one: useTexture caches by URL, and
   // these files are shared with the product cards and the zone 05 portrait.
   const small = new THREE.CanvasTexture(canvas);
   small.colorSpace = THREE.SRGBColorSpace;
-  small.anisotropy = 8;
+  small.anisotropy = 16;
+  small.minFilter = THREE.LinearMipmapLinearFilter;
+  small.magFilter = THREE.LinearFilter;
+  small.generateMipmaps = true;
   return small;
 }
 
@@ -3333,19 +3344,12 @@ function YoursForever({ z }: { z: number }) {
 
   // Both files are already on the page — one is zone 05's own portrait, the
   // other hangs in the gallery — so the loader serves these from cache.
-  const finaleSources = useTexture(finalePictures());
-  const finale = useMemo(
-    () => finaleSources.map(downscalePicture),
-    [finaleSources]
-  );
-  useEffect(
-    () => () => {
-      for (const tex of finale) {
-        if (tex instanceof THREE.CanvasTexture) tex.dispose();
-      }
-    },
-    [finale]
-  );
+  const finale = useTexture(finalePictures(), (textures) => {
+    for (const t of Array.isArray(textures) ? textures : [textures]) {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 16;
+    }
+  });
 
   useFrame(() => {
     if (!lidRef.current) return;

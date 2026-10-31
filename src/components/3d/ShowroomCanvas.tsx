@@ -291,13 +291,17 @@ function ResponsiveLens() {
  */
 function AdaptiveResolution({ onDecline }: { onDecline: () => void }) {
   const reduceResolution = () => {
-    if (!isPreloadComplete()) onDecline();
+    // Only decline after preload has completed and the scene is revealed.
+    // Initial shader compilation during warmup naturally drops frames and must never degrade resolution.
+    if (isPreloadComplete() && isSceneRevealed()) {
+      onDecline();
+    }
   };
   return (
     <PerformanceMonitor
-      flipflops={1}
+      flipflops={2}
+      bounds={() => [20, 50]}
       onDecline={reduceResolution}
-      onFallback={reduceResolution}
     />
   );
 }
@@ -366,8 +370,8 @@ function CameraController({ active }: { active: boolean }) {
 }
 
 function ShowroomCanvas({ active, running }: { active: boolean; running: boolean }) {
-  // Allocate the sustainable Retina buffer up front on phones.
-  const [dpr, setDpr] = useState<number | [number, number]>(TOUCH ? Q.dpr[0] : Q.dpr);
+  // Use optimal DPR budget ([1, 2] on desktop, [1, Math.min(2.0, panel)] on mobile)
+  const [dpr, setDpr] = useState<number | [number, number]>(Q.dpr);
   const [shown, setShown] = useState(isSceneReady);
 
   useEffect(() => {
@@ -391,7 +395,7 @@ function ShowroomCanvas({ active, running }: { active: boolean; running: boolean
         shadows={Q.shadows ? "percentage" : false}
       >
         <ResponsiveLens />
-        {!TOUCH && <AdaptiveResolution onDecline={() => setDpr(Q.dpr[0])} />}
+        {!TOUCH && <AdaptiveResolution onDecline={() => setDpr(1.5)} />}
         <CameraController active={active} />
 
         <fog attach="fog" args={[P.shell, 8, Q.fogFar]} />

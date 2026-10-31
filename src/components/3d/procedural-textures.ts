@@ -52,7 +52,10 @@ function loadTexture(
   tex.wrapS = clamp ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping;
   tex.wrapT = clamp ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping;
   tex.repeat.set(repeat, repeat);
-  tex.anisotropy = quality().tier === "high" ? 8 : 2;
+  tex.anisotropy = 8;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = true;
   return tex;
 }
 

@@ -48,7 +48,7 @@ const PRESETS: Record<QualityTier, Quality> = {
   },
   high: {
     tier: "high",
-    dpr: [1, 1.75],
+    dpr: [1, 2],
     shadows: true,
     shadowMapSize: 2048,
     texture: 1,
@@ -78,78 +78,30 @@ function detectTier(): QualityTier {
 
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   const cores = navigator.hardwareConcurrency || 4;
-  const touch = window.matchMedia?.("(pointer: coarse)").matches ?? false;
 
   if (cores <= 2) return "low";
   if (memory !== undefined && memory <= 2) return "low";
-  if (touch && (memory !== undefined ? memory <= 4 : cores <= 6)) return "low";
-  if (touch || cores <= 4 || (memory !== undefined && memory <= 4)) return "mid";
+  if (memory !== undefined && memory <= 4) return "mid";
   return "high";
 }
 
 /**
- * The Android phone profile: desktop detail with the two per-frame luxuries
- * off. Apple touch devices use the bounded mid-tier profile below instead.
+ * Mobile profile: crisp high-resolution rendering with per-frame luxuries (dynamic
+ * real-time shadow maps and offscreen refraction passes) turned off to lock 60fps.
  *
- * A phone used to be sorted into `low` or `mid`, and those tiers reach a very
- * long way — half-resolution procedural textures, photographs downscaled to
- * 192px, a third of the foliage, a fog wall at 28 units, and coarser geometry
- * wherever a component branches on `Q.tier` (the mannequin, the ring, the
- * necklace beads). All of it was bought to keep the frame rate up by giving
- * the device less work per frame, and the sum of it is what reads as blur.
- *
- * The trade is inverted now: `preload.ts` pays the whole cost once behind the
- * loading screen, so there is no streaming-in left to smooth out and the
- * detail knobs can go to `high`. Reporting the tier as `high` is the point —
- * every `Q.tier` gate in the scene upgrades with it, in one place.
- *
- * Two things stay off, because neither is a resolution and both are charged
- * every frame for the whole journey rather than once at the door:
- *
- * - **Shadows.** A shadow map is paid twice, once to draw the scene into it
- *   and again in every material that samples it. At the entrance on a phone
- *   viewport that first pass alone is half of every draw call in the frame —
- *   783 with, 391 without — and every story room already fakes its own contact
- *   shadow with a `GroundShadow` disc.
- * - **`transmission`.** It makes three re-render the entire scene into an
- *   offscreen buffer every frame. At this dpr that is the most expensive
- *   single thing the scene could ask for, for refraction in a few gemstones.
- *
- * The dpr is the one that actually fixes the blur. A phone's device pixel
- * ratio is 2.5–3.5; drawing at 1.5 and letting the compositor upscale is
- * rendering a quarter of the panel. The ceiling is the real ratio, capped at
- * 3 — past that the fill cost is quadratic for pixels nobody can resolve — and
- * the floor is 2 rather than 1, so `AdaptiveResolution` backing off a device
- * that cannot pay for the ceiling still never returns to mush.
+ * All procedural textures, geometry detail, and photographs render at high quality.
+ * The DPR is bounded to [1, Math.min(2.0, panel)], giving Retina-sharp native clarity
+ * on mobile screens while avoiding superfluous fill rate above 2.0x.
  */
-const MOBILE_DPR_FLOOR = 1.25;
-const MOBILE_DPR_CEILING = 2.0;
-
-function isAppleTouchDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-}
-
 function mobilePreset(): Quality {
   const panel = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-  // Use a bounded high-efficiency budget on all mobile/touch devices.
-  // 1.5–2.0 DPR is Retina-sharp on handheld screens while cutting fragment fill rate by ~50%.
-  if (isAppleTouchDevice()) {
-    return {
-      ...PRESETS.mid,
-      dpr: [1, Math.min(1.5, panel)],
-      shadows: false,
-      transmission: false,
-      sparkles: 0,
-    };
-  }
   return {
-    ...PRESETS.mid,
+    ...PRESETS.high,
+    tier: "high",
     shadows: false,
     transmission: false,
-    sparkles: 20,
-    dpr: [Math.min(MOBILE_DPR_FLOOR, panel), Math.min(MOBILE_DPR_CEILING, panel)],
+    sparkles: 24,
+    dpr: [1, Math.min(2.0, panel)],
   };
 }
 
