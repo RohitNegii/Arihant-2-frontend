@@ -27,13 +27,21 @@ export default function ShowroomHost() {
     if (!active || initialized) return;
     const abort = new AbortController();
     const initialize = async () => {
-      // Finish the manifest before useTexture reads its URLs. Prepare surfaces
-      // in separate tasks before importing the rooms' module-level materials.
-      await loadHomeMedia();
-      if (abort.signal.aborted) return;
-      const { preloadTextures } = await import("./3d/preload");
-      if (abort.signal.aborted) return;
-      await preloadTextures(abort.signal);
+      // Parallelize fetching home-media, procedural texture generation, and
+      // dynamic chunk loading so they don't block each other serially.
+      const canvasChunkPromise = import("./3d/ShowroomCanvas");
+      const preloadModulePromise = import("./3d/preload");
+
+      await Promise.all([
+        loadHomeMedia(),
+        (async () => {
+          const { preloadTextures } = await preloadModulePromise;
+          if (abort.signal.aborted) return;
+          await preloadTextures(abort.signal);
+        })(),
+        canvasChunkPromise,
+      ]);
+
       if (!abort.signal.aborted) setInitialized(true);
     };
     void initialize();

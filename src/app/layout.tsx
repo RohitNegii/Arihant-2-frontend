@@ -63,6 +63,10 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans`}
     >
+      <head>
+        <link rel="preload" href="/images/geetej-crest.webp" as="image" type="image/webp" />
+        <link rel="preload" href="/images/necklace-muse.webp" as="image" type="image/webp" />
+      </head>
       <body className="min-h-full flex flex-col bg-verdant-cream text-verdant-emerald">
 
         <style href="palette" precedence="high">

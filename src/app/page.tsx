@@ -15,6 +15,7 @@ import {
   Truck,
 } from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
+import LoadingScreen from "@/components/LoadingScreen";
 import MouseFollower from "@/components/MouseFollower";
 import Footer from "@/components/sections/Footer";
 import Navbar from "@/components/sections/Navbar";
@@ -447,6 +448,7 @@ export default function Home() {
         data-journey
         className="journey relative overflow-x-clip select-none pointer-events-none"
       >
+      <LoadingScreen />
       <MouseFollower />
       <Navbar />
 

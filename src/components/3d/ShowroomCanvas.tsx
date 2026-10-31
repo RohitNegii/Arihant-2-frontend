@@ -368,9 +368,17 @@ function CameraController({ active }: { active: boolean }) {
 function ShowroomCanvas({ active, running }: { active: boolean; running: boolean }) {
   // Allocate the sustainable Retina buffer up front on phones.
   const [dpr, setDpr] = useState<number | [number, number]>(TOUCH ? Q.dpr[0] : Q.dpr);
+  const [shown, setShown] = useState(isSceneReady);
+
+  useEffect(() => {
+    return onSceneReady(() => setShown(true));
+  }, []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[var(--color-shell)]">
+    <div
+      className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[var(--color-shell)] transition-opacity duration-700 ease-out"
+      style={{ opacity: shown ? 1 : 0 }}
+    >
       <Canvas
         frameloop={running ? "always" : "never"}
         camera={{ position: [0, 0.5, 76.0], fov: 45, near: 0.5, far: Q.far }}

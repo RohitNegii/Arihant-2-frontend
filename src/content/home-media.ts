@@ -16,7 +16,7 @@ let manifest: HomeMediaManifest = {};
 let request: Promise<void> | null = null;
 
 /** The manifest must never hold the loading screen open — see homepage.md §8. */
-const FETCH_TIMEOUT_MS = 4000;
+const FETCH_TIMEOUT_MS = 1500;
 
 function resolve(url: string): string {
   if (!url) return "";

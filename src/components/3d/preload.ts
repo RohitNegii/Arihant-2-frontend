@@ -73,7 +73,7 @@ const reached: Record<PreloadPhase, number> = {
 };
 
 let listeners: ((progress: number) => void)[] = [];
-let complete = true;
+let complete = false;
 let completeWaiters: (() => void)[] = [];
 
 /** Monotonic — a phase never reports backwards, so the bar never retreats. */
