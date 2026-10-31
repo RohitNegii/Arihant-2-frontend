@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { Html, Sparkles, useTexture } from "@react-three/drei";
@@ -3706,10 +3706,18 @@ export default function StorySection() {
 
       <GrandEntrance z={STORY_ROOM_Z[0]} />
       <TheBeginning z={STORY_ROOM_Z[1]} />
-      <TheCraft z={STORY_ROOM_Z[2]} />
-      <TheCollection z={STORY_ROOM_Z[3]} />
-      <MadeForMoments z={STORY_ROOM_Z[4]} />
-      <YoursForever z={STORY_ROOM_Z[5]} />
+      <Suspense fallback={null}>
+        <TheCraft z={STORY_ROOM_Z[2]} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <TheCollection z={STORY_ROOM_Z[3]} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <MadeForMoments z={STORY_ROOM_Z[4]} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <YoursForever z={STORY_ROOM_Z[5]} />
+      </Suspense>
     </group>
   );
 }

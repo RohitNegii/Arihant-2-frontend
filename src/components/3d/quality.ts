@@ -122,8 +122,8 @@ function detectTier(): QualityTier {
  * the floor is 2 rather than 1, so `AdaptiveResolution` backing off a device
  * that cannot pay for the ceiling still never returns to mush.
  */
-const MOBILE_DPR_FLOOR = 2;
-const MOBILE_DPR_CEILING = 3;
+const MOBILE_DPR_FLOOR = 1.25;
+const MOBILE_DPR_CEILING = 2.0;
 
 function isAppleTouchDevice(): boolean {
   if (typeof navigator === "undefined") return false;
@@ -133,9 +133,8 @@ function isAppleTouchDevice(): boolean {
 
 function mobilePreset(): Quality {
   const panel = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-  // iOS has no deviceMemory hint. Giving every iPhone the desktop maximum
-  // retains too many textures and multisampled Retina pixels across routes.
-  // Use a bounded budget even on newer phones; keep Android's profile intact.
+  // Use a bounded high-efficiency budget on all mobile/touch devices.
+  // 1.5–2.0 DPR is Retina-sharp on handheld screens while cutting fragment fill rate by ~50%.
   if (isAppleTouchDevice()) {
     return {
       ...PRESETS.mid,
@@ -146,9 +145,10 @@ function mobilePreset(): Quality {
     };
   }
   return {
-    ...PRESETS.high,
+    ...PRESETS.mid,
     shadows: false,
     transmission: false,
+    sparkles: 20,
     dpr: [Math.min(MOBILE_DPR_FLOOR, panel), Math.min(MOBILE_DPR_CEILING, panel)],
   };
 }

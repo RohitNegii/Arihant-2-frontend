@@ -137,7 +137,7 @@ export function paintedWoodMaps(): SurfaceMaps | null {
   if (woodCache !== undefined) return woodCache;
   if (!hasDOM) return (woodCache = null);
 
-  const SIZE = texSize(512);
+  const SIZE = texSize(256);
   const n = noise2D(9137);
 
   const grain = heightField(SIZE, (u, v) => {
@@ -165,7 +165,7 @@ export function plasterMaps(): PlasterMaps | null {
   if (plasterCache !== undefined) return plasterCache;
   if (!hasDOM) return (plasterCache = null);
 
-  const SIZE = texSize(512);
+  const SIZE = texSize(256);
   const n = noise2D(4421);
 
   const surface = heightField(SIZE, (u, v) => {
@@ -286,7 +286,7 @@ export function rugMaps(): (SurfaceMaps & { map: THREE.Texture }) | null {
   if (rugCache !== undefined) return rugCache;
   if (!hasDOM) return (rugCache = null);
 
-  const S = texSize(512);
+  const S = texSize(256);
   const canvas = makeCanvas(S);
   const ctx = canvas.getContext("2d")!;
   const rn = noise2D(4177);
@@ -381,7 +381,7 @@ export function stoneSlabMaps(): (SurfaceMaps & { map: THREE.Texture }) | null {
   if (slabCache !== undefined) return slabCache;
   if (!hasDOM) return (slabCache = null);
 
-  const SIZE = texSize(1024);
+  const SIZE = texSize(512);
   const JOINT = 3.0;
   const BEVEL = 8;
   const n = noise2D(8412);
