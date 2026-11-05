@@ -642,7 +642,7 @@ function CheckoutPageContent() {
 
               {/* Items List scroll container */}
               <div className="max-h-72 overflow-y-auto pr-1 space-y-3.5 mb-5 scrollbar-thin">
-                {cartItems.map((item) => {
+                {cartItems.map((item, index) => {
                   let itemPrice = item.product?.price || 0;
                   if (item.product?.hasVariants && item.variant) {
                     const variant = item.product.variants?.find(
@@ -654,10 +654,13 @@ function CheckoutPageContent() {
                   }
 
                   const mediaSource = item.product?.thumbnail || item.product?.images?.[0];
+                  const itemKey =
+                    item._id ||
+                    `${item.product?._id || item.product?.slug || "item"}-${item.size || "std"}-${item.variant || "def"}-${index}`;
 
                   return (
                     <div
-                      key={item._id}
+                      key={itemKey}
                       className="group flex gap-3.5 items-center p-2.5 rounded-2xl bg-white/50 border border-verdant-emerald/5 hover:border-verdant-gold/30 hover:bg-white/80 transition-all duration-200"
                     >
                       {/* Thumbnail Frame */}
@@ -766,7 +769,7 @@ function CheckoutPageContent() {
               <div className="grid grid-cols-3 gap-2 pt-4 border-t border-verdant-emerald/10 text-center text-[8.5px] text-verdant-emerald/65 font-medium leading-tight">
                 <div className="flex flex-col items-center gap-1">
                   <ShieldCheck className="w-4 h-4 text-verdant-gold" />
-                  <span>Certified Silver</span>
+                  <span>Certified 92.5 Silver</span>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <Truck className="w-4 h-4 text-verdant-gold" />

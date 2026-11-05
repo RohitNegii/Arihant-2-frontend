@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Phone, MapPin, Clock, Loader2, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Loader2, ArrowRight, MessageCircle } from "lucide-react";
 import Navbar from "@/components/sections/Navbar";
 import CrestMark from "@/components/global/CrestMark";
 import Footer from "@/components/sections/Footer";
@@ -121,26 +121,32 @@ export default function ContactPage() {
   const contactInfo = [
     {
       icon: <Mail className="w-5 h-5 text-verdant-gold" />,
-      label: "Bespoke Concierge",
-      value: "care@geetejviraasat.com",
-      link: "mailto:care@geetejviraasat.com"
+      label: "Official Email",
+      value: "geetejviraasat@gmail.com",
+      link: "mailto:geetejviraasat@gmail.com"
     },
     {
       icon: <Phone className="w-5 h-5 text-verdant-gold" />,
-      label: "Support Line",
-      value: "+1 (212) 555-8901",
-      link: "tel:+12125558901"
+      label: "Telephone Support",
+      value: "02562-238018",
+      link: "tel:02562238018"
+    },
+    {
+      icon: <MessageCircle className="w-5 h-5 text-emerald-600" />,
+      label: "WhatsApp Concierge",
+      value: "+91 9494600505",
+      link: "https://wa.me/919494600505"
     },
     {
       icon: <MapPin className="w-5 h-5 text-verdant-gold" />,
-      label: "Flagship Boutique",
-      value: "Fifth Avenue 712, New York, NY 10019",
-      link: "https://maps.google.com/?q=Fifth+Avenue+712,+New+York"
+      label: "Boutique & Atelier Address",
+      value: "1848 Arihant Jewellers, Agra Road, Dhule, Maharashtra",
+      link: "https://maps.google.com/?q=1848+Arihant+Jewellers,+Agra+Road,+Dhule"
     },
     {
       icon: <Clock className="w-5 h-5 text-verdant-gold" />,
       label: "Studio Hours",
-      value: "Monday – Saturday: 10:00 AM – 7:00 PM EST",
+      value: "Monday – Saturday: 10:00 AM – 8:00 PM IST",
       link: null
     }
   ];
@@ -179,7 +185,7 @@ export default function ContactPage() {
               Get in Touch
             </h1>
             <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans max-w-xl mx-auto">
-              Whether you need silver certification details, styling advice, or a boutique booking, our representatives are ready to assist.
+              Whether you need 92.5 silver certification details, styling advice, or a boutique booking, our representatives are ready to assist.
             </p>
           </div>
         </div>
@@ -323,7 +329,7 @@ export default function ContactPage() {
                       name="subject"
                       value={form.subject}
                       onChange={handleChange}
-                      placeholder="e.g. Kundan ring customization details"
+                      placeholder="e.g. Bespoke 92.5 silver ring customization details"
                       className={`w-full bg-verdant-cream/80 border rounded-xl px-4 py-3 text-xs text-verdant-emerald placeholder-verdant-emerald/30 outline-hidden focus:bg-white focus:ring-1 focus:ring-verdant-gold transition-all ${errors.subject ? "border-verdant-danger/50" : "border-verdant-emerald/10 focus:border-verdant-gold"
                         }`}
                     />

@@ -17,12 +17,12 @@ export const JEWELRY_IMAGES = {
   royalPeacock: {
     src: "/images/royal-peacock-drops.webp",
     name: "Royal Peacock Drops",
-    alt: "Carved silver peacock earrings with pink kundan petals and pearl clusters, resting on a wooden jewelry box",
+    alt: "Carved silver peacock earrings with pink sculpted petals and pearl clusters, resting on a wooden jewelry box",
   },
   turquoiseChandelier: {
     src: "/images/turquoise-chandelier-drops.webp",
     name: "Turquoise Chandelier Drops",
-    alt: "Oxidised silver chandelier earrings lined with turquoise beads, ruby kundan and pearl tassels",
+    alt: "Oxidised silver chandelier earrings lined with turquoise beads, ruby-toned beads and pearl tassels",
   },
   peacockHexagon: {
     src: "/images/peacock-hexagon-studs.webp",
@@ -46,8 +46,8 @@ export const JEWELRY_IMAGES = {
   },
   rubyChandbali: {
     src: "/images/ruby-pearl-chandbali.webp",
-    name: "Ruby Pearl Chandbali",
-    alt: "Oxidised silver chandbali earrings with a ruby cluster crest and pearl heart",
+    name: "Ruby Pearl Crescent Drops",
+    alt: "Oxidised silver crescent drop earrings with a ruby cluster crest and pearl heart",
   },
   abaloneElephant: {
     src: "/images/abalone-elephant-danglers.webp",
@@ -73,7 +73,7 @@ export const JEWELRY_IMAGES = {
     src: "/images/ring-and-hand.webp",
     // Shot against a blue sky, which is the one hue this palette does not
     // contain — optimize-media.mjs white-balances it warm on the way in.
-    name: "Kundan Cocktail Rings",
+    name: "Artisan Silver Cocktail Rings",
     alt: "A hand wearing two antique silver cocktail rings and an ornate cuff",
   },
 } as const satisfies Record<string, JewelryImage>;

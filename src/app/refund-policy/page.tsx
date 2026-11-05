@@ -48,11 +48,11 @@ export default function RefundPolicyPage() {
             </h3>
 
             <p className="text-xs sm:text-[13px] text-verdant-emerald/80 leading-relaxed font-sans mb-3">
-              Every purchase of a <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong> creation represents an individual, custom-allocated acquisition involving silver, carefully selected design details, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
+              Every purchase of a <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong> creation represents an individual, custom-allocated acquisition involving 92.5 silver, carefully selected design details, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
             </p>
 
             <div className="text-[11px] text-amber-900/80 bg-amber-100/50 rounded-xl p-3 border border-amber-200/60 leading-relaxed">
-              We urge all clients to carefully review their specifications, finger sizing guidelines, silver purity and finish details, and personalized engraving preferences prior to confirming payment.
+              We urge all clients to carefully review their specifications, finger sizing guidelines, 92.5 silver purity and finish details, and personalized engraving preferences prior to confirming payment.
             </div>
           </div>
 
@@ -81,8 +81,8 @@ export default function RefundPolicyPage() {
               },
               {
                 icon: <Scale className="w-4 h-4 text-verdant-gold" />,
-                title: "Immediate Metal & Gem Lock-in",
-                desc: "Upon receipt of payment, our workshop secures the silver and other components required for your chosen design at prevailing market prices.",
+                title: "Immediate Metal & Setting Lock-in",
+                desc: "Upon receipt of payment, our workshop secures the 92.5 silver and other components required for your chosen design at prevailing market prices.",
               },
               {
                 icon: <Wrench className="w-4 h-4 text-verdant-gold" />,
@@ -174,7 +174,7 @@ export default function RefundPolicyPage() {
       content: (
         <div className="space-y-4">
           <p className="leading-relaxed">
-            Every silver jewellery piece leaves our workshop after a quality check. We inspect its finish, fittings, detailing, and overall craftsmanship against the product specifications.
+            Every 92.5 silver jewellery piece leaves our workshop after a quality check. We inspect its finish, fittings, detailing, and overall craftsmanship against the product specifications.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2">
@@ -281,7 +281,7 @@ export default function RefundPolicyPage() {
               </div>
 
               <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
-                Our bespoke specialists can guide you through ring measurements, silver purity details, and available finishes.
+                Our bespoke specialists can guide you through ring measurements, 92.5 silver purity details, and available finishes.
               </p>
 
               <div className="pt-1">
@@ -365,7 +365,7 @@ export default function RefundPolicyPage() {
                 </div>
                 <div className="text-[11px] sm:text-right">
                   <p>Certified Final Sale Protocol &bull; Binding on Purchase</p>
-                  <p className="text-verdant-emerald/50">All rights reserved &bull; 2001&ndash;2026</p>
+                  <p className="text-verdant-emerald/50">All rights reserved &bull; 2021&ndash;2026</p>
                 </div>
               </div>
             </div>

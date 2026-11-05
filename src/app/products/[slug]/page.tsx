@@ -208,7 +208,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
                     )}
                   </div>
                   <span className="text-[9px] tracking-wider text-verdant-emerald/50 block mt-1">
-                    Inclusive of all luxury taxes & duties • Hallmarked assurance
+                    Inclusive of all luxury taxes & duties • Hallmarked 92.5 silver assurance
                   </span>
                 </div>
 
@@ -216,7 +216,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ slug:
                 <div className="flex flex-wrap gap-2 text-[9px] tracking-widest uppercase font-bold">
                   {product.material && (
                     <span className="bg-white/60 border border-verdant-emerald/10 text-verdant-emerald px-3 py-1.5 rounded-xl shadow-xs">
-                      {product.material} ({product.purity || "Certified"})
+                      {product.purity ? `${product.purity.includes("92.5") ? product.purity : `92.5 (${product.purity})`} ${product.material}`.replace(/92\.5\s+92\.5/g, "92.5") : `92.5 ${product.material}`}
                     </span>
                   )}
                   {product.weight && (

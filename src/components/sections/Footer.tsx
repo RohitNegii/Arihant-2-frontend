@@ -6,6 +6,9 @@ import {
   Lock,
   Mail,
   ArrowUpRight,
+  Phone,
+  MapPin,
+  MessageCircle
 } from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 
@@ -16,14 +19,6 @@ const COLLECTIONS_LINKS = [
   { name: "Bracelets & Bangles", href: "/products?category=braceletsbangles" },
   { name: "Chains & Links", href: "/products?category=chains" },
   { name: "Earrings & Studs", href: "/products?category=earrings" },
-];
-
-const CONCIERGE_LINKS = [
-  { name: "Client Concierge", href: "/contact" },
-  { name: "Track My Orders", href: "/orders" },
-  { name: "Bespoke Commissions", href: "/contact" },
-  { name: "Ring Sizing Calibration", href: "/products" },
-  { name: "Care & Cleaning Advice", href: "/refund-policy#guarantees" },
 ];
 
 const LEGAL_LINKS = [
@@ -55,26 +50,52 @@ export default function Footer() {
                 </span>
               </div>
               <p className="text-[10px] tracking-[0.28em] uppercase text-verdant-gold font-bold font-mono">
-                Fine Jewelry &bull; Est. 2001
+                Fine 92.5 Silver &bull; Est. 2021
               </p>
             </div>
 
             <p className="text-[#FAF7F2]/70 text-xs sm:text-[13px] font-light leading-relaxed max-w-md tracking-wide">
-              Handcrafted silver jewellery inspired by nature and tradition. Explore timeless designs shaped by thoughtful detailing and artisanal craftsmanship.
+              Handcrafted 92.5 silver jewellery inspired by nature and tradition. Explore timeless designs shaped by thoughtful detailing and artisanal craftsmanship.
             </p>
 
-            {/* Concierge Quick Links */}
-            <div className="flex flex-col gap-2 pt-1 text-xs text-[#FAF7F2]/75">
+            {/* Concierge & Store Contact Details */}
+            <div className="flex flex-col gap-2 pt-1 text-xs text-[#FAF7F2]/80">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
+                <a
+                  href="tel:02562238018"
+                  className="inline-flex items-center gap-1.5 text-verdant-gold hover:text-white transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5 text-verdant-gold" />
+                  <span>02562-238018</span>
+                </a>
+                <span className="text-[#FAF7F2]/30">&bull;</span>
+                <a
+                  href="https://wa.me/919494600505"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-white transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>WhatsApp: 9494600505</span>
+                </a>
+              </div>
+
               <a
-                href="/contact"
+                href="mailto:geetejviraasat@gmail.com"
                 className="inline-flex items-center gap-2 text-verdant-gold hover:text-white transition-colors group"
               >
                 <Mail className="w-3.5 h-3.5 text-verdant-gold" />
-                <span>Contact Client Concierge</span>
+                <span>geetejviraasat@gmail.com</span>
                 <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </a>
-              <span className="text-[11px] text-[#FAF7F2]/50 font-mono">
-                Mon &ndash; Sat &bull; 10:00 AM &ndash; 8:00 PM IST
+
+              <div className="flex items-start gap-1.5 text-[11px] text-[#FAF7F2]/65 leading-relaxed pt-0.5">
+                <MapPin className="w-3.5 h-3.5 text-verdant-gold shrink-0 mt-0.5" />
+                <span>1848 Arihant Jewellers, Agra Road, Dhule, Maharashtra</span>
+              </div>
+
+              <span className="text-[10px] text-[#FAF7F2]/45 font-mono">
+                Boutique Hours: Mon &ndash; Sat &bull; 10:00 AM &ndash; 8:00 PM IST
               </span>
             </div>
 
@@ -128,8 +149,8 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Right Columns: Structured Navigation (7 cols) */}
-          <div className="md:col-span-12 lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-8 text-left">
+          {/* Right Columns: Structured Navigation */}
+          <div className="md:col-span-12 lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
             {/* Column 1: Fine Collections */}
             <div className="space-y-4">
               <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-verdant-gold font-mono block">
@@ -152,29 +173,7 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Column 2: Concierge & Client Care */}
-            <div className="space-y-4">
-              <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-verdant-gold font-mono block">
-                Concierge
-              </span>
-              <ul className="space-y-2.5">
-                {CONCIERGE_LINKS.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-xs text-[#FAF7F2]/70 hover:text-[#FAF7F2] hover:translate-x-1 inline-flex items-center transition-all duration-200 tracking-wide font-normal group"
-                    >
-                      <span>{link.name}</span>
-                      <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 text-verdant-gold ml-1 transition-all duration-200 text-xs">
-                        &rsaquo;
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Column 3: Legal Charter & Compliance */}
+            {/* Column 2: Legal Charter & Compliance */}
             <div className="space-y-4">
               <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-verdant-gold font-mono block">
                 Legal Charter

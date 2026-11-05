@@ -311,3 +311,31 @@ html.lenis body {
     filter: none !important;
   }
 }
+
+/* Print styles for official receipts / bills */
+@media print {
+  html, body {
+    background: #ffffff !important;
+    color: #351E28 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  nav,
+  header,
+  footer,
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print-unconstrained {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+

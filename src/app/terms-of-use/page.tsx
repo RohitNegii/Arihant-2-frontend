@@ -68,7 +68,7 @@ export default function TermsOfUsePage() {
             </h3>
 
             <p className="text-xs sm:text-[13px] text-verdant-emerald/80 leading-relaxed font-sans mb-3">
-              Due to the fluctuating prices of silver and the bespoke artisanal work dedicated to each jewellery piece, we are unable to process cancellations, returns, or cash refunds.
+              Due to the fluctuating prices of 92.5 silver and the bespoke artisanal work dedicated to each jewellery piece, we are unable to process cancellations, returns, or cash refunds.
             </p>
 
             <div className="text-[11px] text-amber-900/80 bg-amber-100/50 rounded-xl p-3 border border-amber-200/60 leading-relaxed">
@@ -77,7 +77,7 @@ export default function TermsOfUsePage() {
           </div>
 
           <p className="text-xs sm:text-sm text-verdant-emerald/80 leading-relaxed font-sans pt-1">
-            Clients are expected to review silver purity details, product certification information, and sizing guides prior to submitting their final order authorization.
+            Clients are expected to review 92.5 silver purity details, product certification information, and sizing guides prior to submitting their final order authorization.
           </p>
         </div>
       ),
@@ -142,14 +142,14 @@ export default function TermsOfUsePage() {
       content: (
         <div className="space-y-4">
           <p className="leading-relaxed">
-            These terms of use and your use of the website are governed by and construed in accordance with the laws of the State of New York, USA, without regard to its conflict of law principles.
+            These terms of use and your use of the website are governed by and construed in accordance with the laws of India, without regard to its conflict of law principles.
           </p>
           <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold text-verdant-emerald">
               <Building2 className="w-4 h-4 text-verdant-gold" /> Exclusive Legal Jurisdiction
             </div>
             <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans">
-              Any legal action or proceeding arising out of or related to these terms shall be brought exclusively in the federal or state courts located in New York County, New York, and all parties consent to personal jurisdiction in such courts.
+              Any legal action or proceeding arising out of or related to these terms shall be subject to the exclusive jurisdiction of the competent courts located in Dhule, Maharashtra, India, and all parties consent to personal jurisdiction in such courts.
             </p>
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function TermsOfUsePage() {
                 </div>
                 <div className="text-[11px] sm:text-right">
                   <p>Certified Terms of Use &bull; Enforceable Under Law</p>
-                  <p className="text-verdant-emerald/50">New York Jurisdiction &bull; 2001&ndash;2026</p>
+                  <p className="text-verdant-emerald/50">Dhule (Maharashtra) Jurisdiction &bull; Est. 2021</p>
                 </div>
               </div>
             </div>

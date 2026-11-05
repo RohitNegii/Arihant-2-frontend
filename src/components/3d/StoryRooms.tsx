@@ -1631,7 +1631,7 @@ function TheBeginning({ z }: { z: number }) {
           </mesh>
           {/* Same lettering treatment as the hanging sign in the hall — it is
               the same mark, and one of the two washing out while the other
-              held would read as a mistake. EST. 2020 was P.accent, the mauve
+              held would read as a mistake. EST. 2021 was P.accent, the mauve
               that made the hall sign's second line unreadable. */}
           <TextPlane
             text="GEETEJ VIRAASAT"
@@ -1642,7 +1642,7 @@ function TheBeginning({ z }: { z: number }) {
             position={[0, 0.06, 0.07]}
           />
           <TextPlane
-            text="EST. 2020"
+            text="EST. 2021"
             width={0.85}
             height={0.16}
             color={GOLD}

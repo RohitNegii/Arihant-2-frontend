@@ -158,7 +158,7 @@ function CollectionFinale() {
 
           {/* Subtitle / Descriptive Copy */}
           <p className="font-serif text-xs sm:text-sm text-verdant-emerald/80 max-w-lg mx-auto leading-relaxed mb-5 sm:mb-6 font-light">
-            Step from the exhibition into our complete silver jewellery collection. Handcrafted in certified silver, our pieces bring together timeless design and family traditions to be cherished for generations.
+            Step from the exhibition into our complete 92.5 silver jewellery collection. Handcrafted in certified 92.5 sterling silver, our pieces bring together timeless design and family traditions to be cherished for generations.
           </p>
 
           {/* Quick Category Discovery Pills */}
@@ -198,7 +198,7 @@ function CollectionFinale() {
           <div className="grid grid-cols-2 gap-2 pt-4 border-t border-verdant-emerald/10 text-[8.5px] sm:text-[9.5px] text-verdant-emerald/65 font-medium tracking-wider uppercase font-mono">
             <div className="flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
-              <span>Certified Silver</span>
+              <span>Certified 92.5 Silver</span>
             </div>
             <div className="flex items-center justify-center gap-1.5">
               <Truck className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
@@ -295,7 +295,7 @@ export default function Home() {
       chapter: "02",
       title: "The Craft",
       subtitle: "The Craft",
-      desc: "Handcrafted by skilled artisans who pour their heart into every curve, every detail, every stone.",
+      desc: "Handcrafted by skilled artisans who pour their heart into every curve, every detail, every finish.",
       cta: <StoryCTA label="Explore Craftsmanship" onClick={() => goToZone(3)} />,
       image: JEWELRY_IMAGES.peacockHexagon,
     },
@@ -347,14 +347,14 @@ export default function Home() {
       image: JEWELRY_IMAGES.royalPeacock,
     },
     {
-      title: "Diamond Laboratory",
-      subtitle: "GIA Crystallization",
-      desc: "Scroll to watch a raw carbon structure explode and rebuild into a faceted emerald gem. We guarantee Cut, Clarity, Color, and Carat purity.",
+      title: "Design Laboratory",
+      subtitle: "Artisanal Crystallization",
+      desc: "Scroll to watch a raw design structure explode and rebuild into a faceted heirloom piece. We guarantee purity and exacting standards.",
     },
     {
       title: "Craftsmanship Studio",
       subtitle: "From fire to form",
-      desc: "Scroll to watch raw gold casting melt, morph, and solidify into a mirror-polished luxury band.",
+      desc: "Scroll to watch raw silver casting melt, morph, and solidify into a mirror-polished luxury band.",
       image: JEWELRY_IMAGES.peacockHexagon,
     },
     {
@@ -382,12 +382,12 @@ export default function Home() {
     {
       title: "Earth to Mine Sourcing",
       subtitle: "Botanical Integrity",
-      desc: "We fly underground to Colomban veins. Emerald crystals and gold ores are extracted under conflict-free Kimberly promises.",
+      desc: "We fly underground to Colomban veins. Emerald crystals and silver ores are extracted under conflict-free Kimberly promises.",
     },
     {
       title: "The Luxury Promise",
       subtitle: "Stone Pillars of Trust",
-      desc: "Four stone columns light up, confirming Hallmarked Gold, GIA Certified Diamonds, Lifetime Warranty, and Insured Worldwide Shipping.",
+      desc: "Four stone columns light up, confirming Certified 92.5 Silver, Artisanal Craftsmanship, Lifetime Warranty, and Insured Worldwide Shipping.",
     },
     {
       title: "Masterpiece Arena",
