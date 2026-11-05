@@ -1650,7 +1650,6 @@ function TheBeginning({ z }: { z: number }) {
             letterSpacing="0.4em"
             position={[0, -0.26, 0.07]}
           />
-          <CrestMark height={0.26} position={[0, 0.42, 0.07]} />
           {/* Brass caps where the board meets the frame. */}
           {[-0.66, 0.66].map((cx) => (
             <mesh key={cx} position={[cx, -0.6, 0.06]} material={MAT.gold}>

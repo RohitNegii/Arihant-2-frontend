@@ -16,7 +16,7 @@ export default function BestSellers() {
   const products: Product[] = [
     {
       id: 1,
-      name: "Solitaire Emerald Pendant",
+      name: "Silver Statement Pendant",
       price: "$8,200",
       image: "/images/products/ksp_1.jpg",
       category: "Necklaces",
@@ -188,7 +188,7 @@ export default function BestSellers() {
                       {activeQuickView.name}
                     </h3>
                     <p className="text-verdant-emerald/50 text-[10px] tracking-wider mb-4 leading-relaxed font-light">
-                      Crafted using selected gold structures and conflict-free gemstones representing GIA standards.
+                      Crafted in silver with thoughtful detailing and a carefully polished finish.
                     </p>
                   </div>
 

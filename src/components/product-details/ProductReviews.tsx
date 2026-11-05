@@ -266,7 +266,7 @@ export default function ProductReviews({
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Share details on the finishing, diamond brilliance, weight, and presentation..."
+                placeholder="Share details on the silver finish, craftsmanship, weight, and presentation..."
                 required
                 rows={4}
                 className="w-full text-xs text-verdant-emerald bg-white/80 border border-verdant-emerald/15 rounded-xl px-4 py-3 focus:outline-hidden focus:border-verdant-gold focus:bg-white transition-all font-medium leading-relaxed placeholder:text-verdant-emerald/40"

@@ -103,7 +103,7 @@ function StoryCTA({
  */
 function CollectionFinale() {
   const categories = [
-    { name: "Rings & Solitaires", href: "/products?category=rings" },
+    { name: "Rings & Bands", href: "/products?category=rings" },
     { name: "Necklaces & Pendants", href: "/products?category=necklaces" },
     { name: "Earrings & Studs", href: "/products?category=earrings" },
     { name: "Bangles & Bracelets", href: "/products?category=braceletsbangles" },
@@ -158,7 +158,7 @@ function CollectionFinale() {
 
           {/* Subtitle / Descriptive Copy */}
           <p className="font-serif text-xs sm:text-sm text-verdant-emerald/80 max-w-lg mx-auto leading-relaxed mb-5 sm:mb-6 font-light">
-            Step from the exhibition into our complete jewelry collection. Handcrafted in 22K certified gold, natural diamonds, and custom family heirlooms created to be cherished for generations.
+            Step from the exhibition into our complete silver jewellery collection. Handcrafted in certified silver, our pieces bring together timeless design and family traditions to be cherished for generations.
           </p>
 
           {/* Quick Category Discovery Pills */}
@@ -195,14 +195,10 @@ function CollectionFinale() {
           </div>
 
           {/* Trust Hallmark Strip */}
-          <div className="grid grid-cols-3 gap-2 pt-4 border-t border-verdant-emerald/10 text-[8.5px] sm:text-[9.5px] text-verdant-emerald/65 font-medium tracking-wider uppercase font-mono">
+          <div className="grid grid-cols-2 gap-2 pt-4 border-t border-verdant-emerald/10 text-[8.5px] sm:text-[9.5px] text-verdant-emerald/65 font-medium tracking-wider uppercase font-mono">
             <div className="flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
-              <span>Certified Gold</span>
-            </div>
-            <div className="flex items-center justify-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
-              <span>Natural Gemstones</span>
+              <span>Certified Silver</span>
             </div>
             <div className="flex items-center justify-center gap-1.5">
               <Truck className="w-3.5 h-3.5 text-verdant-gold shrink-0" />
@@ -441,6 +437,7 @@ export default function Home() {
 
   const currentZone = zones[activeZone] || zones[0];
   const inStory = activeZone < STORY_ZONES;
+  const viewingLookbook = activeZone === 3;
 
   return (
     <>
@@ -458,7 +455,7 @@ export default function Home() {
 
       <div
         className={`fixed z-10 pointer-events-none left-4 right-[3.25rem] bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:left-5 lg:left-8 md:right-auto md:w-full md:max-w-sm md:bottom-auto md:top-1/2 md:-translate-y-1/2 ${
-          atFinale || inFooter ? "hidden" : ""
+          atFinale || inFooter || viewingLookbook ? "hidden" : ""
         }`}
       >
         <AnimatePresence mode="wait">
@@ -511,6 +508,27 @@ export default function Home() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {viewingLookbook && !inFooter && (
+          <motion.div
+            key="lookbook-collection-link"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.25 }}
+            className="fixed left-4 md:left-5 lg:left-8 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10"
+          >
+            <Link
+              href="/products"
+              className="hover-target pointer-events-auto inline-flex min-h-11 items-center gap-3 rounded-full border border-verdant-gold/40 bg-[var(--color-background)]/95 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-verdant-emerald shadow-sm transition-colors hover:border-verdant-gold hover:text-verdant-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-verdant-gold"
+            >
+              View Collections
+              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div
         className={`md:hidden fixed right-1 top-1/2 -translate-y-1/2 z-20 ${

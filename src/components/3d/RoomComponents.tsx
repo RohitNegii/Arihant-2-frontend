@@ -662,8 +662,8 @@ export function UndergroundCave() {
 // --- SCENE 11: LUXURY PROMISE (Z = -120) ---
 export function PromisePillars() {
   const pillars = [
-    { x: -1.8, text: "Gold" },
-    { x: -0.6, text: "Diamonds" },
+    { x: -1.8, text: "Silver" },
+    { x: -0.6, text: "Craft" },
     { x: 0.6, text: "Warranty" },
     { x: 1.8, text: "Shipping" },
   ];

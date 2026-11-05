@@ -29,7 +29,7 @@ const PRICE_PRESETS = [
 export default function ProductFilters({ filters, categories, onChange }: ProductFiltersProps) {
   const groups = [
     { key: "category" as const, title: "Category", options: [{ value: "", label: "All jewellery" }, ...categories.map(category => ({ value: category.slug, label: category.name }))] },
-    { key: "material" as const, title: "Metal", options: [{ value: "", label: "All metals" }, ...["Gold", "Silver", "Platinum", "Rose Gold", "White Gold"].map(value => ({ value, label: value }))] },
+    { key: "material" as const, title: "Metal", options: [{ value: "", label: "All silver jewellery" }, { value: "Silver", label: "Silver" }] },
     { key: "gender" as const, title: "For whom", options: [{ value: "", label: "Everyone" }, ...["Women", "Men", "Unisex"].map(value => ({ value, label: value }))] },
     { key: "highlight" as const, title: "Discover", options: [{ value: "", label: "All pieces" }, { value: "featured", label: "Featured" }, { value: "trending", label: "Trending" }, { value: "bestseller", label: "Bestsellers" }] },
   ];

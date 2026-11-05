@@ -1141,7 +1141,7 @@ export default function MyOrdersPage() {
                       Commissioned Masterpiece Manifest ({selectedOrder.items?.length || 0})
                     </span>
                     <span className="text-[10px] text-verdant-emerald/50 font-mono">
-                      BIS Hallmarked &bull; GIA/IGI Certified
+                      Certified Silver &bull; Artisan Crafted
                     </span>
                   </div>
 

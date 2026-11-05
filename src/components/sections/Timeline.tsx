@@ -33,7 +33,7 @@ export default function Timeline() {
     {
       title: "Crafting",
       icon: <Hammer className="w-5 h-5" />,
-      desc: "Our gold artisans cast the precious alloy, utilizing microscopic tools to build and setting each diamond with precision.",
+      desc: "Our silver artisans shape each design, refine its details, and carefully finish the piece by hand.",
     },
     {
       title: "Polishing",
@@ -43,7 +43,7 @@ export default function Timeline() {
     {
       title: "Delivery",
       icon: <Truck className="w-5 h-5" />,
-      desc: "Your bespoke creation is GIA authenticated, placed in a hand-crafted leather chest, and delivered via secure diplomatic courier.",
+      desc: "Your bespoke silver creation is checked for quality, carefully packaged, and delivered by secure courier.",
     },
   ];
 

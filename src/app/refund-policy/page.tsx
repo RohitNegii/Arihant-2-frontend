@@ -48,11 +48,11 @@ export default function RefundPolicyPage() {
             </h3>
 
             <p className="text-xs sm:text-[13px] text-verdant-emerald/80 leading-relaxed font-sans mb-3">
-              Every purchase of a <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong> creation represents an individual, custom-allocated acquisition involving high-purity precious metals, hand-selected diamonds, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
+              Every purchase of a <strong className="font-semibold text-verdant-emerald">GEETEJ VIRAASAT</strong> creation represents an individual, custom-allocated acquisition involving silver, carefully selected design details, and custom workshop hours. Because of this, all sales are strictly final, and we do not issue monetary refunds, cash returns, or card chargebacks.
             </p>
 
             <div className="text-[11px] text-amber-900/80 bg-amber-100/50 rounded-xl p-3 border border-amber-200/60 leading-relaxed">
-              We urge all clients to carefully review their specifications, finger sizing guidelines, diamond classifications (color/clarity/cut), and personalized engraving preferences prior to confirming payment.
+              We urge all clients to carefully review their specifications, finger sizing guidelines, silver purity and finish details, and personalized engraving preferences prior to confirming payment.
             </div>
           </div>
 
@@ -82,7 +82,7 @@ export default function RefundPolicyPage() {
               {
                 icon: <Scale className="w-4 h-4 text-verdant-gold" />,
                 title: "Immediate Metal & Gem Lock-in",
-                desc: "Upon receipt of payment, our treasury immediately secures the raw components (platinum, 18k solid gold alloy, and certified diamond gems) at prevailing market commodity indices.",
+                desc: "Upon receipt of payment, our workshop secures the silver and other components required for your chosen design at prevailing market prices.",
               },
               {
                 icon: <Wrench className="w-4 h-4 text-verdant-gold" />,
@@ -125,7 +125,7 @@ export default function RefundPolicyPage() {
               {
                 title: "Complimentary Ring Resizing",
                 tag: "Within 30 Days",
-                desc: "We provide one complimentary resizing adjustment for rings within 30 days of delivery (applicable to resizable mountings; full-eternity diamond bands are excluded due to structural stone settings).",
+                desc: "We provide one complimentary resizing adjustment for rings within 30 days of delivery (applicable to resizable mountings; full-eternity bands are excluded due to their setting structure).",
               },
               {
                 title: "Lifetime Manufacturing Warranty",
@@ -174,7 +174,7 @@ export default function RefundPolicyPage() {
       content: (
         <div className="space-y-4">
           <p className="leading-relaxed">
-            Every jewelry piece leaves our workshop only after a double-grade physical quality control audit. We examine clarity parameters under 10x magnification and cross-reference GIA registration numbers directly against corresponding certificates.
+            Every silver jewellery piece leaves our workshop after a quality check. We inspect its finish, fittings, detailing, and overall craftsmanship against the product specifications.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div className="bg-[#FAF8F5] border border-[#EAE2D8] rounded-xl p-4 text-left space-y-2">
@@ -209,7 +209,7 @@ export default function RefundPolicyPage() {
         currentPolicy="refund-policy"
         title="Refund & Cancellation Policy"
         subtitle="Review our strict final sale parameters, bespoke metal lock-in guidelines, and lifetime warranty coverage."
-        lastUpdated="October 2026"
+        lastUpdated="November 2026"
       />
 
       {/* Main Content Layout */}
@@ -281,7 +281,7 @@ export default function RefundPolicyPage() {
               </div>
 
               <p className="text-[11px] text-verdant-emerald/75 leading-relaxed font-sans">
-                Our bespoke specialists can guide you through precise ring measurements and diamond classifications.
+                Our bespoke specialists can guide you through ring measurements, silver purity details, and available finishes.
               </p>
 
               <div className="pt-1">

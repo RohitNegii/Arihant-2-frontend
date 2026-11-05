@@ -514,7 +514,7 @@ function OrderSuccessContent() {
                     Artisanal Inspection & BIS Hallmarking
                   </h4>
                   <p className="text-[11px] text-verdant-emerald/65 leading-relaxed font-sans mt-1">
-                    Every precious gemstone and gold hallmark undergoes rigorous certified laboratory scrutiny in our workshop.
+                    Each silver jewellery piece is checked for its finish, detailing, and craftsmanship before dispatch.
                   </p>
                 </div>
 
@@ -561,7 +561,7 @@ function OrderSuccessContent() {
                   <div>
                     <h5 className="font-serif text-xs font-medium text-verdant-emerald">100% Certified Stones</h5>
                     <p className="text-[11px] text-verdant-emerald/65 leading-relaxed mt-0.5 font-sans">
-                      Verified by GIA, IGI and government-approved BIS hallmarked precious gold.
+                      Certified silver jewellery, thoughtfully crafted and carefully checked before dispatch.
                     </p>
                   </div>
                 </div>

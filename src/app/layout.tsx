@@ -24,15 +24,15 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL("https://geetejviraasat.com"),
   title: {
-    default: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
+    default: "GEETEJ VIRAASAT | Certified Silver Jewellery",
     template: "%s | GEETEJ VIRAASAT",
   },
   description:
-    "Experience timeless craftsmanship with modern elegance. Walk through our immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
+    "Discover certified silver jewellery crafted with timeless elegance. Explore our immersive 3D showroom of silver rings, necklaces, earrings, and bespoke designs.",
   openGraph: {
-    title: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
+    title: "GEETEJ VIRAASAT | Certified Silver Jewellery",
     description:
-      "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
+      "Explore our immersive 3D showroom of certified silver jewellery, from handcrafted rings and necklaces to earrings and bespoke designs.",
     type: "website",
     siteName: "GEETEJ VIRAASAT",
     url: "/",
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GEETEJ VIRAASAT | Immersive Luxury Jewelry Showroom",
+    title: "GEETEJ VIRAASAT | Certified Silver Jewellery",
     description:
-      "Walk through an immersive 3D showroom of custom diamond rings, necklaces, and bespoke luxury jewelry.",
+      "Explore our immersive 3D showroom of certified silver jewellery, from handcrafted rings and necklaces to earrings and bespoke designs.",
   },
   robots: { index: true, follow: true },
 };

@@ -17,7 +17,7 @@ export const JEWELRY_IMAGES = {
   royalPeacock: {
     src: "/images/royal-peacock-drops.webp",
     name: "Royal Peacock Drops",
-    alt: "Gold carved peacock earrings with pink kundan petals and pearl clusters, resting on a wooden jewelry box",
+    alt: "Carved silver peacock earrings with pink kundan petals and pearl clusters, resting on a wooden jewelry box",
   },
   turquoiseChandelier: {
     src: "/images/turquoise-chandelier-drops.webp",
@@ -27,7 +27,7 @@ export const JEWELRY_IMAGES = {
   peacockHexagon: {
     src: "/images/peacock-hexagon-studs.webp",
     name: "Peacock Hexagon Studs",
-    alt: "Two-tone hexagonal studs with a golden peacock relief and fluted silver drop",
+    alt: "Two-tone hexagonal silver studs with a peacock relief and fluted drop",
   },
   jadeMedallion: {
     src: "/images/jade-medallion-drops.webp",
@@ -52,29 +52,29 @@ export const JEWELRY_IMAGES = {
   abaloneElephant: {
     src: "/images/abalone-elephant-danglers.webp",
     name: "Abalone Elephant Danglers",
-    alt: "Abalone shell lotus earrings carried by golden elephants with pearl tassels",
+    alt: "Abalone shell lotus earrings with silver elephant motifs and pearl tassels",
   },
   chainCoupe: {
     src: "/images/chain-on-table.webp",
     name: "Artisan Chain Bracelets",
-    alt: "Four gold and silver link bracelets hung over the rim of a coupe glass on a copper cloth",
+    alt: "Four silver link bracelets hung over the rim of a coupe glass on a copper cloth",
   },
   elephantRing: {
     src: "/images/ring-with-book.webp",
     name: "Enamel Elephant Ring",
-    alt: "A gold and oxblood enamel elephant ring standing on a white page beside an open book and dried gypsophila",
+    alt: "A silver and oxblood enamel elephant ring standing on a white page beside an open book and dried gypsophila",
   },
   ringInGlass: {
     src: "/images/rings-in-zar.webp",
-    name: "Solitaire and Curb Chain",
-    alt: "A gold solitaire ring inside a glass phial with a heavy curb chain spilling from its mouth, on dark silk",
+    name: "Statement Ring and Curb Chain",
+    alt: "A silver statement ring inside a glass phial with a heavy curb chain spilling from its mouth, on dark silk",
   },
   ringsWorn: {
     src: "/images/ring-and-hand.webp",
     // Shot against a blue sky, which is the one hue this palette does not
     // contain — optimize-media.mjs white-balances it warm on the way in.
     name: "Kundan Cocktail Rings",
-    alt: "A hand wearing two antique gold cocktail rings and a diamond cuff",
+    alt: "A hand wearing two antique silver cocktail rings and an ornate cuff",
   },
 } as const satisfies Record<string, JewelryImage>;
 

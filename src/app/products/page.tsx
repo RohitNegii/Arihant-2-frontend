@@ -40,7 +40,7 @@ function CollectionBanner() {
     <div className={styles.bannerContent}>
       <div className={styles.bannerCard}>
         <p className={styles.bannerEyebrow}><CrestMark size={18} /> Geetej Viraasat</p>
-        <h1 id="collection-title" className={styles.bannerTitle}>The Jewellery Collection</h1>
+        <h1 id="collection-title" className={styles.bannerTitle}>The Silver Jewellery Collection</h1>
         <p className={styles.bannerDescription}>Discover thoughtfully crafted pieces for everyday moments and lasting memories.</p>
       </div>
     </div>

@@ -34,7 +34,7 @@ export default function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProp
     try {
       const res = await sendOtpApi(email, "login");
       if (res.success) {
-        toast.success(`OTP dispatched! Check console log. (Code: ${res.code})`);
+        toast.success("OTP sent to your email. Please check your inbox.");
         setStep(2);
         setResendCountdown(30);
       } else {
@@ -53,7 +53,7 @@ export default function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProp
     try {
       const res = await sendOtpApi(email, "login");
       if (res.success) {
-        toast.success(`New OTP code dispatched to console log! (Code: ${res.code})`);
+        toast.success("A new OTP has been sent to your email.");
         setResendCountdown(30);
       } else {
         toast.error(res.message || "Failed to resend OTP");

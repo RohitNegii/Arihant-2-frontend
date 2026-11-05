@@ -12,7 +12,7 @@ export default function Gallery() {
     {
       src: "/images/products/ksp_10.jpg",
       title: "Symmetry Band",
-      category: "Fine Gold",
+      category: "Fine Silver",
     },
     {
       src: "/images/products/ksp_11.jpg",
@@ -21,12 +21,12 @@ export default function Gallery() {
     },
     {
       src: "/images/products/ksp_12.jpg",
-      title: "Double Solitaire Ring",
+      title: "Silver Statement Ring",
       category: "Custom Engagement",
     },
     {
       src: "/images/products/ksp_13.jpg",
-      title: "Gold Heritage Band",
+      title: "Silver Heritage Band",
       category: "Horology & Craft",
     },
     {

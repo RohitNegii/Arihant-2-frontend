@@ -260,24 +260,21 @@ const MAX_FOV = 72;
 const HALF_H_FOV = Math.atan(Math.tan((DESIGN_FOV / 2) * THREE.MathUtils.DEG2RAD) * DESIGN_ASPECT);
 
 function ResponsiveLens() {
-  // Driven from the frame loop rather than an effect on `size`: the camera is
-  // the one thing in here that is mutated, and mutating what a hook returned is
-  // exactly what the compiler will not have. One float comparison per frame is
-  // not a cost, and this way an orientation change is picked up on the next
-  // frame with no listener of its own.
-  const applied = useRef(0);
-
+  // Keep the opening leaves in view on a rotated phone as well as in portrait.
+  // Ease back to the usual room framing before the next room is reached.
   useFrame(({ camera, size }) => {
     const aspect = size.width / Math.max(1, size.height);
-    if (Math.abs(aspect - applied.current) < 0.001) return;
-    applied.current = aspect;
-
-    const lens = camera as THREE.PerspectiveCamera;
-    lens.fov = THREE.MathUtils.clamp(
+    const entranceFov = TOUCH
+      ? THREE.MathUtils.lerp(DESIGN_FOV, MAX_FOV, THREE.MathUtils.smoothstep(camera.position.z, 64, 76))
+      : DESIGN_FOV;
+    const fov = THREE.MathUtils.clamp(
       2 * Math.atan(Math.tan(HALF_H_FOV) / aspect) * THREE.MathUtils.RAD2DEG,
-      DESIGN_FOV,
+      entranceFov,
       MAX_FOV
     );
+    const lens = camera as THREE.PerspectiveCamera;
+    if (Math.abs(lens.fov - fov) < 0.001) return;
+    lens.fov = fov;
     lens.updateProjectionMatrix();
   });
 
@@ -380,7 +377,7 @@ function ShowroomCanvas({ active, running }: { active: boolean; running: boolean
 
   return (
     <div
-      className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto select-none bg-[var(--color-shell)] transition-opacity duration-700 ease-out"
+      className="showroom-viewport fixed inset-0 z-0 pointer-events-auto select-none bg-[var(--color-shell)] transition-opacity duration-700 ease-out"
       style={{ opacity: shown ? 1 : 0 }}
     >
       <Canvas

@@ -175,7 +175,7 @@ export default function CartDrawer() {
                     Your bag is empty
                   </h4>
                   <p className="text-xs text-verdant-emerald/50 mt-2 max-w-xs leading-relaxed">
-                    Explore our botanical diamond selections and add your custom sizes to create a unique heritage look.
+                    Explore our handcrafted silver jewellery and choose your sizes to create a personal heritage look.
                   </p>
                   <button
                     onClick={() => setCartOpen(false)}

@@ -17,15 +17,15 @@ const InteractiveViewer = dynamic(() => import("../3d/InteractiveViewer"), {
 
 export default function InteractiveSection() {
   const metals = [
-    { name: "Yellow Gold", color: "#D4AF37", desc: "18K Classic Solitaire Gold" },
-    { name: "White Gold", color: "#E5E4E2", desc: "Pure Polished White Gold & Platinum" },
-    { name: "Rose Gold", color: "#B76E79", desc: "Bespoke Warm Copper Alloys" },
+    { name: "Polished Silver", color: "#E5E4E2", desc: "A bright, polished silver finish" },
+    { name: "Brushed Silver", color: "#C0C0C0", desc: "A softly textured silver finish" },
+    { name: "Oxidised Silver", color: "#777B80", desc: "A deeper silver finish with antique character" },
   ];
 
   const gems = [
-    { name: "Aurora Diamond", color: "#ffffff", desc: "GIA Certified Pure D-Flawless" },
-    { name: "Empress Ruby", color: "#FF1493", desc: "Vibrant Deep Pink Flame Crystal" },
-    { name: "Forest Emerald", color: "#50C878", desc: "Rare Translucent Green Hexagonal" },
+    { name: "Clear Accent", color: "#ffffff", desc: "A clear accent for your silver design" },
+    { name: "Pink Accent", color: "#FF1493", desc: "A vibrant pink accent for your silver design" },
+    { name: "Green Accent", color: "#50C878", desc: "A rich green accent for your silver design" },
   ];
 
   const [activeMetal, setActiveMetal] = useState(metals[0]);
@@ -46,7 +46,7 @@ export default function InteractiveSection() {
             Configure Your Masterpiece
           </h2>
           <p className="text-verdant-emerald/60 text-xs md:text-sm max-w-lg mt-4 font-light leading-relaxed tracking-wider">
-            Interact directly with the digital render. Modify the precious metal alloy and gemstone cut to match your aesthetic preference.
+              Interact directly with the digital render. Explore silver finishes and accent colours to find a style that feels like you.
           </p>
           <div className="w-12 h-[1px] bg-verdant-gold/50 mt-6" />
         </div>
@@ -139,7 +139,7 @@ export default function InteractiveSection() {
               <div className="flex items-center gap-2.5">
                 <Sparkles className="w-4 h-4 text-verdant-gold" />
                 <span className="text-[10px] tracking-[0.25em] uppercase text-verdant-emerald/80 font-light">
-                  Select Gemstone Cut
+                Select Accent Colour
                 </span>
               </div>
 

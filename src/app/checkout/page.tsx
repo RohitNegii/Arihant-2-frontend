@@ -766,7 +766,7 @@ function CheckoutPageContent() {
               <div className="grid grid-cols-3 gap-2 pt-4 border-t border-verdant-emerald/10 text-center text-[8.5px] text-verdant-emerald/65 font-medium leading-tight">
                 <div className="flex flex-col items-center gap-1">
                   <ShieldCheck className="w-4 h-4 text-verdant-gold" />
-                  <span>BIS Hallmarked Gold</span>
+                  <span>Certified Silver</span>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <Truck className="w-4 h-4 text-verdant-gold" />

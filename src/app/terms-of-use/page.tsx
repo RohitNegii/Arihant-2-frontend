@@ -68,7 +68,7 @@ export default function TermsOfUsePage() {
             </h3>
 
             <p className="text-xs sm:text-[13px] text-verdant-emerald/80 leading-relaxed font-sans mb-3">
-              Due to the fluctuating index prices of gold, platinum, and diamonds, alongside bespoke artisanal labor and craftsmanship hours dedicated to configuring each gem piece, we are unable to process cancellations, returns, or cash refunds.
+              Due to the fluctuating prices of silver and the bespoke artisanal work dedicated to each jewellery piece, we are unable to process cancellations, returns, or cash refunds.
             </p>
 
             <div className="text-[11px] text-amber-900/80 bg-amber-100/50 rounded-xl p-3 border border-amber-200/60 leading-relaxed">
@@ -77,7 +77,7 @@ export default function TermsOfUsePage() {
           </div>
 
           <p className="text-xs sm:text-sm text-verdant-emerald/80 leading-relaxed font-sans pt-1">
-            Clients are expected to review diamond certification documents, metal hallmarks, and sizing guides prior to submitting their final order authorization.
+            Clients are expected to review silver purity details, product certification information, and sizing guides prior to submitting their final order authorization.
           </p>
         </div>
       ),
@@ -167,7 +167,7 @@ export default function TermsOfUsePage() {
         currentPolicy="terms-of-use"
         title="Terms of Use & Agreement"
         subtitle="Review the binding legal terms, intellectual property protections, and transactional obligations governing our jewelry services."
-        lastUpdated="October 2026"
+        lastUpdated="November 2026"
       />
 
       {/* Main Content Layout */}

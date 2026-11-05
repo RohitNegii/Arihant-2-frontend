@@ -7,13 +7,13 @@ export default function Experience() {
   const experiences = [
     {
       icon: <Award className="w-8 h-8 text-verdant-gold" />,
-      title: "Hallmarked Gold",
-      desc: "Our creations are crafted exclusively from refined 18K and 24K gold, stamped with certifications verifying metal purity.",
+      title: "Certified Silver",
+      desc: "Our collection celebrates certified silver jewellery. Each product lists its silver purity and craftsmanship details to help you choose with confidence.",
     },
     {
       icon: <Sparkles className="w-8 h-8 text-verdant-gold" />,
-      title: "Conflict-Free Diamonds",
-      desc: "We strictly adhere to the Kimberley Process, sourcing certified diamonds that support miners and protect ecosystems.",
+      title: "Thoughtful Design",
+      desc: "Traditional motifs, considered proportions, and carefully finished silver bring character to every piece.",
     },
     {
       icon: <Shield className="w-8 h-8 text-verdant-gold" />,
@@ -73,7 +73,7 @@ export default function Experience() {
           </div>
           <div className="lg:col-span-6 flex items-end text-left">
             <p className="text-verdant-emerald/60 text-xs md:text-sm font-light leading-relaxed tracking-wider">
-              From our clean-room sourcing practices to micro-prong setting designs, we reject shortcuts. Each creation undergoes hours of inspection to ensure it passes GIA authentication and satisfies structural standards built to span generations.
+              From the first sketch to the final polish, we give each silver piece the attention it deserves. Our artisans check its finish, fittings, and detailing with everyday wear and lasting enjoyment in mind.
             </p>
           </div>
         </div>

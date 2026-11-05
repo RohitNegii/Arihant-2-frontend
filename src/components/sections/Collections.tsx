@@ -96,7 +96,7 @@ function CollectionCard({ title, subtitle, image, price }: CardProps) {
 export default function Collections() {
   const collectionsData = [
     {
-      title: "Diamond Rings",
+      title: "Silver Rings",
       subtitle: "Infinite Brilliance",
       image: "/images/products/ksp_5.jpg",
       price: "From $12,500",

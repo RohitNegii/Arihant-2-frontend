@@ -179,7 +179,7 @@ export default function ContactPage() {
               Get in Touch
             </h1>
             <p className="text-xs text-verdant-emerald/75 leading-relaxed font-sans max-w-xl mx-auto">
-              Whether searching for GIA certification details, custom bridal consults, or boutique booking, our representatives are ready to assist.
+              Whether you need silver certification details, styling advice, or a boutique booking, our representatives are ready to assist.
             </p>
           </div>
         </div>

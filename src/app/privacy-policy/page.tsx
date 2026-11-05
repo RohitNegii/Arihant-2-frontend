@@ -59,7 +59,7 @@ export default function PrivacyPolicyPage() {
               },
               {
                 title: "Transaction Data",
-                desc: "Records of completed bespoke commissions, payment verification tokens, invoices, and GIA certificates.",
+                desc: "Records of completed silver jewellery commissions, payment verification tokens, invoices, and product certification details.",
               },
               {
                 title: "Technical Data",
@@ -100,7 +100,7 @@ export default function PrivacyPolicyPage() {
             {[
               "To register and authenticate you as a bespoke client.",
               "To manufacture, configure, insure, and securely deliver your commissioned fine jewelry.",
-              "To safeguard the registry of your GIA and international diamond certification credentials.",
+              "To maintain your silver jewellery specifications and product certification records.",
               "To notify you of essential updates regarding order status, collection releases, or private appointments.",
               "To maintain our bespoke customer care archive and deliver tailored jewelry recommendations.",
             ].map((item, idx) => (
@@ -203,8 +203,8 @@ export default function PrivacyPolicyPage() {
       <PolicyHeaderTabs
         currentPolicy="privacy-policy"
         title="Privacy & Data Protection"
-        subtitle="Learn how we safeguard your personal data, secure GIA diamond certifications, and encrypt all boutique client records."
-        lastUpdated="October 2026"
+        subtitle="Learn how we safeguard your personal data, protect your silver jewellery order details, and secure boutique client records."
+        lastUpdated="November 2026"
       />
 
       {/* Main Content Layout */}

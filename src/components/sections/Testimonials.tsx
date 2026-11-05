@@ -15,15 +15,6 @@ export default function Testimonials() {
       floatDuration: 4.5,
     },
     {
-      quote: "The GIA emerald gemstone set in my custom champagne gold band disperses warm daylight beautifully. Sourcing integrity is unmatched.",
-      author: "Julian Thorne",
-      role: "Fine Collector",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-      rotation: 0,
-      floatDelay: 0.5,
-      floatDuration: 5.2,
-    },
-    {
       quote: "The interactive 3D consult was a masterpiece of presentation. When the custom piece arrived, it was as if physical botany had crystallized.",
       author: "Clara Vandermere",
       role: "Architectural Designer",
@@ -52,7 +43,7 @@ export default function Testimonials() {
         </div>
 
         {/* Curved 3D Floating layout grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 px-2 md:px-0 max-w-5xl mx-auto items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 px-2 md:px-0 max-w-5xl mx-auto items-stretch">
           {testimonials.map((test, index) => (
             <motion.div
               key={test.author}

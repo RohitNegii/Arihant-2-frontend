@@ -13,7 +13,6 @@ export interface AuthResponse {
   token?: string;
   user?: UserProfile;
   message?: string;
-  code?: string;
 }
 
 export const sendOtpApi = async (email: string, type: "login" | "signup"): Promise<AuthResponse> => {

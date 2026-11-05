@@ -57,8 +57,8 @@ export default function FAQ() {
       answer: "We recommend cleaning your jewelry with a very soft brush, warm water, and mild detergent. Dry thoroughly with a lint-free polishing cloth. Keep pieces separated in soft pouches when stored to prevent surface scratches.",
     },
     {
-      question: "Are the gemstones conflict-free and certified?",
-      answer: "Yes, every single diamond and precious gem is sourced under conflict-free Kimberly Process promises, and GIA certificates are provided for qualifying center stones exceeding 0.3 carats.",
+      question: "Is your silver jewellery certified?",
+      answer: "Our collection features certified silver jewellery. Check each product's specifications for silver purity and other details, or contact our team for certification information.",
     },
     {
       question: "Is international shipping fully insured?",

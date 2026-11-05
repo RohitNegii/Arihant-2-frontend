@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useShowroomStore } from "@/store/showroom-store";
@@ -20,11 +20,55 @@ const navigationColor = (active: boolean) => active
   : "text-verdant-emerald hover:text-[var(--nav-accent)]";
 
 export default function Navbar() {
+  const headerRef = useRef<HTMLElement>(null);
+  const legalDropdownRef = useRef<HTMLDivElement>(null);
+  const legalButtonRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLegalOpen, setIsLegalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLegalOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!legalDropdownRef.current?.contains(event.target as Node)) {
+        setIsLegalOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsLegalOpen(false);
+        legalButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isLegalOpen]);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    // Include safe-area padding and follow the header's scroll/resize changes.
+    // offsetHeight ignores the navigation's animated entrance transform.
+    const updateHeight = () => {
+      document.documentElement.style.setProperty("--site-header-height", `${header.offsetHeight}px`);
+    };
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header, { box: "border-box" });
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--site-header-height");
+    };
+  }, []);
 
   useEffect(() => {
     setNavigatingTo(null);
@@ -60,6 +104,7 @@ export default function Navbar() {
   }, [isOpen]);
 
   const handleToggleMenu = () => {
+    setIsLegalOpen(false);
     setIsOpen((prev) => {
       const next = !prev;
       useShowroomStore.getState().setMenuOpen(next);
@@ -73,6 +118,7 @@ export default function Navbar() {
   };
 
   const handleNavigate = (href: string) => {
+    setIsLegalOpen(false);
     setIsOpen(false);
     useShowroomStore.getState().setMenuOpen(false);
     if (href !== pathname) {
@@ -93,7 +139,7 @@ export default function Navbar() {
   const isContactActive = pathname === "/contact";
 
   return (
-    <header className="pointer-events-auto fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top)] [--nav-accent:color-mix(in_srgb,var(--color-secondary)_45%,var(--color-primary))]">
+    <header ref={headerRef} className="pointer-events-auto fixed top-0 left-0 w-full z-50 pt-[env(safe-area-inset-top)] [--nav-accent:color-mix(in_srgb,var(--color-secondary)_45%,var(--color-primary))]">
       {/* Top Route Navigation Loading Bar */}
       {navigatingTo && (
         <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-verdant-gold/20 overflow-hidden z-[100] pointer-events-none">
@@ -218,15 +264,28 @@ export default function Navbar() {
               )}
             </Link>
             {/* Legal Dropdown */}
-            <div className="relative group/dropdown py-2">
+            <div
+              ref={legalDropdownRef}
+              className="relative"
+              onBlur={(event) => {
+                if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) {
+                  setIsLegalOpen(false);
+                }
+              }}
+            >
               <button
-                className={`hover-target flex items-center gap-1 text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold cursor-pointer ${navigationColor(pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy")
+                ref={legalButtonRef}
+                type="button"
+                aria-expanded={isLegalOpen}
+                aria-controls="legal-dropdown"
+                onClick={() => setIsLegalOpen((open) => !open)}
+                className={`hover-target flex min-h-11 items-center gap-1 text-[11px] lg:text-xs tracking-[0.14em] uppercase transition-all duration-300 font-bold cursor-pointer touch-manipulation ${navigationColor(pathname === "/privacy-policy" || pathname === "/terms-of-use" || pathname === "/refund-policy")
                   }`}
               >
                 Legal
-                <span className="text-[8px] transform group-hover/dropdown:rotate-180 transition-transform duration-300 ml-1">▼</span>
+                <span aria-hidden="true" className={`text-[8px] transition-transform duration-300 ml-1 ${isLegalOpen ? "rotate-180" : ""}`}>▼</span>
               </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 bg-[var(--color-background)]/95 backdrop-blur-xl border border-verdant-gold/15 rounded-xl shadow-xl py-2 opacity-0 pointer-events-none group-hover/dropdown:opacity-100 group-hover/dropdown:pointer-events-auto transition-all duration-300 transform scale-95 group-hover/dropdown:scale-100 origin-top">
+              <div id="legal-dropdown" hidden={!isLegalOpen} className="absolute top-full left-1/2 -translate-x-1/2 z-10 w-48 bg-[var(--color-background)]/95 backdrop-blur-xl border border-verdant-gold/15 rounded-xl shadow-xl py-2">
                 <Link
                   href="/privacy-policy"
                   onClick={() => handleNavigate("/privacy-policy")}
@@ -477,7 +536,7 @@ export default function Navbar() {
                 <div className="hidden md:block md:col-span-5 relative min-h-[500px]">
                   <img
                     src="/images/products/ksp_16.jpg"
-                    alt="Luxury jewelry collection preview"
+                    alt="Silver jewellery collection preview"
                     className="absolute inset-0 w-full h-full object-cover brightness-[0.8]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-8 select-none">

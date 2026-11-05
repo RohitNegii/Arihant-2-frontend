@@ -54,7 +54,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <div className="mt-8 pt-6 border-t border-verdant-emerald/10 flex items-start gap-3 bg-white/40 p-4 rounded-2xl border border-verdant-emerald/5">
         <ShieldCheck className="w-5 h-5 text-verdant-gold shrink-0 mt-0.5" />
         <p className="text-[11px] text-verdant-emerald/75 font-light leading-relaxed">
-          Every piece in the Geetej Viraasat collection is laser-inscribed with BIS hallmark certification and accompanied by an official physical Certificate of Authenticity specifying gold karatage, gross weight, and gemstone purity.
+          Discover certified silver jewellery from Geetej Viraasat. Refer to each piece&apos;s specifications for its silver purity, weight, and craftsmanship details, or contact us for certification information.
         </p>
       </div>
     </div>

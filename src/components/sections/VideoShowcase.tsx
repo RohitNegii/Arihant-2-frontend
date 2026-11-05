@@ -54,7 +54,7 @@ export default function VideoShowcase() {
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.35 }}
           className="text-white/70 text-xs md:text-sm font-light leading-relaxed tracking-wider max-w-xl"
         >
-          Watch our artisans operate at microscopic scales. In the stillness of our Swiss labs, coal crystals undergo high-temperature crystallization to become flawless diamonds, hand-set into gold filaments.
+          Watch our artisans shape silver into expressive jewellery. From the first form to the final polish, careful detailing brings each design to life.
         </motion.p>
       </div>
     </section>

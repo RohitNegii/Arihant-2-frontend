@@ -30,7 +30,6 @@ const LEGAL_LINKS = [
   { name: "Privacy Policy", href: "/privacy-policy" },
   { name: "Refund & Return Policy", href: "/refund-policy" },
   { name: "Terms of Use", href: "/terms-of-use" },
-  { name: "GIA Certification Protocol", href: "/privacy-policy#data-security" },
   { name: "Secure Armored Shipping", href: "/refund-policy#order-integrity" },
 ];
 
@@ -61,7 +60,7 @@ export default function Footer() {
             </div>
 
             <p className="text-[#FAF7F2]/70 text-xs sm:text-[13px] font-light leading-relaxed max-w-md tracking-wide">
-              Forging the boundary between organic botany and high-fashion aesthetics. Crafting timeless jewelry masterpieces with unyielding diamond purity and artisanal mastery.
+              Handcrafted silver jewellery inspired by nature and tradition. Explore timeless designs shaped by thoughtful detailing and artisanal craftsmanship.
             </p>
 
             {/* Concierge Quick Links */}
