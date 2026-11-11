@@ -59,7 +59,7 @@ export default function PrivacyPolicyPage() {
               },
               {
                 title: "Transaction Data",
-                desc: "Records of completed silver jewellery commissions, payment verification tokens, invoices, and product certification details.",
+                desc: "Records of completed 92.5 silver jewellery commissions, payment verification tokens, invoices, and product certification details.",
               },
               {
                 title: "Technical Data",
@@ -100,7 +100,7 @@ export default function PrivacyPolicyPage() {
             {[
               "To register and authenticate you as a bespoke client.",
               "To manufacture, configure, insure, and securely deliver your commissioned fine jewelry.",
-              "To maintain your silver jewellery specifications and product certification records.",
+              "To maintain your 92.5 silver jewellery specifications and product certification records.",
               "To notify you of essential updates regarding order status, collection releases, or private appointments.",
               "To maintain our bespoke customer care archive and deliver tailored jewelry recommendations.",
             ].map((item, idx) => (
@@ -182,10 +182,10 @@ export default function PrivacyPolicyPage() {
           <p className="text-xs text-verdant-emerald/75 leading-relaxed pt-2">
             To exercise any of these rights, simply email our compliance desk at{" "}
             <a
-              href="mailto:care@geetejviraasat.com"
+              href="mailto:geetejviraasat@gmail.com"
               className="text-verdant-emerald font-semibold underline underline-offset-4 hover:text-verdant-gold transition-colors"
             >
-              care@geetejviraasat.com
+              geetejviraasat@gmail.com
             </a>{" "}
             or use our concierge inquiry form.
           </p>
@@ -203,7 +203,7 @@ export default function PrivacyPolicyPage() {
       <PolicyHeaderTabs
         currentPolicy="privacy-policy"
         title="Privacy & Data Protection"
-        subtitle="Learn how we safeguard your personal data, protect your silver jewellery order details, and secure boutique client records."
+        subtitle="Learn how we safeguard your personal data, protect your 92.5 silver jewellery order details, and secure boutique client records."
         lastUpdated="November 2026"
       />
 

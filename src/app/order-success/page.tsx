@@ -559,9 +559,9 @@ function OrderSuccessContent() {
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="font-serif text-xs font-medium text-verdant-emerald">100% Certified Stones</h5>
+                    <h5 className="font-serif text-xs font-medium text-verdant-emerald">100% Certified 92.5 Silver</h5>
                     <p className="text-[11px] text-verdant-emerald/65 leading-relaxed mt-0.5 font-sans">
-                      Certified silver jewellery, thoughtfully crafted and carefully checked before dispatch.
+                      Certified 92.5 silver jewellery, thoughtfully crafted and carefully checked before dispatch.
                     </p>
                   </div>
                 </div>

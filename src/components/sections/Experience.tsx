@@ -7,13 +7,13 @@ export default function Experience() {
   const experiences = [
     {
       icon: <Award className="w-8 h-8 text-verdant-gold" />,
-      title: "Certified Silver",
-      desc: "Our collection celebrates certified silver jewellery. Each product lists its silver purity and craftsmanship details to help you choose with confidence.",
+      title: "Certified 92.5 Silver",
+      desc: "Our collection celebrates hallmarked 92.5 silver jewellery. Each product lists its 92.5% silver purity and craftsmanship details to help you choose with confidence.",
     },
     {
       icon: <Sparkles className="w-8 h-8 text-verdant-gold" />,
       title: "Thoughtful Design",
-      desc: "Traditional motifs, considered proportions, and carefully finished silver bring character to every piece.",
+      desc: "Traditional motifs, considered proportions, and carefully finished 92.5 silver bring character to every piece.",
     },
     {
       icon: <Shield className="w-8 h-8 text-verdant-gold" />,

@@ -24,15 +24,15 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL("https://geetejviraasat.com"),
   title: {
-    default: "GEETEJ VIRAASAT | Certified Silver Jewellery",
+    default: "GEETEJ VIRAASAT | Certified 92.5 Silver Jewellery",
     template: "%s | GEETEJ VIRAASAT",
   },
   description:
-    "Discover certified silver jewellery crafted with timeless elegance. Explore our immersive 3D showroom of silver rings, necklaces, earrings, and bespoke designs.",
+    "Discover certified 92.5 silver jewellery crafted with timeless elegance. Explore our immersive 3D showroom of 92.5 sterling silver rings, necklaces, earrings, and bespoke designs.",
   openGraph: {
-    title: "GEETEJ VIRAASAT | Certified Silver Jewellery",
+    title: "GEETEJ VIRAASAT | Certified 92.5 Silver Jewellery",
     description:
-      "Explore our immersive 3D showroom of certified silver jewellery, from handcrafted rings and necklaces to earrings and bespoke designs.",
+      "Explore our immersive 3D showroom of certified 92.5 silver jewellery, from handcrafted rings and necklaces to earrings and bespoke designs.",
     type: "website",
     siteName: "GEETEJ VIRAASAT",
     url: "/",
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GEETEJ VIRAASAT | Certified Silver Jewellery",
+    title: "GEETEJ VIRAASAT | Certified 92.5 Silver Jewellery",
     description:
-      "Explore our immersive 3D showroom of certified silver jewellery, from handcrafted rings and necklaces to earrings and bespoke designs.",
+      "Explore our immersive 3D showroom of certified 92.5 silver jewellery, from handcrafted rings and necklaces to earrings and bespoke designs.",
   },
   robots: { index: true, follow: true },
 };

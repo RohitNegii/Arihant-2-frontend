@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,7 +27,7 @@ import {
   Gem,
   Calendar,
   Sparkles,
-  Printer
+  Download
 } from "lucide-react";
 import CrestMark from "@/components/global/CrestMark";
 import { getMyOrdersApi } from "../../services/checkout";
@@ -298,9 +298,100 @@ export default function MyOrdersPage() {
     }
   };
 
-  const handlePrintReceipt = () => {
-    if (typeof window !== "undefined") {
-      window.print();
+  const receiptRef = useRef<HTMLDivElement | null>(null);
+  const [downloadingReceipt, setDownloadingReceipt] = useState(false);
+
+  const handleDownloadReceipt = async () => {
+    if (!receiptRef.current || !selectedOrder) return;
+    setDownloadingReceipt(true);
+    try {
+      // html2canvas-pro supports modern Tailwind CSS v4 oklch colors
+      const html2canvas = (await import("html2canvas-pro")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        logging: false,
+        imageTimeout: 12000,
+        ignoreElements: (element) => {
+          return (
+            element.classList?.contains("print:hidden") ||
+            element.getAttribute("data-no-print") === "true"
+          );
+        },
+        onclone: (clonedDoc, clonedElement) => {
+          // Unconstrain root modal to full natural height so all items are captured
+          clonedElement.style.maxHeight = "none";
+          clonedElement.style.height = "auto";
+          clonedElement.style.overflow = "visible";
+          clonedElement.style.transform = "none";
+          clonedElement.style.position = "static";
+          clonedElement.style.width = "780px";
+          clonedElement.style.borderRadius = "0px";
+          clonedElement.style.boxShadow = "none";
+          clonedElement.style.border = "none";
+
+          // Expand inner scrollable sections
+          const scrollables = clonedElement.querySelectorAll("[data-lenis-prevent], .overflow-y-auto");
+          scrollables.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            htmlEl.style.overflow = "visible";
+            htmlEl.style.maxHeight = "none";
+            htmlEl.style.height = "auto";
+          });
+
+          // Hide action buttons, copy icons and print-hidden elements
+          const printHidden = clonedElement.querySelectorAll(".print\\:hidden");
+          printHidden.forEach((el) => {
+            (el as HTMLElement).style.display = "none";
+          });
+
+          // Safely replace video elements if any
+          const videos = clonedElement.querySelectorAll("video");
+          videos.forEach((video) => {
+            const placeholder = clonedDoc.createElement("div");
+            placeholder.style.width = "64px";
+            placeholder.style.height = "64px";
+            placeholder.style.display = "flex";
+            placeholder.style.alignItems = "center";
+            placeholder.style.justifyContent = "center";
+            placeholder.style.background = "#f7f2ee";
+            placeholder.style.borderRadius = "8px";
+            placeholder.style.fontSize = "10px";
+            placeholder.style.color = "#7a5d68";
+            placeholder.textContent = "Media";
+            video.parentNode?.replaceChild(placeholder, video);
+          });
+
+          // Ensure all images carry crossOrigin attribute
+          const images = clonedElement.querySelectorAll("img");
+          images.forEach((img) => {
+            img.crossOrigin = "anonymous";
+          });
+        }
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, Math.max(pdfHeight, 210)]
+      });
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Order-Receipt-${selectedOrder.orderNumber}.pdf`);
+      toast.success("Order receipt downloaded successfully!");
+    } catch (err) {
+      console.error("Failed to download receipt:", err);
+      toast.error("Failed to download receipt. Please try again.");
+    } finally {
+      setDownloadingReceipt(false);
     }
   };
 
@@ -528,7 +619,7 @@ export default function MyOrdersPage() {
                       : "bg-white/60 text-verdant-emerald/70 hover:bg-white hover:text-verdant-emerald border border-verdant-emerald/10"
                   }`}
                 >
-                  <span>All Commissions</span>
+                  <span>All Orders</span>
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                     activeTab === "ALL" ? "bg-white/20 text-white" : "bg-verdant-cream text-verdant-emerald"
                   }`}>
@@ -668,7 +759,7 @@ export default function MyOrdersPage() {
           <div className="glass-card bg-white/70 border border-verdant-emerald/10 rounded-3xl p-12 text-center my-8 space-y-4 max-w-md mx-auto">
             <Package className="w-10 h-10 text-verdant-emerald/30 mx-auto" />
             <h4 className="font-serif text-xl font-light text-verdant-emerald">
-              No Matching Commissions Found
+              No Matching Orders Found
             </h4>
             <p className="text-xs text-verdant-emerald/60 font-sans max-w-xs mx-auto leading-relaxed">
               We couldn&apos;t find any orders matching your specified filters or query.
@@ -743,7 +834,7 @@ export default function MyOrdersPage() {
                     <div className="flex items-center justify-between md:justify-end gap-5 pt-3 md:pt-0 border-t md:border-t-0 border-verdant-emerald/10">
                       <div className="text-right">
                         <span className="text-[9px] uppercase tracking-[0.2em] text-verdant-gold block font-mono font-bold">
-                          Total Investment
+                          Total Amount
                         </span>
                         <span className="font-serif text-lg sm:text-xl font-normal text-verdant-emerald">
                           ₹{order.grandTotal.toLocaleString("en-IN")}
@@ -754,7 +845,7 @@ export default function MyOrdersPage() {
                         onClick={() => setSelectedOrder(order)}
                         className="bg-white hover:bg-verdant-cream border border-verdant-emerald/15 hover:border-verdant-gold/50 text-verdant-emerald px-4 py-2 rounded-full text-xs font-serif tracking-wider uppercase font-semibold transition-all duration-200 cursor-pointer inline-flex items-center gap-1.5 shadow-xs shrink-0"
                       >
-                        <span>View Receipt</span>
+                        <span>View Details</span>
                         <ChevronRight className="w-3.5 h-3.5 text-verdant-gold" />
                       </button>
                     </div>
@@ -813,7 +904,7 @@ export default function MyOrdersPage() {
                             <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                           </div>
                           <span className="text-[9px] uppercase tracking-wider font-semibold text-verdant-emerald mt-1.5 font-mono">
-                            Commissioned
+                            Order Placed
                           </span>
                         </div>
 
@@ -987,7 +1078,7 @@ export default function MyOrdersPage() {
                       onClick={() => setSelectedOrder(order)}
                       className="text-xs font-serif uppercase tracking-wider font-semibold text-verdant-gold hover:text-verdant-emerald transition-colors cursor-pointer inline-flex items-center gap-1.5 self-start sm:self-auto"
                     >
-                      <span>Full Receipt &amp; Tracking Log</span>
+                      <span>View Order Details</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -1011,11 +1102,12 @@ export default function MyOrdersPage() {
             />
 
             <motion.div
+              ref={receiptRef}
               initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 12 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white border border-verdant-emerald/15 w-full max-w-3xl rounded-3xl shadow-2xl relative z-10 overflow-hidden max-h-[92vh] flex flex-col text-left text-verdant-emerald print:max-w-none print:h-auto print:max-h-none print:border-none print:shadow-none print:rounded-none"
+              className="bg-white border border-verdant-emerald/15 w-full max-w-3xl rounded-3xl shadow-2xl relative z-10 overflow-hidden max-h-[92vh] flex flex-col text-left text-verdant-emerald print:max-w-none print:h-auto print:max-h-none print:border-none print:shadow-none print:rounded-none print-unconstrained"
             >
               {/* Receipt Header with House Seal */}
               <div className="p-6 sm:p-8 border-b border-verdant-emerald/10 bg-gradient-to-b from-verdant-cream/90 to-white relative overflow-hidden">
@@ -1027,29 +1119,41 @@ export default function MyOrdersPage() {
                       <CrestMark size={28} />
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase tracking-[0.3em] font-mono text-verdant-gold font-bold block mb-1">
-                        Fine Jewelry &bull; Official Registry
+                      <span className="text-[9px] uppercase tracking-[0.25em] font-mono text-verdant-gold font-bold block mb-1">
+                        GEETEJ VIRAASAT &bull; EST. 2021
                       </span>
                       <h2 className="font-serif text-2xl sm:text-3xl font-light tracking-wide text-verdant-emerald uppercase">
-                        GEETEJ VIRAASAT
+                        Order Receipt
                       </h2>
                       <p className="text-[11px] text-verdant-emerald/65 font-sans mt-0.5">
-                        Official Purchase Receipt &bull; Certificate of Authenticity
+                        Certified 92.5 Sterling Silver Jewellery
                       </p>
                     </div>
                   </div>
 
-                  {/* Actions: Print & Close */}
+                  {/* Actions: Download & Close */}
                   <div className="flex items-center gap-2 self-end sm:self-start print:hidden">
                     <button
-                      onClick={handlePrintReceipt}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-verdant-cream border border-verdant-emerald/15 hover:border-verdant-gold text-xs font-mono font-medium text-verdant-emerald transition-all shadow-xs cursor-pointer"
-                      title="Print Official Receipt"
+                      type="button"
+                      onClick={handleDownloadReceipt}
+                      disabled={downloadingReceipt}
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white hover:bg-verdant-cream border border-verdant-emerald/15 hover:border-verdant-gold text-xs font-mono font-medium text-verdant-emerald transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                      title="Download Official Receipt PDF"
                     >
-                      <Printer className="w-3.5 h-3.5 text-verdant-gold" />
-                      <span>Print</span>
+                      {downloadingReceipt ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-verdant-gold" />
+                          <span>Downloading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-3.5 h-3.5 text-verdant-gold" />
+                          <span>Download</span>
+                        </>
+                      )}
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSelectedOrder(null)}
                       className="w-8 h-8 rounded-full bg-white hover:bg-verdant-cream border border-verdant-emerald/15 hover:border-verdant-emerald flex items-center justify-center text-verdant-emerald/60 hover:text-verdant-emerald transition-colors shadow-xs cursor-pointer"
                       aria-label="Close"
@@ -1062,7 +1166,7 @@ export default function MyOrdersPage() {
                 {/* Receipt Quick Info Banner */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-verdant-emerald/10 text-xs font-mono">
                   <div>
-                    <span className="text-[9px] text-verdant-emerald/50 uppercase tracking-wider block mb-0.5">Commission No.</span>
+                    <span className="text-[9px] text-verdant-emerald/50 uppercase tracking-wider block mb-0.5">Order ID</span>
                     <div className="flex items-center gap-1">
                       <strong className="text-verdant-emerald font-semibold text-xs">#{selectedOrder.orderNumber}</strong>
                       <button
@@ -1076,7 +1180,7 @@ export default function MyOrdersPage() {
                   </div>
 
                   <div>
-                    <span className="text-[9px] text-verdant-emerald/50 uppercase tracking-wider block mb-0.5">Registry Date</span>
+                    <span className="text-[9px] text-verdant-emerald/50 uppercase tracking-wider block mb-0.5">Order Date</span>
                     <span className="text-verdant-emerald font-medium">
                       {new Date(selectedOrder.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
@@ -1099,9 +1203,9 @@ export default function MyOrdersPage() {
                   </div>
 
                   <div>
-                    <span className="text-[9px] text-verdant-emerald/50 uppercase tracking-wider block mb-0.5">Fulfillment Mode</span>
-                    <span className="text-verdant-emerald font-medium truncate block">
-                      WhatsApp Direct Order
+                    <span className="text-[9px] text-verdant-emerald/50 uppercase tracking-wider block mb-0.5">Total Amount</span>
+                    <span className="text-verdant-emerald font-bold text-xs">
+                      ₹{selectedOrder.grandTotal.toLocaleString("en-IN")}
                     </span>
                   </div>
                 </div>
@@ -1134,14 +1238,14 @@ export default function MyOrdersPage() {
                   </div>
                 )}
 
-                {/* Masterpiece Manifest (Items List) */}
+                {/* Items List */}
                 <div>
                   <div className="flex items-center justify-between border-b border-verdant-emerald/10 pb-2.5 mb-3">
-                    <span className="text-[10px] tracking-[0.2em] uppercase text-verdant-gold font-bold font-mono">
-                      Commissioned Masterpiece Manifest ({selectedOrder.items?.length || 0})
+                    <span className="text-[10px] tracking-[0.15em] uppercase text-verdant-gold font-bold font-mono">
+                      Ordered Items ({selectedOrder.items?.length || 0})
                     </span>
                     <span className="text-[10px] text-verdant-emerald/50 font-mono">
-                      Certified Silver &bull; Artisan Crafted
+                      Certified 92.5 Silver
                     </span>
                   </div>
 
@@ -1171,6 +1275,7 @@ export default function MyOrdersPage() {
                                   src={getImageUrl(item.image)}
                                   alt={item.name}
                                   className="w-full h-full object-contain rounded-lg"
+                                  crossOrigin="anonymous"
                                 />
                               )}
                             </div>
@@ -1226,55 +1331,49 @@ export default function MyOrdersPage() {
                   </div>
                 </div>
 
-                {/* Delivery & Logistics Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Delivery & Tracking Details */}
+                <div className={`grid grid-cols-1 ${selectedOrder.courierName || selectedOrder.trackingNumber ? "sm:grid-cols-2" : ""} gap-4`}>
                   {/* Delivery Address */}
                   <div className="bg-verdant-cream/50 border border-verdant-emerald/10 rounded-2xl p-4 text-xs font-sans space-y-1">
                     <div className="flex items-center gap-1.5 text-verdant-gold font-bold text-[10px] uppercase tracking-wider mb-2 font-mono">
                       <MapPin className="w-3.5 h-3.5" />
-                      <span>Armored Delivery Destination</span>
+                      <span>Delivery Address</span>
                     </div>
-                    <p className="font-serif text-sm font-medium text-verdant-emerald">{selectedOrder.shippingAddress?.name}</p>
+                    <p className="font-serif text-sm font-semibold text-verdant-emerald">{selectedOrder.shippingAddress?.name}</p>
                     <p className="text-verdant-emerald/75 leading-relaxed">
                       {selectedOrder.shippingAddress?.addressLine1}
                       {selectedOrder.shippingAddress?.addressLine2 && <>, {selectedOrder.shippingAddress.addressLine2}</>}
                       <br />
                       {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} — {selectedOrder.shippingAddress?.postalCode}
                       <br />
-                      <span className="font-semibold text-verdant-emerald/80">🇮🇳 {selectedOrder.shippingAddress?.country || "India"}</span>
+                      <span className="font-medium text-verdant-emerald/80">{selectedOrder.shippingAddress?.country || "India"}</span>
                     </p>
-                    <p className="font-mono text-[11px] pt-1 text-verdant-emerald/60">
-                      Contact: <strong className="text-verdant-emerald">{selectedOrder.shippingAddress?.phone}</strong>
+                    <p className="font-mono text-[11px] pt-1 text-verdant-emerald/70">
+                      Phone: <strong className="text-verdant-emerald">{selectedOrder.shippingAddress?.phone}</strong>
                     </p>
                   </div>
 
-                  {/* Courier & Transit Details */}
-                  <div className="bg-verdant-cream/50 border border-verdant-emerald/10 rounded-2xl p-4 text-xs font-sans space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-verdant-gold font-bold text-[10px] uppercase tracking-wider mb-2 font-mono">
-                      <Truck className="w-3.5 h-3.5" />
-                      <span>Transit &amp; Security Protocol</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] uppercase text-verdant-emerald/50 block font-mono">Ordering Channel</span>
-                      <span className="font-medium text-verdant-emerald">WhatsApp Direct &bull; Geetej Viraasat</span>
-                    </div>
-                    {selectedOrder.courierName && (
-                      <div>
-                        <span className="text-[9px] uppercase text-verdant-emerald/50 block font-mono">Courier Partner</span>
-                        <span className="font-medium text-verdant-emerald">{selectedOrder.courierName}</span>
+                  {/* Courier & Tracking (if present) */}
+                  {(selectedOrder.courierName || selectedOrder.trackingNumber) && (
+                    <div className="bg-verdant-cream/50 border border-verdant-emerald/10 rounded-2xl p-4 text-xs font-sans space-y-2">
+                      <div className="flex items-center gap-1.5 text-verdant-gold font-bold text-[10px] uppercase tracking-wider mb-2 font-mono">
+                        <Truck className="w-3.5 h-3.5" />
+                        <span>Shipment Tracking</span>
                       </div>
-                    )}
-                    {selectedOrder.trackingNumber && (
-                      <div>
-                        <span className="text-[9px] uppercase text-verdant-emerald/50 block font-mono">Tracking Airway Bill</span>
-                        <span className="font-mono font-semibold text-verdant-emerald">{selectedOrder.trackingNumber}</span>
-                      </div>
-                    )}
-                    <div className="pt-1.5 text-[10px] text-emerald-800 font-medium flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>100% Insured Armored Transit with Signature Adult Delivery</span>
+                      {selectedOrder.courierName && (
+                        <div>
+                          <span className="text-[9px] uppercase text-verdant-emerald/50 block font-mono">Courier Partner</span>
+                          <span className="font-medium text-verdant-emerald">{selectedOrder.courierName}</span>
+                        </div>
+                      )}
+                      {selectedOrder.trackingNumber && (
+                        <div>
+                          <span className="text-[9px] uppercase text-verdant-emerald/50 block font-mono">Tracking Number / AWB</span>
+                          <span className="font-mono font-semibold text-verdant-emerald">{selectedOrder.trackingNumber}</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Shipment Milestones Timeline */}
@@ -1316,22 +1415,6 @@ export default function MyOrdersPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Certificate of Authenticity Banner */}
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-verdant-gold/10 via-white to-verdant-gold/10 border border-verdant-gold/30 flex items-center justify-between gap-4">
-                  <div className="space-y-0.5">
-                    <span className="text-[9px] uppercase tracking-[0.25em] font-mono text-verdant-gold font-bold block">
-                      Certificate of Authenticity
-                    </span>
-                    <p className="text-xs text-verdant-emerald/80 font-sans">
-                      All Geetej Viraasat creations are certified by BIS Hallmarking standards with guaranteed purity of precious metals and verified natural stones.
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-center">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-verdant-emerald/60 block">Official Seal</span>
-                    <span className="font-serif text-xs font-bold text-verdant-gold uppercase tracking-wider">GEETEJ VIRAASAT</span>
-                  </div>
-                </div>
               </div>
 
               {/* Modal Footer & Breakdown */}
@@ -1342,15 +1425,11 @@ export default function MyOrdersPage() {
                     <span>₹{(selectedOrder.subtotal || selectedOrder.grandTotal || 0).toLocaleString("en-IN")}</span>
                   </div>
                   <div className="flex justify-between gap-8 text-verdant-emerald/65 text-[11px]">
-                    <span>Armored Delivery:</span>
-                    <span className="text-emerald-700 font-sans font-medium">Complimentary</span>
-                  </div>
-                  <div className="flex justify-between gap-8 text-verdant-emerald/65 text-[11px]">
-                    <span>Applicable Taxes (GST 3%):</span>
-                    <span className="text-verdant-emerald/50">Included in Price</span>
+                    <span>Delivery:</span>
+                    <span className="text-emerald-700 font-sans font-medium">Free</span>
                   </div>
                   <div className="flex justify-between gap-8 pt-1.5 border-t border-verdant-emerald/15 font-sans">
-                    <span className="font-medium text-xs text-verdant-emerald uppercase tracking-wider">Total Investment:</span>
+                    <span className="font-medium text-xs text-verdant-emerald uppercase tracking-wider">Total Amount:</span>
                     <span className="font-serif text-lg font-semibold text-verdant-emerald">
                       ₹{selectedOrder.grandTotal.toLocaleString("en-IN")}
                     </span>
@@ -1359,17 +1438,29 @@ export default function MyOrdersPage() {
 
                 <div className="flex items-center gap-3 w-full sm:w-auto print:hidden">
                   <button
-                    onClick={handlePrintReceipt}
-                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-full border border-verdant-emerald/15 hover:border-verdant-gold bg-white text-xs font-serif uppercase tracking-wider font-semibold text-verdant-emerald transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                    type="button"
+                    onClick={handleDownloadReceipt}
+                    disabled={downloadingReceipt}
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-full border border-verdant-emerald/15 hover:border-verdant-gold bg-white text-xs font-serif uppercase tracking-wider font-semibold text-verdant-emerald transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <Printer className="w-3.5 h-3.5 text-verdant-gold" />
-                    <span>Print Receipt</span>
+                    {downloadingReceipt ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-verdant-gold" />
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-3.5 h-3.5 text-verdant-gold" />
+                        <span>Download PDF</span>
+                      </>
+                    )}
                   </button>
                   <button
+                    type="button"
                     onClick={() => setSelectedOrder(null)}
                     className="flex-1 sm:flex-none px-6 py-2.5 rounded-full gold-gradient-bg text-verdant-emerald text-xs font-serif uppercase tracking-wider font-semibold shadow-xs hover:shadow-md cursor-pointer transition-all"
                   >
-                    Close Receipt
+                    Close
                   </button>
                 </div>
               </div>
@@ -1454,7 +1545,7 @@ export default function MyOrdersPage() {
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
                     required
-                    placeholder="Reflect on the artistry, stone setting, finishing, and packaging..."
+                    placeholder="Reflect on the artistry, craftsmanship, finishing, and packaging..."
                     className="w-full p-3.5 rounded-2xl bg-verdant-cream/50 border border-verdant-emerald/15 text-xs text-verdant-emerald placeholder:text-verdant-emerald/40 focus:border-verdant-gold focus:ring-2 focus:ring-verdant-gold/20 focus:outline-hidden font-sans transition-all"
                   />
                 </div>

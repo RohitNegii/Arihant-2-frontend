@@ -9,8 +9,15 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const specs = [
     { label: "Archive SKU", value: product.sku },
     { label: "Category", value: product.category?.name || "Bespoke Jewelry" },
-    { label: "Precious Metal", value: product.material },
-    { label: "Metal Purity", value: product.purity },
+    { label: "Precious Metal", value: product.material || "Sterling Silver" },
+    {
+      label: "Metal Purity",
+      value: product.purity
+        ? product.purity.includes("92.5")
+          ? `${product.purity.replace(/%/, "")}% Pure Silver`
+          : `${product.purity} (92.5% Pure Silver)`
+        : "92.5% Pure Silver",
+    },
     { label: "Gross Weight", value: `${product.weight} grams` },
     { label: "Dimensions", value: product.dimensions || "Standard Sizing" },
     { label: "Curated Styling", value: product.gender },
@@ -54,7 +61,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <div className="mt-8 pt-6 border-t border-verdant-emerald/10 flex items-start gap-3 bg-white/40 p-4 rounded-2xl border border-verdant-emerald/5">
         <ShieldCheck className="w-5 h-5 text-verdant-gold shrink-0 mt-0.5" />
         <p className="text-[11px] text-verdant-emerald/75 font-light leading-relaxed">
-          Discover certified silver jewellery from Geetej Viraasat. Refer to each piece&apos;s specifications for its silver purity, weight, and craftsmanship details, or contact us for certification information.
+          Discover certified 92.5 silver jewellery from Geetej Viraasat. Refer to each piece&apos;s specifications for its silver purity (92.5% pure silver), weight, and craftsmanship details, or contact us for certification information.
         </p>
       </div>
     </div>
