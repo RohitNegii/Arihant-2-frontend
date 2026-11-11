@@ -76,16 +76,16 @@ export default function Footer() {
                   className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-white transition-colors"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>WhatsApp: 9494600505</span>
+                  <span>WhatsApp: +91 9494600505</span>
                 </a>
               </div>
 
               <a
-                href="mailto:geetejviraasat@gmail.com"
+                href="mailto:admin@geetejviraasat.com"
                 className="inline-flex items-center gap-2 text-verdant-gold hover:text-white transition-colors group"
               >
                 <Mail className="w-3.5 h-3.5 text-verdant-gold" />
-                <span>geetejviraasat@gmail.com</span>
+                <span>admin@geetejviraasat.com</span>
                 <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </a>
 

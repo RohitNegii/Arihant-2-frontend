@@ -122,14 +122,14 @@ export default function ContactPage() {
     {
       icon: <Mail className="w-5 h-5 text-verdant-gold" />,
       label: "Official Email",
-      value: "geetejviraasat@gmail.com",
-      link: "mailto:geetejviraasat@gmail.com"
+      value: "admin@geetejviraasat.com",
+      link: "mailto:admin@geetejviraasat.com"
     },
     {
       icon: <Phone className="w-5 h-5 text-verdant-gold" />,
       label: "Telephone Support",
-      value: "02562-238018",
-      link: "tel:02562238018"
+      value: "+91 9494600505",
+      link: "tel:+919494600505"
     },
     {
       icon: <MessageCircle className="w-5 h-5 text-emerald-600" />,

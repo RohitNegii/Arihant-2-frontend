@@ -182,10 +182,10 @@ export default function PrivacyPolicyPage() {
           <p className="text-xs text-verdant-emerald/75 leading-relaxed pt-2">
             To exercise any of these rights, simply email our compliance desk at{" "}
             <a
-              href="mailto:geetejviraasat@gmail.com"
+              href="mailto:admin@geetejviraasat.com"
               className="text-verdant-emerald font-semibold underline underline-offset-4 hover:text-verdant-gold transition-colors"
             >
-              geetejviraasat@gmail.com
+              admin@geetejviraasat.com
             </a>{" "}
             or use our concierge inquiry form.
           </p>
