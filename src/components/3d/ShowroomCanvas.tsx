@@ -43,6 +43,8 @@ import { palette } from "@/theme/palette";
 const Q = quality();
 const P = palette();
 const TOUCH = isTouchDevice();
+const DESKTOP_ENTRANCE_BACKOFF = 1.25;
+const INITIAL_CAMERA_Z = 76 + (TOUCH ? 0 : DESKTOP_ENTRANCE_BACKOFF);
 const FULL_PRELOAD = fullPreload();
 /**
  * How far the lens tips down on a touch device.
@@ -330,7 +332,10 @@ function CameraController({ active }: { active: boolean }) {
 
     const step = Math.min(delta, MAX_STEP);
     const travelled = 76.0 - journeyProgress() * 68;
-    const targetZ = TOUCH ? Math.max(travelled, TOUCH_MIN_Z) : travelled;
+    // Leave a small margin around the open desktop doors, then join the
+    // existing camera path before the next room.
+    const entranceBackoff = TOUCH ? 0 : DESKTOP_ENTRANCE_BACKOFF * THREE.MathUtils.smoothstep(travelled, 64, 76);
+    const targetZ = TOUCH ? Math.max(travelled, TOUCH_MIN_Z) : travelled + entranceBackoff;
 
     state.camera.position.z = needsSnap.current ? targetZ : THREE.MathUtils.damp(
       state.camera.position.z,
@@ -382,7 +387,7 @@ function ShowroomCanvas({ active, running }: { active: boolean; running: boolean
     >
       <Canvas
         frameloop={running ? "always" : "never"}
-        camera={{ position: [0, 0.5, 76.0], fov: 45, near: 0.5, far: Q.far }}
+        camera={{ position: [0, 0.5, INITIAL_CAMERA_Z], fov: 45, near: 0.5, far: Q.far }}
         dpr={dpr}
         gl={{
           antialias: true,

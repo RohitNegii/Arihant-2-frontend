@@ -192,19 +192,13 @@ html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
-.showroom-viewport {
-  height: 100vh;
-}
-
-/* Render into the space below the mobile header, including on rotated phones.
+/* Render into the space below the header on desktop, tablets, and phones.
    Resizing the canvas also lets ResponsiveLens use the visible aspect ratio. */
-@media (max-width: 767px), (pointer: coarse) {
-  .showroom-viewport {
-    --showroom-top: var(--site-header-height, calc(5.25rem + env(safe-area-inset-top, 0px)));
-    top: var(--showroom-top);
-    height: calc(100vh - var(--showroom-top));
-    height: calc(100dvh - var(--showroom-top));
-  }
+.showroom-viewport {
+  --showroom-top: var(--site-header-height, calc(5.25rem + env(safe-area-inset-top, 0px)));
+  top: var(--showroom-top);
+  height: calc(100vh - var(--showroom-top));
+  height: calc(100dvh - var(--showroom-top));
 }
 
 /*

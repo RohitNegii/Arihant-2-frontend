@@ -63,7 +63,8 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${cormorant.variable} h-full antialiased font-sans`}
     >
-      <head>
+      {/* Browser inspectors such as Locator can add head attributes before hydration. */}
+      <head suppressHydrationWarning>
         <link rel="preload" href="/images/geetej-crest.webp" as="image" type="image/webp" />
         <link rel="preload" href="/images/necklace-muse.webp" as="image" type="image/webp" />
       </head>
